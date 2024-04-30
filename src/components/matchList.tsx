@@ -21,6 +21,9 @@ export default function MatchList() {
               참가자 수
             </th>
             <th className="px-6 py-3 text-center text-sm font-bold uppercase">
+              종류
+            </th>
+            <th className="px-6 py-3 text-center text-sm font-bold uppercase">
               경기 일정
             </th>
           </tr>
@@ -33,6 +36,9 @@ export default function MatchList() {
               </td>
               <td className="px-6 py-4 whitespace-nowrap border-r border-gray-300 text-center">
                 {item.attendance}
+              </td>
+              <td className="px-6 py-4 whitespace-nowrap border-r border-gray-300 text-center">
+                {item.type}
               </td>
               <td className="px-6 py-4 whitespace-nowrap text-center">
                 {item.startDate} ~ <br /> {item.endDate}
@@ -51,6 +57,7 @@ const tempData = [
     id: "1",
     title: "아차산 배수지 체육공원 풋살장 6:6",
     attendance: 5,
+    type: "풋살",
     startDate: "2024-01-01 12:00:00",
     endDate: "2024-01-01 14:00:00",
   },
@@ -58,6 +65,7 @@ const tempData = [
     id: "2",
     title: "아차산 배수지 체육공원 풋살장 6:6",
     attendance: 5,
+    type: "풋살",
     startDate: "2024-01-01 12:00:00",
     endDate: "2024-01-01 14:00:00",
   },
@@ -65,6 +73,7 @@ const tempData = [
     id: "3",
     title: "아차산 배수지 체육공원 풋살장 6:6",
     attendance: 5,
+    type: "풋살",
     startDate: "2024-01-01 12:00:00",
     endDate: "2024-01-01 14:00:00",
   },
@@ -72,6 +81,7 @@ const tempData = [
     id: "4",
     title: "아차산 배수지 체육공원 풋살장 6:6",
     attendance: 5,
+    type: "풋살",
     startDate: "2024-01-01 12:00:00",
     endDate: "2024-01-01 14:00:00",
   },
