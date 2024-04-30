@@ -3,5 +3,9 @@
 @tailwind utilities;
 
 .bg-green {
-    background-color: #1EC8AA;
+    background-color: #1EB8AA;
+}
+
+.bg-hover-green:hover {
+    background-color: #1AB000;
 }
