@@ -40,6 +40,7 @@ public class GameController {
 	@DeleteMapping("/{id}")
 	public ResponseEntity<Void> removeGame(@PathVariable long id) {
 		gameService.removeGame(id);
+		
 		return ResponseEntity.ok().build();
 	}
 }
