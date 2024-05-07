@@ -14,14 +14,14 @@ on:
       tags:
         description: 'manual trigger'
 
-jobs:
-  build:
+env:
+  MYSQL_IP: ${{secrets.MYSQL_IP}}
+  MYSQL_DB_NAME: ${{secrets.MYSQL_DB_NAME}}
+  MYSQL_USERNAME: ${{secrets.MYSQL_USERNAME}}
+  MYSQL_PASSWORD: ${{secrets.MYSQL_PASSWORD}}
 
-    env:
-      MYSQL_IP: ${{secrets.MYSQL_IP}}
-      MYSQL_DB_NAME: ${{secrets.MYSQL_DB_NAME}}
-      MYSQL_USERNAME: ${{secrets.MYSQL_USERNAME}}
-      MYSQL_PASSWORD: ${{secrets.MYSQL_PASSWORD}}
+jobs:
+  build-deploy:
       
     runs-on: ubuntu-latest
     permissions:
