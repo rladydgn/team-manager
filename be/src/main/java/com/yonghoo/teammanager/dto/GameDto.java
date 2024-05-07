@@ -7,6 +7,7 @@ import com.yonghoo.teammanager.entity.Game;
 import jakarta.validation.constraints.NotBlank;
 import jakarta.validation.constraints.NotNull;
 import lombok.Builder;
+import lombok.Getter;
 import lombok.Setter;
 import lombok.ToString;
 
@@ -36,6 +37,7 @@ public class GameDto {
 	}
 
 	@Builder
+	@Getter
 	public static class Response {
 		private long id;
 
