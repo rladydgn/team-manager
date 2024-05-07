@@ -14,15 +14,15 @@ on:
       tags:
         description: 'manual trigger'
 
+env:
+  MYSQL_IP: ${{secrets.MYSQL_IP}}
+  MYSQL_DB_NAME: ${{secrets.MYSQL_DB_NAME}}
+  MYSQL_USERNAME: ${{secrets.MYSQL_USERNAME}}
+  MYSQL_PASSWORD: ${{secrets.MYSQL_PASSWORD}}
+      
 jobs:
   build:
-
-    env:
-      MYSQL_IP: ${{secrets.MYSQL_IP}}
-      MYSQL_DB_NAME: ${{secrets.MYSQL_DB_NAME}}
-      MYSQL_USERNAME: ${{secrets.MYSQL_USERNAME}}
-      MYSQL_PASSWORD: ${{secrets.MYSQL_PASSWORD}}
-      
+  
     runs-on: ubuntu-latest
     permissions:
       contents: read
@@ -43,6 +43,12 @@ jobs:
         cd be
         ./gradlew build
 
+  deploy:
+    runs-on: ubuntu-latest
+    permissions:
+      contents: read
+
+    steps:
     - name: deploy
       uses: easingthemes/ssh-deploy@main
       with:
