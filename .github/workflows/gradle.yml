@@ -1,4 +1,4 @@
-name: Java CI with Gradle
+name: Java CI/CD
 
 on:
   push:
@@ -52,3 +52,9 @@ jobs:
         REMOTE_PORT: 22
         SOURCE: 'be/build/libs/teammanager-0.0.1-SNAPSHOT.jar'
         TARGET: '~'
+        SCRIPT_AFTER: |
+          pid=$(ps aux | grep "teammanager-0.0.1-SNAPSHOT.jar" | grep -v grep | awk '{print $2}')
+          if [ -n "$pid" ]; then
+            kill -9 $pid  
+          fi
+          nohup java -jar teammanager-0.0.1-SNAPSHOT.jar 2>&1 &
