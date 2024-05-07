@@ -48,7 +48,7 @@ jobs:
       with:
         REMOTE_HOST: ${{secrets.SERVER_HOST}}
         REMOTE_USER: ${{secrets.SERVER_USER}}
-        SSH_PRVIATE_KEY: ${{secrets.SERVER_SSH_KEY}}
+        SSH_PRIVATE_KEY: ${{secrets.SERVER_SSH_KEY}}
         REMOTE_PORT: 22
         SOURCE: 'be/build/libs/teammanager-0.0.1-SNAPSHOT.jar'
         TARGET: '~'
