@@ -18,7 +18,13 @@ public class GameDto {
 		private String opponent;
 
 		@NotBlank
+		private String title;
+
+		@NotBlank
 		private String place;
+
+		@NotBlank
+		private String type;
 
 		@NotNull
 		private LocalDateTime gameStartAt;
@@ -28,8 +34,10 @@ public class GameDto {
 
 		public Game toEntity() {
 			return Game.builder()
+				.title(title)
 				.opponent(opponent)
 				.place(place)
+				.type(type)
 				.gameStartAt(gameStartAt)
 				.gameEndAt(gameEndAt)
 				.build();
@@ -41,9 +49,13 @@ public class GameDto {
 	public static class Response {
 		private long id;
 
+		private String title;
+
 		private String opponent;
 
 		private String place;
+
+		private String type;
 
 		private LocalDateTime gameStartAt;
 
@@ -52,8 +64,10 @@ public class GameDto {
 		public static Response fromEntity(Game game) {
 			return Response.builder()
 				.id(game.getId())
+				.title(game.getTitle())
 				.opponent(game.getOpponent())
 				.place(game.getPlace())
+				.type(game.getType())
 				.gameStartAt(game.getGameStartAt())
 				.gameEndAt(game.getGameEndAt())
 				.build();

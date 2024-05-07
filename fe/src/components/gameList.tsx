@@ -1,7 +1,23 @@
 import Pagination from "@/components/pagination";
 import Link from "next/link";
 
-export default function MatchList() {
+type GameListProps = {
+  id: number,
+  title: string,
+  attendance: number,
+  type: string,
+  gameStartAt: string,
+  gameEndAt: string,
+}
+
+async function getData() {
+  const res = await fetch(`${process.env.API_SERVER}/games`, {cache: "no-cache"});
+  return res.json();
+}
+
+export default async function GameList() {
+  const contents: [GameListProps] = (await getData()).content;
+  console.log(contents);
   return (
     <div>
       <Link
@@ -29,19 +45,19 @@ export default function MatchList() {
           </tr>
         </thead>
         <tbody className="bg-white divide-y divide-gray-200">
-          {tempData.map((item) => (
+          {contents.map((item: GameListProps) => (
             <tr key={item.id} className="hover:bg-gray-100">
               <td className="px-6 py-4 whitespace-nowrap border-r border-gray-300 text-center">
                 {item.title}
               </td>
               <td className="px-6 py-4 whitespace-nowrap border-r border-gray-300 text-center">
-                {item.attendance}
+                {item.attendance ?? 0}
               </td>
               <td className="px-6 py-4 whitespace-nowrap border-r border-gray-300 text-center">
                 {item.type}
               </td>
               <td className="px-6 py-4 whitespace-nowrap text-center">
-                {item.startDate} ~ <br /> {item.endDate}
+                {new Date(item.gameStartAt).toLocaleString('ko-KR')} ~ <br /> {new Date(item.gameEndAt).toLocaleString('ko-KR')}
               </td>
             </tr>
           ))}
@@ -51,38 +67,3 @@ export default function MatchList() {
     </div>
   );
 }
-
-const tempData = [
-  {
-    id: "1",
-    title: "아차산 배수지 체육공원 풋살장 6:6",
-    attendance: 5,
-    type: "풋살",
-    startDate: "2024-01-01 12:00:00",
-    endDate: "2024-01-01 14:00:00",
-  },
-  {
-    id: "2",
-    title: "아차산 배수지 체육공원 풋살장 6:6",
-    attendance: 5,
-    type: "풋살",
-    startDate: "2024-01-01 12:00:00",
-    endDate: "2024-01-01 14:00:00",
-  },
-  {
-    id: "3",
-    title: "아차산 배수지 체육공원 풋살장 6:6",
-    attendance: 5,
-    type: "풋살",
-    startDate: "2024-01-01 12:00:00",
-    endDate: "2024-01-01 14:00:00",
-  },
-  {
-    id: "4",
-    title: "아차산 배수지 체육공원 풋살장 6:6",
-    attendance: 5,
-    type: "풋살",
-    startDate: "2024-01-01 12:00:00",
-    endDate: "2024-01-01 14:00:00",
-  },
-];

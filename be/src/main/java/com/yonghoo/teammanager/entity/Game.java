@@ -29,10 +29,16 @@ public class Game {
 	private long id;
 
 	@Column
+	private String title;
+
+	@Column
 	private String opponent;
 
 	@Column
 	private String place;
+
+	@Column
+	private String type;
 
 	@Column
 	private LocalDateTime gameStartAt;

@@ -1,9 +1,9 @@
-import MatchList from "@/components/matchList";
+import GameList from "@/components/gameList";
 
 export default function Home() {
   return (
     <main>
-      <MatchList />
+      <GameList />
     </main>
   );
 }
