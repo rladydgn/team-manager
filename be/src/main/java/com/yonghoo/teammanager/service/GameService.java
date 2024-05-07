@@ -24,4 +24,8 @@ public class GameService {
 		Page<Game> gameEntities = gameRepository.findAllByOrderByGameStartAtDesc(pageable);
 		return gameEntities.map(GameDto.Response::fromEntity);
 	}
+
+	public void removeGame(long id) {
+		gameRepository.deleteById(id);
+	}
 }
