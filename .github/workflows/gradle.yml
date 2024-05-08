@@ -14,12 +14,6 @@ on:
       tags:
         description: 'manual trigger'
 
-env:
-  MYSQL_IP: ${{secrets.MYSQL_IP}}
-  MYSQL_DB_NAME: ${{secrets.MYSQL_DB_NAME}}
-  MYSQL_USERNAME: ${{secrets.MYSQL_USERNAME}}
-  MYSQL_PASSWORD: ${{secrets.MYSQL_PASSWORD}}
-
 jobs:
   build-deploy:
       
@@ -41,6 +35,7 @@ jobs:
     - name: Build with Gradle Wrapper
       run: |
         cd be
+        run: echo "${{secrets.APPLICATION}}" > ./src/main/resources/application.yml
         ./gradlew build
 
     - name: deploy
