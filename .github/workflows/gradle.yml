@@ -35,7 +35,7 @@ jobs:
     - name: Build with Gradle Wrapper
       run: |
         cd be
-        run: echo "${{secrets.APPLICATION}}" > ./src/main/resources/application.yml
+        echo "${{secrets.APPLICATION}}" > src/main/resources/application.yml
         ./gradlew build
 
     - name: deploy
