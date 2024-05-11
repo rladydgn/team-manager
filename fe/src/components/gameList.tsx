@@ -1,7 +1,7 @@
 import Pagination from "@/components/pagination";
 import Link from "next/link";
 
-type GameListProps = {
+type GameProp = {
   id: number,
   title: string,
   attendance: number,
@@ -11,14 +11,15 @@ type GameListProps = {
   gameEndAt: string,
 }
 
-async function getData() {
-  const res = await fetch(`${process.env.API_SERVER}/games`, {cache: "no-cache"});
+async function getData(page: number = 0) {
+  const res = await fetch(`${process.env.API_SERVER}/games?page=${page}`, {cache: "no-cache"});
   return res.json();
 }
 
-export default async function GameList() {
-  const contents: [GameListProps] = (await getData()).content;
-  console.log(contents);
+export default async function GameList({searchParams}: {page: number}) {
+  const res = await getData(searchParams.page);
+  const contents: [GameProp] = res.content;
+
   return (
     <div>
       <Link
@@ -49,28 +50,28 @@ export default async function GameList() {
         </tr>
         </thead>
         <tbody className="bg-white divide-y divide-gray-200">
-        {contents.map((item: GameListProps) => (
-            <tr key={item.id} className="hover:bg-gray-100">
+        {contents.map((content: GameProp) => (
+            <tr key={content.id} className="hover:bg-gray-100">
               <td className="px-6 py-4 whitespace-nowrap border-r border-gray-300 text-center">
-                {item.title}
+                {content.title}
               </td>
               <td className="px-6 py-4 whitespace-nowrap border-r border-gray-300 text-center">
-                {item.attendance ?? 0}
+                {content.attendance ?? 0}
               </td>
               <td className="px-6 py-4 whitespace-nowrap border-r border-gray-300 text-center">
-                {item.type}
+                {content.type}
               </td>
               <td className="px-6 py-4 whitespace-nowrap border-r border-gray-300 text-center">
-                {item.place}
+                {content.place}
               </td>
               <td className="px-6 py-4 whitespace-nowrap text-center">
-                {new Date(item.gameStartAt).toLocaleString('ko-KR')} ~ <br/> {new Date(item.gameEndAt).toLocaleString('ko-KR')}
+                {new Date(content.gameStartAt).toLocaleString('ko-KR')} ~ <br/> {new Date(content.gameEndAt).toLocaleString('ko-KR')}
               </td>
             </tr>
         ))}
         </tbody>
       </table>
-      <Pagination/>
+      <Pagination totalPages={parseInt(res.totalPages)} totalElements={parseInt(res.totalElements)} nowPage={parseInt(res.number)}/>
     </div>
   );
 }
