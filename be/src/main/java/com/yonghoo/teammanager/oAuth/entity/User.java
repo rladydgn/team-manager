@@ -2,8 +2,13 @@ package com.yonghoo.teammanager.oAuth.entity;
 
 import java.time.LocalDateTime;
 
+import org.springframework.data.annotation.CreatedDate;
+import org.springframework.data.annotation.LastModifiedDate;
+import org.springframework.data.jpa.domain.support.AuditingEntityListener;
+
 import jakarta.persistence.Column;
 import jakarta.persistence.Entity;
+import jakarta.persistence.EntityListeners;
 import jakarta.persistence.GeneratedValue;
 import jakarta.persistence.GenerationType;
 import jakarta.persistence.Id;
@@ -18,6 +23,7 @@ import lombok.NoArgsConstructor;
 @Entity
 @AllArgsConstructor
 @NoArgsConstructor
+@EntityListeners(AuditingEntityListener.class)
 @Table(name = "\"user\"")
 public class User {
 	@Id
@@ -30,8 +36,10 @@ public class User {
 	private String authId;
 	private String name;
 	@Column(name = "created_at")
+	@CreatedDate
 	private LocalDateTime createdAt;
 	@Column(name = "updated_at")
+	@LastModifiedDate
 	private LocalDateTime updatedAt;
 	@Column(name = "deleted_at")
 	private LocalDateTime deletedAt;

@@ -1,10 +1,9 @@
-import GameList from "@/components/gameList";
+import Link from "next/link";
 
-export default function Home({ searchParams }: {page: number}) {
-  console.log(searchParams);
+export default function Home() {
   return (
-    <main>
-      <GameList searchParams={searchParams} />
-    </main>
+    <>
+      <Link href="/login">로그인</Link>
+      </>
   );
 }
