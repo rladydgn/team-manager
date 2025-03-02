@@ -1,9 +1,9 @@
-import Link from "next/link";
+import Test from "@/components/main/calendar";
 
 export default function Home() {
   return (
     <>
-      <Link href="/login">로그인</Link>
-      </>
+      <Test></Test>
+    </>
   );
 }
