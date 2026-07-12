@@ -1,1 +1,1 @@
-rootProject.name = "teammanager"
+rootProject.name = "team-manager"
