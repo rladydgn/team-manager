@@ -1,0 +1,5 @@
+spring:
+  application:
+    name: team-manager
+  exposed:
+    show-sql: true
