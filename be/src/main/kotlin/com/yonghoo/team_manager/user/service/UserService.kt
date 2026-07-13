@@ -25,9 +25,12 @@ class UserService(
             throw ApiException(UserErrorCode.DUPLICATED_USERNAME)
         }
 
+        val passwordHash = passwordEncoder.encode(request.password)
+            ?: throw ApiException(UserErrorCode.INVALID_REGISTER_REQUEST)
+
         userRepository.createUser(
             request = request,
-            passwordHash = passwordEncoder.encode(request.password),
+            passwordHash = passwordHash,
         )
     }
 

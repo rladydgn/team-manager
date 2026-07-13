@@ -10,7 +10,9 @@ import com.yonghoo.team_manager.team.domain.TeamRecord
 import com.yonghoo.team_manager.team.domain.TeamStatus
 import com.yonghoo.team_manager.team.domain.TeamsTable
 import com.yonghoo.team_manager.team.dto.TeamCreateRequest
-import org.jetbrains.exposed.sql.and
+import org.jetbrains.exposed.v1.core.and
+import org.jetbrains.exposed.v1.core.eq
+import org.jetbrains.exposed.v1.core.isNull
 import org.springframework.stereotype.Repository
 import java.time.LocalDateTime
 

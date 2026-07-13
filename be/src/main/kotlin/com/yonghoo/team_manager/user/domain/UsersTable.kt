@@ -1,7 +1,7 @@
 package com.yonghoo.team_manager.user.domain
 
-import org.jetbrains.exposed.dao.id.LongIdTable
-import org.jetbrains.exposed.sql.javatime.datetime
+import org.jetbrains.exposed.v1.core.dao.id.LongIdTable
+import org.jetbrains.exposed.v1.javatime.datetime
 import java.time.LocalDateTime
 
 object UsersTable : LongIdTable("users") {

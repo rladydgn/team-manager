@@ -4,7 +4,9 @@ import com.yonghoo.team_manager.user.domain.UserEntity
 import com.yonghoo.team_manager.user.domain.UserRecord
 import com.yonghoo.team_manager.user.domain.UsersTable
 import com.yonghoo.team_manager.user.dto.UserRegisterRequest
-import org.jetbrains.exposed.sql.and
+import org.jetbrains.exposed.v1.core.and
+import org.jetbrains.exposed.v1.core.eq
+import org.jetbrains.exposed.v1.core.isNull
 import org.springframework.stereotype.Repository
 import java.time.LocalDateTime
 

@@ -1,8 +1,8 @@
 package com.yonghoo.team_manager.team.domain
 
-import org.jetbrains.exposed.dao.id.LongIdTable
-import org.jetbrains.exposed.sql.javatime.date
-import org.jetbrains.exposed.sql.javatime.datetime
+import org.jetbrains.exposed.v1.core.dao.id.LongIdTable
+import org.jetbrains.exposed.v1.javatime.date
+import org.jetbrains.exposed.v1.javatime.datetime
 import java.time.LocalDateTime
 
 object TeamsTable : LongIdTable("soccer_teams") {
