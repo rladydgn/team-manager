@@ -5,9 +5,6 @@ import java.time.LocalDate
 
 @Schema(description = "팀 생성 요청")
 data class TeamCreateRequest(
-    @field:Schema(description = "팀 생성 유저 ID", example = "1", requiredMode = Schema.RequiredMode.REQUIRED)
-    val createdByUserId: Long,
-
     @field:Schema(description = "팀 이름", example = "서울 FC", requiredMode = Schema.RequiredMode.REQUIRED)
     val name: String,
 

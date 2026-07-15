@@ -1,33 +1,41 @@
 "use client";
 
 import Link from "next/link";
+import { useRouter } from "next/navigation";
 import { FormEvent, useState } from "react";
 import { signIn } from "@/features/auth/api/auth";
+import { useAuthSession } from "@/features/auth/model/auth-session";
 
 export default function LoginPage() {
+  const router = useRouter();
+  const { startSession } = useAuthSession();
   const [username, setUsername] = useState("");
   const [password, setPassword] = useState("");
   const [errorMessage, setErrorMessage] = useState("");
-  const [successMessage, setSuccessMessage] = useState("");
   const [isSubmitting, setIsSubmitting] = useState(false);
 
   async function handleSubmit(event: FormEvent<HTMLFormElement>) {
     event.preventDefault();
     setErrorMessage("");
-    setSuccessMessage("");
     setIsSubmitting(true);
 
     try {
       const response = await signIn({ username, password });
 
-      if (response.data) {
-        window.localStorage.setItem(
-          "team-manager:user",
-          JSON.stringify(response.data)
-        );
+      if (!response.data) {
+        setErrorMessage("로그인 정보를 확인하지 못했습니다.");
+        return;
       }
 
-      setSuccessMessage("로그인되었습니다. 팀 관리 화면을 준비하고 있어요.");
+      startSession({
+        user: {
+          id: response.data.id,
+          username: response.data.username,
+          email: response.data.email,
+        },
+        accessToken: response.data.accessToken,
+      });
+      router.replace("/teams");
     } catch (error) {
       setErrorMessage(
         error instanceof Error ? error.message : "로그인에 실패했습니다."
@@ -101,12 +109,6 @@ export default function LoginPage() {
                   {errorMessage ? (
                     <p className="rounded-md border border-[#fecaca] bg-[#fef2f2] px-4 py-3 text-sm font-medium text-[#b91c1c]">
                       {errorMessage}
-                    </p>
-                  ) : null}
-
-                  {successMessage ? (
-                    <p className="rounded-md border border-[#c8d4e6] bg-[#f0f4fa] px-4 py-3 text-sm font-medium text-[#3d5b86]">
-                      {successMessage}
                     </p>
                   ) : null}
 

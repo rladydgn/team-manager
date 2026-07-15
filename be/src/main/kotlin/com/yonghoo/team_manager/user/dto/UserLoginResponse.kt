@@ -13,13 +13,20 @@ data class UserLoginResponse(
 
     @field:Schema(description = "이메일", example = "user@example.com", nullable = true)
     val email: String?,
+
+    @field:Schema(description = "API 인증용 액세스 토큰")
+    val accessToken: String,
 ) {
     companion object {
-        fun from(user: UserRecord): UserLoginResponse {
+        fun from(
+            user: UserRecord,
+            accessToken: String,
+        ): UserLoginResponse {
             return UserLoginResponse(
                 id = user.id,
                 username = user.username,
                 email = user.email,
+                accessToken = accessToken,
             )
         }
     }

@@ -8,7 +8,7 @@ class TeamMemberEntity(id: EntityID<Long>) : LongEntity(id) {
     companion object : LongEntityClass<TeamMemberEntity>(TeamMembersTable)
 
     var teamId by TeamMembersTable.teamId
-    var userId by TeamMembersTable.userId
+    var userId: Long? by TeamMembersTable.userId
     var role by TeamMembersTable.role
     var status by TeamMembersTable.status
     var joinedAt by TeamMembersTable.joinedAt

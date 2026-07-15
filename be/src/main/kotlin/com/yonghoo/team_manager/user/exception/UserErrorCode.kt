@@ -18,6 +18,14 @@ enum class UserErrorCode(
     LOGIN_FAILED(
         status = HttpStatus.UNAUTHORIZED,
         message = "아이디 또는 비밀번호가 올바르지 않습니다.",
+    ),
+    UNAUTHORIZED_ACCESS(
+        status = HttpStatus.UNAUTHORIZED,
+        message = "로그인이 필요하거나 인증 정보가 유효하지 않습니다.",
+    ),
+    INVALID_REFRESH_TOKEN(
+        status = HttpStatus.UNAUTHORIZED,
+        message = "리프레시 토큰이 유효하지 않습니다.",
     );
 
     override val code: String

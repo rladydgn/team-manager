@@ -3,3 +3,11 @@ spring:
     name: team-manager
   exposed:
     show-sql: true
+
+app:
+  jwt:
+    secret: ${JWT_SECRET}
+    issuer: team-manager
+    access-token-expiration: 24h
+    refresh-token-expiration: 7d
+    refresh-cookie-secure: ${JWT_REFRESH_COOKIE_SECURE:false}

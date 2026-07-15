@@ -1,4 +1,5 @@
 import { API_BASE_URL } from "@/shared/config/api";
+import { getAccessToken } from "@/shared/auth/access-token";
 
 type ApiResponse<T> = {
   success: boolean;
@@ -11,18 +12,9 @@ type ApiErrorResponse = {
   message?: string;
 };
 
-export async function postJson<TResponse, TBody>(
-  path: string,
-  body: TBody
+async function resolveResponse<TResponse>(
+  response: Response
 ): Promise<ApiResponse<TResponse>> {
-  const response = await fetch(`${API_BASE_URL}${path}`, {
-    method: "POST",
-    headers: {
-      "Content-Type": "application/json",
-    },
-    body: JSON.stringify(body),
-  });
-
   if (!response.ok) {
     let errorMessage = "요청을 처리하지 못했습니다.";
 
@@ -37,4 +29,44 @@ export async function postJson<TResponse, TBody>(
   }
 
   return response.json() as Promise<ApiResponse<TResponse>>;
+}
+
+function createHeaders(includeJsonContentType = false) {
+  const accessToken = getAccessToken();
+  const headers: Record<string, string> = {};
+
+  if (includeJsonContentType) {
+    headers["Content-Type"] = "application/json";
+  }
+
+  if (accessToken) {
+    headers.Authorization = `Bearer ${accessToken}`;
+  }
+
+  return headers;
+}
+
+export async function getJson<TResponse>(
+  path: string
+): Promise<ApiResponse<TResponse>> {
+  const response = await fetch(`${API_BASE_URL}${path}`, {
+    headers: createHeaders(),
+    credentials: "include",
+  });
+
+  return resolveResponse<TResponse>(response);
+}
+
+export async function postJson<TResponse, TBody = undefined>(
+  path: string,
+  body?: TBody
+): Promise<ApiResponse<TResponse>> {
+  const response = await fetch(`${API_BASE_URL}${path}`, {
+    method: "POST",
+    headers: createHeaders(body !== undefined),
+    body: body === undefined ? undefined : JSON.stringify(body),
+    credentials: "include",
+  });
+
+  return resolveResponse<TResponse>(response);
 }

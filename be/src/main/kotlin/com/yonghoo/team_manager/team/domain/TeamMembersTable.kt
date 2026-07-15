@@ -6,7 +6,7 @@ import java.time.LocalDateTime
 
 object TeamMembersTable : LongIdTable("team_members") {
     val teamId = long("team_id")
-    val userId = long("user_id")
+    val userId = long("user_id").nullable()
     val role = enumerationByName("role", 20, TeamMemberRole::class).clientDefault { TeamMemberRole.MEMBER }
     val status = enumerationByName("status", 20, TeamMemberStatus::class).clientDefault { TeamMemberStatus.ACTIVE }
     val joinedAt = datetime("joined_at").nullable()

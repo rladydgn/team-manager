@@ -6,7 +6,9 @@ This version has breaking changes — APIs, conventions, and file structure may 
 
 # Project UI Rules
 
-This project is a football team management service for member management, match schedules, match records, and membership fee management.
+This project is Team Manager, a football team management service for member management, match schedules, match records, match participation, guest players, and membership fee management.
+
+The frontend should help team owners and sub-managers quickly understand what needs attention: upcoming matches, member attendance, match records, and fee status. The default experience should feel like a practical team operations tool, not a marketing page.
 
 This frontend must be built as a responsive application.
 
@@ -17,3 +19,22 @@ This frontend must be built as a responsive application.
 - Keep common workflows usable on small screens without requiring horizontal scrolling.
 - Before finishing UI work, check the page at least at mobile and desktop widths.
 - Do not add desktop-only interactions unless there is an accessible mobile alternative.
+
+# Frontend Stack
+
+- Use Next.js App Router.
+- Follow the local Next.js version guidance above before changing framework conventions.
+- Use Tailwind CSS utility classes for most styling.
+- Keep shared API/config code under `src/shared`.
+- Keep domain-specific frontend logic under `src/features` or route-local files when small.
+- Keep JWT access tokens in memory only and send them through the `Authorization` header. Do not store tokens in `localStorage` or `sessionStorage`.
+- Store refresh tokens only in HttpOnly cookies and restore the in-memory access token through the refresh endpoint after a full page reload.
+- Use the auth context for UI state only; backend authorization must rely on the validated JWT.
+
+# Visual Direction
+
+- Use one calm, consistent theme color across pages.
+- Current theme color is soft indigo: `#4f6f9f`.
+- Avoid overly saturated colors for large surfaces.
+- Keep forms focused and simple; avoid competing side panels unless they provide clear value.
+- Build dense operational screens with clear hierarchy, readable tables/lists, and predictable actions.

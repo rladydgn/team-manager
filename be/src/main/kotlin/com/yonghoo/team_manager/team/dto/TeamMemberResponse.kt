@@ -12,9 +12,9 @@ data class TeamMemberResponse(
     val id: Long,
 
     @field:Schema(description = "유저 ID", example = "1")
-    val userId: Long,
+    val userId: Long?,
 
-    @field:Schema(description = "팀 권한", example = "MEMBER")
+    @field:Schema(description = "팀 권한(OWNER, SUB_MANAGER, MEMBER, GUEST)", example = "MEMBER")
     val role: TeamMemberRole,
 
     @field:Schema(description = "가입 상태", example = "ACTIVE")

@@ -5,7 +5,7 @@ import java.time.LocalDateTime
 data class TeamMemberRecord(
     val id: Long,
     val teamId: Long,
-    val userId: Long,
+    val userId: Long?,
     val role: TeamMemberRole,
     val status: TeamMemberStatus,
     val joinedAt: LocalDateTime?,

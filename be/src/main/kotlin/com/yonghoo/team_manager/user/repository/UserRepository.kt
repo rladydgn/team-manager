@@ -30,6 +30,12 @@ class UserRepository {
         }.firstOrNull()?.let(UserRecord::from)
     }
 
+    fun selectUserById(userId: Long): UserRecord? {
+        return UserEntity.find {
+            (UsersTable.id eq userId) and UsersTable.deletedAt.isNull()
+        }.firstOrNull()?.let(UserRecord::from)
+    }
+
     fun existsByUsername(username: String): Boolean {
         return UserEntity.find {
             (UsersTable.username eq username) and UsersTable.deletedAt.isNull()

@@ -4,4 +4,5 @@ enum class TeamMemberRole {
     OWNER,
     SUB_MANAGER,
     MEMBER,
+    GUEST,
 }

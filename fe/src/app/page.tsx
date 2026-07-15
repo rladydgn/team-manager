@@ -1,4 +1,7 @@
+"use client";
+
 import Link from "next/link";
+import { useCurrentUser } from "@/features/auth/model/auth-session";
 
 const featureItems = [
   {
@@ -32,6 +35,8 @@ const memberRows = [
 ];
 
 export default function HomePage() {
+  const currentUser = useCurrentUser();
+
   return (
     <div className="min-h-screen bg-[#f5f7fb] text-[#111827]">
       <header className="border-b border-[#dbe4f0] bg-white/90">
@@ -51,12 +56,21 @@ export default function HomePage() {
             <a href="#start">시작하기</a>
           </nav>
 
-          <Link
-            href="/login"
-            className="inline-flex h-10 shrink-0 items-center justify-center rounded-md border border-[#c8d4e6] bg-white px-4 text-sm font-semibold text-[#3d5b86] shadow-sm transition-colors hover:bg-[#f0f4fa]"
-          >
-            로그인
-          </Link>
+          {currentUser ? (
+            <Link
+              href="/teams"
+              className="inline-flex h-10 shrink-0 items-center justify-center rounded-md border border-[#c8d4e6] bg-white px-4 text-sm font-semibold text-[#3d5b86] shadow-sm transition-colors hover:bg-[#f0f4fa]"
+            >
+              {currentUser.username}
+            </Link>
+          ) : (
+            <Link
+              href="/login"
+              className="inline-flex h-10 shrink-0 items-center justify-center rounded-md border border-[#c8d4e6] bg-white px-4 text-sm font-semibold text-[#3d5b86] shadow-sm transition-colors hover:bg-[#f0f4fa]"
+            >
+              로그인
+            </Link>
+          )}
         </div>
       </header>
 
@@ -80,10 +94,10 @@ export default function HomePage() {
               className="mt-8 flex flex-col gap-3 sm:flex-row sm:items-center"
             >
               <Link
-                href="/login"
+                href={currentUser ? "/teams" : "/login"}
                 className="inline-flex h-12 items-center justify-center rounded-md bg-[#4f6f9f] px-6 text-base font-semibold text-white shadow-sm transition-colors hover:bg-[#435f88]"
               >
-                팀 운영 시작하기
+                {currentUser ? "팀 관리로 이동" : "팀 운영 시작하기"}
               </Link>
               <Link
                 href="/sign-up"

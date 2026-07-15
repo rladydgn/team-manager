@@ -1,13 +1,15 @@
 package com.yonghoo.team_manager.user.service
 
 import com.yonghoo.team_manager.exception.exception.ApiException
+import com.yonghoo.team_manager.user.auth.JwtTokenProvider
+import com.yonghoo.team_manager.user.auth.PasswordHasher
 import com.yonghoo.team_manager.user.domain.UserRecord
 import com.yonghoo.team_manager.user.dto.UserLoginRequest
 import com.yonghoo.team_manager.user.dto.UserLoginResponse
 import com.yonghoo.team_manager.user.dto.UserRegisterRequest
+import com.yonghoo.team_manager.user.dto.UserSignInResult
 import com.yonghoo.team_manager.user.exception.UserErrorCode
 import com.yonghoo.team_manager.user.repository.UserRepository
-import org.springframework.security.crypto.password.PasswordEncoder
 import org.springframework.stereotype.Service
 import org.springframework.transaction.annotation.Transactional
 import java.time.LocalDateTime
@@ -15,8 +17,9 @@ import java.time.LocalDateTime
 @Transactional
 @Service
 class UserService(
-    private val passwordEncoder: PasswordEncoder,
+    private val passwordHasher: PasswordHasher,
     private val userRepository: UserRepository,
+    private val jwtTokenProvider: JwtTokenProvider,
 ) {
     fun registerUser(request: UserRegisterRequest) {
         validateRegisterRequest(request)
@@ -25,8 +28,7 @@ class UserService(
             throw ApiException(UserErrorCode.DUPLICATED_USERNAME)
         }
 
-        val passwordHash = passwordEncoder.encode(request.password)
-            ?: throw ApiException(UserErrorCode.INVALID_REGISTER_REQUEST)
+        val passwordHash = passwordHasher.hash(request.password)
 
         userRepository.createUser(
             request = request,
@@ -34,16 +36,31 @@ class UserService(
         )
     }
 
-    fun signIn(request: UserLoginRequest): UserLoginResponse {
+    fun signIn(request: UserLoginRequest): UserSignInResult {
         val user = userRepository.selectUserByUsername(request.username)
             ?: throw ApiException(UserErrorCode.LOGIN_FAILED)
 
-        if (!passwordEncoder.matches(request.password, user.passwordHash)) {
+        if (!passwordHasher.matches(request.password, user.passwordHash)) {
             throw ApiException(UserErrorCode.LOGIN_FAILED)
         }
 
         val loggedInUser = userRepository.updateLastLoginAt(user.id, LocalDateTime.now())
-        return UserLoginResponse.from(loggedInUser)
+        return UserSignInResult(
+            response = createLoginResponse(loggedInUser),
+            refreshToken = jwtTokenProvider.createRefreshToken(loggedInUser),
+        )
+    }
+
+    fun refreshAccessToken(refreshToken: String): UserLoginResponse {
+        val userId = try {
+            jwtTokenProvider.getRefreshTokenUserId(refreshToken)
+        } catch (exception: RuntimeException) {
+            throw ApiException(UserErrorCode.INVALID_REFRESH_TOKEN)
+        }
+        val user = userRepository.selectUserById(userId)
+            ?: throw ApiException(UserErrorCode.INVALID_REFRESH_TOKEN)
+
+        return createLoginResponse(user)
     }
 
     fun getUser(username: String): UserRecord? {
@@ -60,6 +77,13 @@ class UserService(
         ) {
             throw ApiException(UserErrorCode.INVALID_REGISTER_REQUEST)
         }
+    }
+
+    private fun createLoginResponse(user: UserRecord): UserLoginResponse {
+        return UserLoginResponse.from(
+            user = user,
+            accessToken = jwtTokenProvider.createAccessToken(user),
+        )
     }
 
     companion object {

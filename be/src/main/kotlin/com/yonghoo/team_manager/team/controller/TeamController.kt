@@ -1,9 +1,9 @@
 package com.yonghoo.team_manager.team.controller
 
 import com.yonghoo.team_manager.common.dto.CommonResponse
+import com.yonghoo.team_manager.user.auth.AUTHENTICATED_USER_ID_ATTRIBUTE
 import com.yonghoo.team_manager.team.dto.TeamCreateRequest
 import com.yonghoo.team_manager.team.dto.TeamDetailResponse
-import com.yonghoo.team_manager.team.dto.TeamJoinRequest
 import com.yonghoo.team_manager.team.dto.TeamMemberResponse
 import com.yonghoo.team_manager.team.dto.TeamResponse
 import com.yonghoo.team_manager.team.service.TeamService
@@ -15,6 +15,7 @@ import org.springframework.web.bind.annotation.PathVariable
 import org.springframework.web.bind.annotation.PostMapping
 import org.springframework.web.bind.annotation.RequestBody
 import org.springframework.web.bind.annotation.RequestMapping
+import org.springframework.web.bind.annotation.RequestAttribute
 import org.springframework.web.bind.annotation.RestController
 
 @RestController
@@ -28,11 +29,12 @@ class TeamController(
     )
     @PostMapping
     fun createTeam(
+        @RequestAttribute(AUTHENTICATED_USER_ID_ATTRIBUTE) userId: Long,
         @RequestBody request: TeamCreateRequest,
     ): ResponseEntity<CommonResponse<TeamResponse>> {
         return ResponseEntity
             .status(HttpStatus.CREATED)
-            .body(CommonResponse(data = teamService.createTeam(request)))
+            .body(CommonResponse(data = teamService.createTeam(userId, request)))
     }
 
     @Operation(
@@ -42,9 +44,9 @@ class TeamController(
     @PostMapping("/{teamId}/members")
     fun joinTeam(
         @PathVariable teamId: Long,
-        @RequestBody request: TeamJoinRequest,
+        @RequestAttribute(AUTHENTICATED_USER_ID_ATTRIBUTE) userId: Long,
     ): ResponseEntity<CommonResponse<TeamMemberResponse>> {
-        return ResponseEntity.ok(CommonResponse(data = teamService.joinTeam(teamId, request)))
+        return ResponseEntity.ok(CommonResponse(data = teamService.joinTeam(teamId, userId)))
     }
 
     @Operation(

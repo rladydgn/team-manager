@@ -1,21 +1,21 @@
 "use client";
 
 import Link from "next/link";
+import { useRouter } from "next/navigation";
 import { FormEvent, useState } from "react";
 import { signUp } from "@/features/auth/api/auth";
 
 export default function SignUpPage() {
+  const router = useRouter();
   const [username, setUsername] = useState("");
   const [password, setPassword] = useState("");
   const [email, setEmail] = useState("");
   const [errorMessage, setErrorMessage] = useState("");
-  const [successMessage, setSuccessMessage] = useState("");
   const [isSubmitting, setIsSubmitting] = useState(false);
 
   async function handleSubmit(event: FormEvent<HTMLFormElement>) {
     event.preventDefault();
     setErrorMessage("");
-    setSuccessMessage("");
     setIsSubmitting(true);
 
     try {
@@ -25,10 +25,7 @@ export default function SignUpPage() {
         email: email.trim() || undefined,
       });
 
-      setSuccessMessage("회원가입이 완료되었습니다. 이제 로그인할 수 있어요.");
-      setUsername("");
-      setPassword("");
-      setEmail("");
+      router.replace("/login");
     } catch (error) {
       setErrorMessage(
         error instanceof Error ? error.message : "회원가입에 실패했습니다."
@@ -121,12 +118,6 @@ export default function SignUpPage() {
                   {errorMessage ? (
                     <p className="rounded-md border border-[#fecaca] bg-[#fef2f2] px-4 py-3 text-sm font-medium text-[#b91c1c]">
                       {errorMessage}
-                    </p>
-                  ) : null}
-
-                  {successMessage ? (
-                    <p className="rounded-md border border-[#c8d4e6] bg-[#f0f4fa] px-4 py-3 text-sm font-medium text-[#3d5b86]">
-                      {successMessage}
                     </p>
                   ) : null}
 

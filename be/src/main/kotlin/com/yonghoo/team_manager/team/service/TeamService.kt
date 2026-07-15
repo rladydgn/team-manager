@@ -4,7 +4,6 @@ import com.yonghoo.team_manager.exception.exception.ApiException
 import com.yonghoo.team_manager.team.domain.TeamMemberRole
 import com.yonghoo.team_manager.team.dto.TeamCreateRequest
 import com.yonghoo.team_manager.team.dto.TeamDetailResponse
-import com.yonghoo.team_manager.team.dto.TeamJoinRequest
 import com.yonghoo.team_manager.team.dto.TeamMemberResponse
 import com.yonghoo.team_manager.team.dto.TeamResponse
 import com.yonghoo.team_manager.team.exception.TeamErrorCode
@@ -19,14 +18,17 @@ class TeamService(
     private val teamRepository: TeamRepository,
     private val userRepository: UserRepository,
 ) {
-    fun createTeam(request: TeamCreateRequest): TeamResponse {
+    fun createTeam(
+        createdByUserId: Long,
+        request: TeamCreateRequest,
+    ): TeamResponse {
         validateTeamCreateRequest(request)
-        validateUserExists(request.createdByUserId)
+        validateUserExists(createdByUserId)
 
-        val team = teamRepository.createTeam(request)
+        val team = teamRepository.createTeam(createdByUserId, request)
         teamRepository.createTeamMember(
             teamId = team.id,
-            userId = request.createdByUserId,
+            userId = createdByUserId,
             role = TeamMemberRole.OWNER,
         )
 
@@ -35,19 +37,19 @@ class TeamService(
 
     fun joinTeam(
         teamId: Long,
-        request: TeamJoinRequest,
+        userId: Long,
     ): TeamMemberResponse {
-        validateUserExists(request.userId)
+        validateUserExists(userId)
         validateTeamExists(teamId)
 
-        if (teamRepository.existsActiveMember(teamId, request.userId)) {
+        if (teamRepository.existsActiveMember(teamId, userId)) {
             throw ApiException(TeamErrorCode.ALREADY_JOINED_TEAM)
         }
 
         return TeamMemberResponse.from(
             teamRepository.createTeamMember(
                 teamId = teamId,
-                userId = request.userId,
+                userId = userId,
                 role = TeamMemberRole.MEMBER,
             ),
         )

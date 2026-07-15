@@ -12,8 +12,8 @@ CREATE TABLE users (
     updated_at DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
     deleted_at DATETIME NULL,
     PRIMARY KEY (id),
-    UNIQUE KEY uk_users_username (username),
-    UNIQUE KEY uk_users_email (email)
+    KEY idx_users_username (username),
+    KEY idx_users_email (email)
 );
 
 CREATE TABLE soccer_teams (
@@ -33,27 +33,76 @@ CREATE TABLE soccer_teams (
     deleted_at DATETIME NULL,
     PRIMARY KEY (id),
     KEY idx_soccer_teams_created_by_user_id (created_by_user_id),
-    KEY idx_soccer_teams_name (name),
-    CONSTRAINT fk_soccer_teams_created_by_user_id
-        FOREIGN KEY (created_by_user_id) REFERENCES users (id)
+    KEY idx_soccer_teams_name (name)
 );
 
 CREATE TABLE team_members (
     id BIGINT UNSIGNED NOT NULL AUTO_INCREMENT,
     team_id BIGINT UNSIGNED NOT NULL,
-    user_id BIGINT UNSIGNED NOT NULL,
-    role ENUM('OWNER', 'SUB_MANAGER', 'MEMBER') NOT NULL DEFAULT 'MEMBER',
+    user_id BIGINT UNSIGNED NULL,
+    role ENUM('OWNER', 'SUB_MANAGER', 'MEMBER', 'GUEST') NOT NULL DEFAULT 'MEMBER',
     status ENUM('ACTIVE', 'PENDING', 'LEFT', 'BANNED') NOT NULL DEFAULT 'ACTIVE',
     joined_at DATETIME NULL,
     created_at DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP,
     updated_at DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
     deleted_at DATETIME NULL,
     PRIMARY KEY (id),
-    UNIQUE KEY uk_team_members_team_user (team_id, user_id),
+    KEY idx_team_members_team_user (team_id, user_id),
     KEY idx_team_members_user_id (user_id),
-    KEY idx_team_members_team_role (team_id, role),
-    CONSTRAINT fk_team_members_team_id
-        FOREIGN KEY (team_id) REFERENCES soccer_teams (id),
-    CONSTRAINT fk_team_members_user_id
-        FOREIGN KEY (user_id) REFERENCES users (id)
+    KEY idx_team_members_team_role (team_id, role)
+);
+
+CREATE TABLE matches (
+    id BIGINT UNSIGNED NOT NULL AUTO_INCREMENT,
+    team_id BIGINT UNSIGNED NOT NULL,
+    match_type ENUM('EXTERNAL', 'INTERNAL') NOT NULL DEFAULT 'EXTERNAL',
+    opponent_team_id BIGINT UNSIGNED NULL,
+    opponent_team_name VARCHAR(100) NULL,
+    created_by_user_id BIGINT UNSIGNED NOT NULL,
+    match_at DATETIME NOT NULL,
+    location VARCHAR(255) NULL,
+    status ENUM('SCHEDULED', 'COMPLETED', 'CANCELED') NOT NULL DEFAULT 'SCHEDULED',
+    created_at DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP,
+    updated_at DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
+    deleted_at DATETIME NULL,
+    PRIMARY KEY (id),
+    KEY idx_matches_team_id (team_id),
+    KEY idx_matches_team_type (team_id, match_type),
+    KEY idx_matches_opponent_team_id (opponent_team_id),
+    KEY idx_matches_created_by_user_id (created_by_user_id),
+    KEY idx_matches_match_at (match_at)
+);
+
+CREATE TABLE match_records (
+    id BIGINT UNSIGNED NOT NULL AUTO_INCREMENT,
+    match_id BIGINT UNSIGNED NOT NULL,
+    home_score INT UNSIGNED NOT NULL,
+    away_score INT UNSIGNED NOT NULL,
+    result ENUM('HOME_WIN', 'DRAW', 'AWAY_WIN') NOT NULL,
+    memo TEXT NULL,
+    recorded_by_user_id BIGINT UNSIGNED NOT NULL,
+    created_at DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP,
+    updated_at DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
+    deleted_at DATETIME NULL,
+    PRIMARY KEY (id),
+    KEY idx_match_records_match_id (match_id),
+    KEY idx_match_records_recorded_by_user_id (recorded_by_user_id)
+);
+
+CREATE TABLE match_participants (
+    id BIGINT UNSIGNED NOT NULL AUTO_INCREMENT,
+    match_id BIGINT UNSIGNED NOT NULL,
+    team_member_id BIGINT UNSIGNED NOT NULL,
+    team_side ENUM('HOME', 'AWAY') NOT NULL DEFAULT 'HOME',
+    status ENUM('INVITED', 'AVAILABLE', 'UNAVAILABLE', 'PENDING') NOT NULL DEFAULT 'PENDING',
+    participated TINYINT(1) NOT NULL DEFAULT 0,
+    memo VARCHAR(500) NULL,
+    created_at DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP,
+    updated_at DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
+    deleted_at DATETIME NULL,
+    PRIMARY KEY (id),
+    KEY idx_match_participants_match_member (match_id, team_member_id),
+    KEY idx_match_participants_team_member_id (team_member_id),
+    KEY idx_match_participants_match_side (match_id, team_side),
+    KEY idx_match_participants_status (match_id, status)
 );

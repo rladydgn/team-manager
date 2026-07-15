@@ -18,10 +18,13 @@ import java.time.LocalDateTime
 
 @Repository
 class TeamRepository {
-    fun createTeam(request: TeamCreateRequest): TeamRecord {
+    fun createTeam(
+        createdByUserId: Long,
+        request: TeamCreateRequest,
+    ): TeamRecord {
         val now = LocalDateTime.now()
         val team = TeamEntity.new {
-            createdByUserId = request.createdByUserId
+            this.createdByUserId = createdByUserId
             name = request.name
             shortName = request.shortName
             logoUrl = request.logoUrl
@@ -39,7 +42,7 @@ class TeamRepository {
 
     fun createTeamMember(
         teamId: Long,
-        userId: Long,
+        userId: Long?,
         role: TeamMemberRole,
     ): TeamMemberRecord {
         val now = LocalDateTime.now()
