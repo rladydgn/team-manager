@@ -19,6 +19,7 @@ class UserRepository {
         val user = UserEntity.new {
             username = request.username
             this.passwordHash = passwordHash
+            name = request.name.trim()
             email = request.email
         }
         return UserRecord.from(user)

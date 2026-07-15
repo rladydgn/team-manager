@@ -72,8 +72,11 @@ class UserService(
     }
 
     private fun validateRegisterRequest(request: UserRegisterRequest) {
+        val name = request.name.trim()
+
         if (!USERNAME_REGEX.matches(request.username) ||
-            !PASSWORD_REGEX.matches(request.password)
+            !PASSWORD_REGEX.matches(request.password) ||
+            name.isBlank() || name.length > NAME_MAX_LENGTH
         ) {
             throw ApiException(UserErrorCode.INVALID_REGISTER_REQUEST)
         }
@@ -87,6 +90,7 @@ class UserService(
     }
 
     companion object {
+        private const val NAME_MAX_LENGTH = 50
         private val USERNAME_REGEX = Regex("^[a-z0-9_-]{5,20}$")
         private val PASSWORD_REGEX = Regex("^(?=.*[A-Za-z])(?=.*\\d)(?=.*[!@#\$%^&*()_+\\-={}\\[\\]:\";'<>?,./]).{8,20}$")
     }

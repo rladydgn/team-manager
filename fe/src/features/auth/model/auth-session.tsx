@@ -14,6 +14,7 @@ import { setAccessToken } from "@/shared/auth/access-token";
 
 export type CurrentUser = {
   id: number;
+  name: string;
   username: string;
   email: string | null;
 };
@@ -47,6 +48,7 @@ export function AuthSessionProvider({ children }: { children: ReactNode }) {
           startSession({
             user: {
               id: response.data.id,
+              name: response.data.name,
               username: response.data.username,
               email: response.data.email,
             },

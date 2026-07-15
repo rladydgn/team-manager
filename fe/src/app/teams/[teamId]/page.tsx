@@ -91,10 +91,13 @@ export default function TeamDetailPage() {
     };
   }, [teamDetail]);
 
-  const isOwner = currentUser?.id === teamDetail?.team.createdByUserId;
-  const isMember = teamDetail?.members.some(
+  const currentMember = teamDetail?.members.find(
     (member) => member.userId === currentUser?.id
   );
+  const isOwner = currentMember?.role === "OWNER";
+  const isMember = Boolean(currentMember);
+  const canCreateMatch =
+    currentMember?.role === "OWNER" || currentMember?.role === "SUB_MANAGER";
 
   async function handleJoin() {
     if (!teamDetail) {
@@ -203,24 +206,39 @@ export default function TeamDetailPage() {
                   </div>
                 </div>
 
-                {isOwner ? (
-                  <span className="inline-flex h-11 w-full items-center justify-center rounded-md border border-[#b9c9df] bg-white px-4 text-sm font-semibold text-[#3d5b86] sm:w-auto">
-                    내가 만든 팀
-                  </span>
-                ) : isMember ? (
-                  <span className="inline-flex h-11 w-full items-center justify-center rounded-md border border-[#b9c9df] bg-white px-4 text-sm font-semibold text-[#3d5b86] sm:w-auto">
-                    가입한 팀
-                  </span>
-                ) : (
-                  <button
-                    type="button"
-                    onClick={() => void handleJoin()}
-                    disabled={isJoining || !currentUser}
-                    className="inline-flex h-11 w-full items-center justify-center rounded-md bg-[#4f6f9f] px-5 text-sm font-semibold text-white shadow-sm transition-colors hover:bg-[#435f88] disabled:cursor-not-allowed disabled:bg-[#e1e8f2] disabled:text-[#52627b] sm:w-auto"
+                <div className="flex w-full flex-col gap-2 sm:w-auto sm:flex-row">
+                  <Link
+                    href={`/teams/${teamDetail.team.id}/matches`}
+                    className="inline-flex h-11 w-full items-center justify-center rounded-md border border-[#b9c9df] bg-white px-5 text-sm font-semibold text-[#3d5b86] transition-colors hover:bg-[#f0f4fa] sm:w-auto"
                   >
-                    {isJoining ? "가입 중..." : "팀 가입"}
-                  </button>
-                )}
+                    경기 일정
+                  </Link>
+                  {canCreateMatch ? (
+                    <Link
+                      href={`/teams/${teamDetail.team.id}/matches/new`}
+                      className="inline-flex h-11 w-full items-center justify-center rounded-md bg-[#4f6f9f] px-5 text-sm font-semibold text-white shadow-sm transition-colors hover:bg-[#435f88] sm:w-auto"
+                    >
+                      경기 등록
+                    </Link>
+                  ) : isOwner ? (
+                    <span className="inline-flex h-11 w-full items-center justify-center rounded-md border border-[#b9c9df] bg-white px-4 text-sm font-semibold text-[#3d5b86] sm:w-auto">
+                      내가 만든 팀
+                    </span>
+                  ) : isMember ? (
+                    <span className="inline-flex h-11 w-full items-center justify-center rounded-md border border-[#b9c9df] bg-white px-4 text-sm font-semibold text-[#3d5b86] sm:w-auto">
+                      가입한 팀
+                    </span>
+                  ) : (
+                    <button
+                      type="button"
+                      onClick={() => void handleJoin()}
+                      disabled={isJoining || !currentUser}
+                      className="inline-flex h-11 w-full items-center justify-center rounded-md bg-[#4f6f9f] px-5 text-sm font-semibold text-white shadow-sm transition-colors hover:bg-[#435f88] disabled:cursor-not-allowed disabled:bg-[#e1e8f2] disabled:text-[#52627b] sm:w-auto"
+                    >
+                      {isJoining ? "가입 중..." : "팀 가입"}
+                    </button>
+                  )}
+                </div>
               </div>
             </section>
 
@@ -284,7 +302,7 @@ export default function TeamDetailPage() {
                       >
                         <div className="min-w-0">
                           <p className="truncate text-sm font-semibold text-[#1f2937]">
-                            {member.userId ? `서비스 유저 #${member.userId}` : "미가입 팀원"}
+                            {member.name ?? (member.userId ? "가입 팀원" : "미가입 팀원")}
                           </p>
                           <p className="mt-1 text-xs text-[#64748b]">
                             {member.joinedAt ? `${formatDate(member.joinedAt)} 가입` : "가입일 미등록"}

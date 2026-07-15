@@ -91,4 +91,16 @@ class TeamRepository {
                 TeamMembersTable.deletedAt.isNull()
         }.empty().not()
     }
+
+    fun selectActiveMemberRole(
+        teamId: Long,
+        userId: Long,
+    ): TeamMemberRole? {
+        return TeamMemberEntity.find {
+            (TeamMembersTable.teamId eq teamId) and
+                (TeamMembersTable.userId eq userId) and
+                (TeamMembersTable.status eq TeamMemberStatus.ACTIVE) and
+                TeamMembersTable.deletedAt.isNull()
+        }.firstOrNull()?.role
+    }
 }

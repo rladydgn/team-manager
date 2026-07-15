@@ -1,12 +1,14 @@
 package com.yonghoo.team_manager.team.controller
 
 import com.yonghoo.team_manager.common.dto.CommonResponse
-import com.yonghoo.team_manager.user.auth.AUTHENTICATED_USER_ID_ATTRIBUTE
+import com.yonghoo.team_manager.exception.exception.ApiException
 import com.yonghoo.team_manager.team.dto.TeamCreateRequest
 import com.yonghoo.team_manager.team.dto.TeamDetailResponse
 import com.yonghoo.team_manager.team.dto.TeamMemberResponse
 import com.yonghoo.team_manager.team.dto.TeamResponse
 import com.yonghoo.team_manager.team.service.TeamService
+import com.yonghoo.team_manager.user.auth.AUTHENTICATED_USER_ID_ATTRIBUTE
+import com.yonghoo.team_manager.user.exception.UserErrorCode
 import io.swagger.v3.oas.annotations.Operation
 import org.springframework.http.HttpStatus
 import org.springframework.http.ResponseEntity
@@ -29,12 +31,12 @@ class TeamController(
     )
     @PostMapping
     fun createTeam(
-        @RequestAttribute(AUTHENTICATED_USER_ID_ATTRIBUTE) userId: Long,
+        @RequestAttribute(name = AUTHENTICATED_USER_ID_ATTRIBUTE, required = false) userId: Long?,
         @RequestBody request: TeamCreateRequest,
     ): ResponseEntity<CommonResponse<TeamResponse>> {
         return ResponseEntity
             .status(HttpStatus.CREATED)
-            .body(CommonResponse(data = teamService.createTeam(userId, request)))
+            .body(CommonResponse(data = teamService.createTeam(requireAuthenticatedUserId(userId), request)))
     }
 
     @Operation(
@@ -44,9 +46,9 @@ class TeamController(
     @PostMapping("/{teamId}/members")
     fun joinTeam(
         @PathVariable teamId: Long,
-        @RequestAttribute(AUTHENTICATED_USER_ID_ATTRIBUTE) userId: Long,
+        @RequestAttribute(name = AUTHENTICATED_USER_ID_ATTRIBUTE, required = false) userId: Long?,
     ): ResponseEntity<CommonResponse<TeamMemberResponse>> {
-        return ResponseEntity.ok(CommonResponse(data = teamService.joinTeam(teamId, userId)))
+        return ResponseEntity.ok(CommonResponse(data = teamService.joinTeam(teamId, requireAuthenticatedUserId(userId))))
     }
 
     @Operation(
@@ -67,5 +69,9 @@ class TeamController(
         @PathVariable teamId: Long,
     ): ResponseEntity<CommonResponse<TeamDetailResponse>> {
         return ResponseEntity.ok(CommonResponse(data = teamService.getTeam(teamId)))
+    }
+
+    private fun requireAuthenticatedUserId(userId: Long?): Long {
+        return userId ?: throw ApiException(UserErrorCode.UNAUTHORIZED_ACCESS)
     }
 }

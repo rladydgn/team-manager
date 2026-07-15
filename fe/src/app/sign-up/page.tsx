@@ -7,6 +7,7 @@ import { signUp } from "@/features/auth/api/auth";
 
 export default function SignUpPage() {
   const router = useRouter();
+  const [name, setName] = useState("");
   const [username, setUsername] = useState("");
   const [password, setPassword] = useState("");
   const [email, setEmail] = useState("");
@@ -20,6 +21,7 @@ export default function SignUpPage() {
 
     try {
       await signUp({
+        name: name.trim(),
         username,
         password,
         email: email.trim() || undefined,
@@ -67,11 +69,26 @@ export default function SignUpPage() {
 
               <div className="p-6 sm:p-8">
                 <p className="text-sm leading-6 text-[#64748b]">
-                  아이디와 비밀번호만으로 먼저 시작하고, 팀 정보는 로그인 후에
-                  만들어도 됩니다.
+                  이름과 계정 정보만 입력하면 바로 팀 운영을 시작할 수 있습니다.
                 </p>
 
                 <form className="mt-8 grid gap-5" onSubmit={handleSubmit}>
+                  <label className="grid gap-2 text-sm font-semibold">
+                    이름
+                    <input
+                      value={name}
+                      onChange={(event) => setName(event.target.value)}
+                      className="h-12 rounded-md border border-[#cbd5e1] bg-white px-4 text-base font-normal outline-none transition-colors placeholder:text-[#94a3b8] focus:border-[#4f6f9f] focus:ring-4 focus:ring-[#e3eaf5]"
+                      placeholder="홍길동"
+                      autoComplete="name"
+                      maxLength={50}
+                      required
+                    />
+                    <span className="text-xs font-normal leading-5 text-[#64748b]">
+                      (팀원 목록과 경기 기록에 표시될 이름입니다.)
+                    </span>
+                  </label>
+
                   <label className="grid gap-2 text-sm font-semibold">
                     아이디
                     <input

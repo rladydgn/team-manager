@@ -48,7 +48,11 @@ class JwtAuthenticationInterceptor(
         return path in PUBLIC_PATHS ||
             path.startsWith("/swagger-ui/") ||
             path.startsWith("/v3/api-docs/") ||
-            (request.method == "GET" && (path == "/teams" || path.startsWith("/teams/")))
+            (request.method == "GET" && (
+                path == "/teams" ||
+                    path.startsWith("/teams/") ||
+                    path.startsWith("/matches/")
+                ))
     }
 
     private fun resolveAccessToken(request: HttpServletRequest): String? {

@@ -31,6 +31,7 @@ export default function TeamsPage() {
   const [searchText, setSearchText] = useState("");
   const [teamName, setTeamName] = useState("");
   const [shortName, setShortName] = useState("");
+  const [foundedAt, setFoundedAt] = useState("");
   const [region, setRegion] = useState("");
   const [homeStadium, setHomeStadium] = useState("");
   const [description, setDescription] = useState("");
@@ -101,6 +102,7 @@ export default function TeamsPage() {
       const response = await createTeam({
         name: teamName.trim(),
         shortName: cleanOptionalValue(shortName),
+        foundedAt: foundedAt || undefined,
         region: cleanOptionalValue(region),
         homeStadium: cleanOptionalValue(homeStadium),
         description: cleanOptionalValue(description),
@@ -108,6 +110,7 @@ export default function TeamsPage() {
 
       setTeamName("");
       setShortName("");
+      setFoundedAt("");
       setRegion("");
       setHomeStadium("");
       setDescription("");
@@ -268,6 +271,17 @@ export default function TeamsPage() {
                     onChange={(event) => setShortName(event.target.value)}
                     className="h-12 rounded-md border border-[#cbd5e1] bg-white px-4 text-base font-normal outline-none transition-colors placeholder:text-[#94a3b8] focus:border-[#4f6f9f] focus:ring-4 focus:ring-[#e3eaf5]"
                     placeholder="WFC"
+                  />
+                </label>
+
+                <label className="grid gap-2 text-sm font-semibold">
+                  창단일
+                  <input
+                    value={foundedAt}
+                    onChange={(event) => setFoundedAt(event.target.value)}
+                    className="h-12 rounded-md border border-[#cbd5e1] bg-white px-4 text-base font-normal outline-none transition-colors focus:border-[#4f6f9f] focus:ring-4 focus:ring-[#e3eaf5]"
+                    type="date"
+                    max={new Date().toISOString().slice(0, 10)}
                   />
                 </label>
 

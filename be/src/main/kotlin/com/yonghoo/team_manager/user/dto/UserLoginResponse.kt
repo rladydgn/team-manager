@@ -11,6 +11,9 @@ data class UserLoginResponse(
     @field:Schema(description = "아이디", example = "user_01")
     val username: String,
 
+    @field:Schema(description = "이름", example = "홍길동")
+    val name: String,
+
     @field:Schema(description = "이메일", example = "user@example.com", nullable = true)
     val email: String?,
 
@@ -25,6 +28,7 @@ data class UserLoginResponse(
             return UserLoginResponse(
                 id = user.id,
                 username = user.username,
+                name = user.name,
                 email = user.email,
                 accessToken = accessToken,
             )

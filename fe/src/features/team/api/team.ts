@@ -22,11 +22,13 @@ export type TeamCreateRequest = {
   description?: string;
   region?: string;
   homeStadium?: string;
+  foundedAt?: string;
 };
 
 export type TeamMember = {
   id: number;
   userId: number | null;
+  name: string | null;
   role: "OWNER" | "SUB_MANAGER" | "MEMBER" | "GUEST";
   status: "ACTIVE" | "PENDING" | "LEFT" | "BANNED";
   joinedAt: string | null;

@@ -2,7 +2,7 @@ CREATE TABLE users (
     id BIGINT UNSIGNED NOT NULL AUTO_INCREMENT,
     username VARCHAR(50) NOT NULL,
     password_hash VARCHAR(255) NOT NULL,
-    name VARCHAR(50) NULL,
+    name VARCHAR(50) NOT NULL,
     email VARCHAR(255) NULL,
     phone_number VARCHAR(30) NULL,
     profile_image_url VARCHAR(500) NULL,

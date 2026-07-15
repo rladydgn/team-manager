@@ -30,6 +30,7 @@ export default function LoginPage() {
       startSession({
         user: {
           id: response.data.id,
+          name: response.data.name,
           username: response.data.username,
           email: response.data.email,
         },

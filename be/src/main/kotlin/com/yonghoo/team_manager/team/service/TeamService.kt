@@ -39,7 +39,7 @@ class TeamService(
         teamId: Long,
         userId: Long,
     ): TeamMemberResponse {
-        validateUserExists(userId)
+        val user = getUser(userId)
         validateTeamExists(teamId)
 
         if (teamRepository.existsActiveMember(teamId, userId)) {
@@ -52,6 +52,7 @@ class TeamService(
                 userId = userId,
                 role = TeamMemberRole.MEMBER,
             ),
+            name = user.name,
         )
     }
 
@@ -64,7 +65,14 @@ class TeamService(
     fun getTeam(teamId: Long): TeamDetailResponse {
         val team = teamRepository.selectTeamById(teamId)
             ?: throw ApiException(TeamErrorCode.TEAM_NOT_FOUND)
-        val members = teamRepository.selectMembersByTeamId(teamId).map(TeamMemberResponse::from)
+        val members = teamRepository.selectMembersByTeamId(teamId).map { member ->
+            TeamMemberResponse.from(
+                member = member,
+                name = member.userId
+                    ?.let(userRepository::selectUserById)
+                    ?.name,
+            )
+        }
 
         return TeamDetailResponse(
             team = TeamResponse.from(team),
@@ -79,10 +87,11 @@ class TeamService(
     }
 
     private fun validateUserExists(userId: Long) {
-        if (!userRepository.existsById(userId)) {
-            throw ApiException(TeamErrorCode.USER_NOT_FOUND)
-        }
+        getUser(userId)
     }
+
+    private fun getUser(userId: Long) = userRepository.selectUserById(userId)
+        ?: throw ApiException(TeamErrorCode.USER_NOT_FOUND)
 
     private fun validateTeamExists(teamId: Long) {
         if (teamRepository.selectTeamById(teamId) == null) {

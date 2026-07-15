@@ -14,6 +14,9 @@ data class TeamMemberResponse(
     @field:Schema(description = "유저 ID", example = "1")
     val userId: Long?,
 
+    @field:Schema(description = "서비스 가입 유저 이름", example = "홍길동", nullable = true)
+    val name: String?,
+
     @field:Schema(description = "팀 권한(OWNER, SUB_MANAGER, MEMBER, GUEST)", example = "MEMBER")
     val role: TeamMemberRole,
 
@@ -24,10 +27,14 @@ data class TeamMemberResponse(
     val joinedAt: LocalDateTime?,
 ) {
     companion object {
-        fun from(member: TeamMemberRecord): TeamMemberResponse {
+        fun from(
+            member: TeamMemberRecord,
+            name: String? = null,
+        ): TeamMemberResponse {
             return TeamMemberResponse(
                 id = member.id,
                 userId = member.userId,
+                name = name,
                 role = member.role,
                 status = member.status,
                 joinedAt = member.joinedAt,
