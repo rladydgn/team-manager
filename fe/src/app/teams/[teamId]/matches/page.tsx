@@ -4,7 +4,7 @@ import Link from "next/link";
 import { useParams } from "next/navigation";
 import { useCallback, useEffect, useMemo, useState } from "react";
 import { getTeamMatches, Match } from "@/features/match/api/match";
-import { useCurrentUser } from "@/features/auth/model/auth-session";
+import { useAuthSession } from "@/features/auth/model/auth-session";
 import { getTeam, TeamDetail } from "@/features/team/api/team";
 
 function formatMatchAt(value: string) {
@@ -49,15 +49,25 @@ function getMatchProgress(match: Match) {
 export default function TeamMatchesPage() {
   const params = useParams<{ teamId: string }>();
   const teamId = Number(params.teamId);
-  const currentUser = useCurrentUser();
+  const { currentUser, isSessionReady } = useAuthSession();
   const [teamDetail, setTeamDetail] = useState<TeamDetail | null>(null);
   const [matches, setMatches] = useState<Match[]>([]);
   const [isLoading, setIsLoading] = useState(true);
   const [errorMessage, setErrorMessage] = useState("");
 
   const loadMatches = useCallback(async () => {
+    if (!isSessionReady) {
+      return;
+    }
+
     if (!Number.isInteger(teamId) || teamId <= 0) {
       setErrorMessage("올바르지 않은 팀 주소입니다.");
+      setIsLoading(false);
+      return;
+    }
+
+    if (!currentUser) {
+      setErrorMessage("로그인 후 팀 경기 일정을 확인할 수 있습니다.");
       setIsLoading(false);
       return;
     }
@@ -79,15 +89,19 @@ export default function TeamMatchesPage() {
     } finally {
       setIsLoading(false);
     }
-  }, [teamId]);
+  }, [currentUser, isSessionReady, teamId]);
 
   useEffect(() => {
+    if (!isSessionReady) {
+      return;
+    }
+
     const timerId = window.setTimeout(() => {
       void loadMatches();
     }, 0);
 
     return () => window.clearTimeout(timerId);
-  }, [loadMatches]);
+  }, [isSessionReady, loadMatches]);
 
   const canCreateMatch = useMemo(() => {
     const role = teamDetail?.members.find(
@@ -99,7 +113,7 @@ export default function TeamMatchesPage() {
 
   return (
     <main className="min-h-screen bg-[#f5f7fb] text-[#111827]">
-      <header className="border-b border-[#dbe4f0] bg-white/90">
+      <header data-legacy-page-header className="border-b border-[#dbe4f0] bg-white/90">
         <div className="mx-auto flex w-full max-w-5xl items-center justify-between gap-4 px-5 py-4 sm:px-6 lg:px-8">
           <Link href="/" className="flex min-w-0 items-center gap-3">
             <span className="grid size-9 shrink-0 place-items-center rounded-md bg-[#4f6f9f] text-sm font-bold text-white">TM</span>

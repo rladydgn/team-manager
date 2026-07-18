@@ -119,7 +119,7 @@ export default function NewMatchPage() {
 
   return (
     <main className="min-h-screen bg-[#f5f7fb] text-[#111827]">
-      <header className="border-b border-[#dbe4f0] bg-white/90">
+      <header data-legacy-page-header className="border-b border-[#dbe4f0] bg-white/90">
         <div className="mx-auto flex w-full max-w-4xl items-center justify-between gap-4 px-5 py-4 sm:px-6 lg:px-8">
           <Link href="/" className="flex min-w-0 items-center gap-3">
             <span className="grid size-9 shrink-0 place-items-center rounded-md bg-[#4f6f9f] text-sm font-bold text-white">

@@ -48,6 +48,7 @@ export default function TeamDetailPage() {
   const [teamDetail, setTeamDetail] = useState<TeamDetail | null>(null);
   const [isLoading, setIsLoading] = useState(true);
   const [isJoining, setIsJoining] = useState(false);
+  const [isJoinRequestPending, setIsJoinRequestPending] = useState(false);
   const [isDeleting, setIsDeleting] = useState(false);
   const [isDeleteConfirmOpen, setIsDeleteConfirmOpen] = useState(false);
   const [errorMessage, setErrorMessage] = useState("");
@@ -125,12 +126,8 @@ export default function TeamDetailPage() {
 
     try {
       const response = await joinTeam(teamDetail.team.id);
-      setTeamDetail((current) =>
-        current && response.data
-          ? { ...current, members: [...current.members, response.data] }
-          : current
-      );
-      setNoticeMessage(`${teamDetail.team.name} 팀 가입이 완료되었습니다.`);
+      setIsJoinRequestPending(response.data?.status === "PENDING");
+      setNoticeMessage(`${teamDetail.team.name} 팀 가입 신청이 완료되었습니다.`);
     } catch (error) {
       setErrorMessage(
         error instanceof Error ? error.message : "팀 가입에 실패했습니다."
@@ -177,7 +174,7 @@ export default function TeamDetailPage() {
 
   return (
     <main className="min-h-screen bg-[#f5f7fb] text-[#111827]">
-      <header className="border-b border-[#dbe4f0] bg-white/90">
+      <header data-legacy-page-header className="border-b border-[#dbe4f0] bg-white/90">
         <div className="mx-auto flex w-full max-w-6xl items-center justify-between gap-4 px-5 py-4 sm:px-6 lg:px-8">
           <Link href="/" className="flex min-w-0 items-center gap-3">
             <span className="grid size-9 shrink-0 place-items-center rounded-md bg-[#4f6f9f] text-sm font-bold text-white">
@@ -269,12 +266,22 @@ export default function TeamDetailPage() {
                       팀 삭제
                     </button>
                   ) : null}
-                  <Link
-                    href={`/teams/${teamDetail.team.id}/matches`}
-                    className="inline-flex h-11 w-full items-center justify-center rounded-md border border-[#b9c9df] bg-white px-5 text-sm font-semibold text-[#3d5b86] transition-colors hover:bg-[#f0f4fa] sm:w-auto"
-                  >
-                    경기 일정
-                  </Link>
+                  {isMember ? (
+                    <Link
+                      href={`/teams/${teamDetail.team.id}/matches`}
+                      className="inline-flex h-11 w-full items-center justify-center rounded-md border border-[#b9c9df] bg-white px-5 text-sm font-semibold text-[#3d5b86] transition-colors hover:bg-[#f0f4fa] sm:w-auto"
+                    >
+                      경기 일정
+                    </Link>
+                  ) : null}
+                  {canEditTeam ? (
+                    <Link
+                      href={`/teams/${teamDetail.team.id}/join-requests`}
+                      className="inline-flex h-11 w-full items-center justify-center rounded-md border border-[#b9c9df] bg-white px-5 text-sm font-semibold text-[#3d5b86] transition-colors hover:bg-[#f0f4fa] sm:w-auto"
+                    >
+                      가입 신청 관리
+                    </Link>
+                  ) : null}
                   {canCreateMatch ? (
                     <Link
                       href={`/teams/${teamDetail.team.id}/matches/new`}
@@ -290,6 +297,10 @@ export default function TeamDetailPage() {
                     <span className="inline-flex h-11 w-full items-center justify-center rounded-md border border-[#b9c9df] bg-white px-4 text-sm font-semibold text-[#3d5b86] sm:w-auto">
                       가입한 팀
                     </span>
+                  ) : isJoinRequestPending ? (
+                    <span className="inline-flex h-11 w-full items-center justify-center rounded-md border border-[#b9c9df] bg-white px-4 text-sm font-semibold text-[#3d5b86] sm:w-auto">
+                      가입 신청 대기 중
+                    </span>
                   ) : (
                     <button
                       type="button"
@@ -297,7 +308,7 @@ export default function TeamDetailPage() {
                       disabled={isJoining || !currentUser}
                       className="inline-flex h-11 w-full items-center justify-center rounded-md bg-[#4f6f9f] px-5 text-sm font-semibold text-white shadow-sm transition-colors hover:bg-[#435f88] disabled:cursor-not-allowed disabled:bg-[#e1e8f2] disabled:text-[#52627b] sm:w-auto"
                     >
-                      {isJoining ? "가입 중..." : "팀 가입"}
+                      {isJoining ? "신청 중..." : "가입 신청"}
                     </button>
                   )}
                 </div>

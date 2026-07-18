@@ -7,6 +7,7 @@ export type SignInRequest = {
 
 export type SignUpRequest = {
   name: string;
+  birthDate: string;
   username: string;
   password: string;
   email: string;
@@ -31,6 +32,10 @@ export function refreshSession() {
   return postJson<SignInResponse>("/users/token/refresh");
 }
 
+export function signOut() {
+  return postJson<null>("/users/sign-out");
+}
+
 export function signUp(request: SignUpRequest) {
   return postJson<null, SignUpRequest>("/users/sign-up", request);
 }
@@ -38,6 +43,14 @@ export function signUp(request: SignUpRequest) {
 export async function isUsernameAvailable(username: string) {
   const response = await getJson<boolean>(
     `/users/id/check?id=${encodeURIComponent(username)}`
+  );
+
+  return response.data === true;
+}
+
+export async function isEmailAvailable(email: string) {
+  const response = await getJson<boolean>(
+    `/users/email/check?email=${encodeURIComponent(email)}`
   );
 
   return response.data === true;

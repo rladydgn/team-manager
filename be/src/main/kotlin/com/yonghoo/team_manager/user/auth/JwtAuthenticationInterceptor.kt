@@ -50,8 +50,7 @@ class JwtAuthenticationInterceptor(
             path.startsWith("/v3/api-docs/") ||
             (request.method == "GET" && (
                 path == "/teams" ||
-                    path.startsWith("/teams/") ||
-                    path.startsWith("/matches/")
+                    TEAM_DETAIL_PATH.matches(path)
                 ))
     }
 
@@ -77,10 +76,13 @@ class JwtAuthenticationInterceptor(
 
     companion object {
         private const val BEARER_PREFIX = "Bearer "
+        private val TEAM_DETAIL_PATH = Regex("^/teams/\\d+$")
         private val PUBLIC_PATHS = setOf(
             "/users/sign-in",
+            "/users/sign-out",
             "/users/sign-up",
             "/users/id/check",
+            "/users/email/check",
             "/users/token/refresh",
         )
     }

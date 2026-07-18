@@ -10,6 +10,7 @@ class UserEntity(id: EntityID<Long>) : LongEntity(id) {
     var username by UsersTable.username
     var passwordHash by UsersTable.passwordHash
     var name by UsersTable.name
+    var birthDate by UsersTable.birthDate
     var email by UsersTable.email
     var status by UsersTable.status
     var lastLoginAt by UsersTable.lastLoginAt

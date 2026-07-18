@@ -34,6 +34,22 @@ enum class TeamErrorCode(
     ALREADY_JOINED_TEAM(
         status = HttpStatus.CONFLICT,
         message = "이미 가입된 팀입니다.",
+    ),
+    TEAM_JOIN_REQUEST_PENDING(
+        status = HttpStatus.CONFLICT,
+        message = "이미 가입 신청이 대기 중입니다.",
+    ),
+    TEAM_JOIN_REQUEST_FORBIDDEN(
+        status = HttpStatus.FORBIDDEN,
+        message = "이 팀에 가입 신청할 수 없습니다.",
+    ),
+    TEAM_JOIN_REQUEST_MANAGEMENT_FORBIDDEN(
+        status = HttpStatus.FORBIDDEN,
+        message = "가입 신청을 관리할 권한이 없습니다.",
+    ),
+    TEAM_JOIN_REQUEST_NOT_FOUND(
+        status = HttpStatus.NOT_FOUND,
+        message = "대기 중인 가입 신청을 찾을 수 없습니다.",
     );
 
     override val code: String

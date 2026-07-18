@@ -36,16 +36,24 @@ class MatchService(
     }
 
     @Transactional(readOnly = true)
-    fun getMatch(matchId: Long): MatchResponse {
+    fun getMatch(
+        matchId: Long,
+        userId: Long,
+    ): MatchResponse {
         val match = matchRepository.selectMatchById(matchId)
             ?: throw ApiException(MatchErrorCode.MATCH_NOT_FOUND)
+        validateMatchViewPermission(match.teamId, userId)
 
         return MatchResponse.from(match)
     }
 
     @Transactional(readOnly = true)
-    fun getMatches(teamId: Long): List<MatchResponse> {
+    fun getMatches(
+        teamId: Long,
+        userId: Long,
+    ): List<MatchResponse> {
         validateTeamExists(teamId)
+        validateMatchViewPermission(teamId, userId)
         return matchRepository.selectMatchesByTeamId(teamId).map(MatchResponse::from)
     }
 
@@ -63,6 +71,15 @@ class MatchService(
 
         if (role != TeamMemberRole.OWNER && role != TeamMemberRole.SUB_MANAGER) {
             throw ApiException(MatchErrorCode.MATCH_CREATION_FORBIDDEN)
+        }
+    }
+
+    private fun validateMatchViewPermission(
+        teamId: Long,
+        userId: Long,
+    ) {
+        if (!teamRepository.existsActiveMember(teamId, userId)) {
+            throw ApiException(MatchErrorCode.MATCH_VIEW_FORBIDDEN)
         }
     }
 

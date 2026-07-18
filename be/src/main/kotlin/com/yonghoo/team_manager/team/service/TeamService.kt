@@ -5,6 +5,7 @@ import com.yonghoo.team_manager.exception.exception.ApiException
 import com.yonghoo.team_manager.team.domain.TeamHistoryAction
 import com.yonghoo.team_manager.team.domain.TeamHistorySnapshot
 import com.yonghoo.team_manager.team.domain.TeamMemberRole
+import com.yonghoo.team_manager.team.domain.TeamMemberStatus
 import com.yonghoo.team_manager.team.domain.TeamRecord
 import com.yonghoo.team_manager.team.dto.TeamCreateRequest
 import com.yonghoo.team_manager.team.dto.TeamDetailResponse
@@ -93,18 +94,50 @@ class TeamService(
         val user = getUser(userId)
         validateTeamExists(teamId)
 
-        if (teamRepository.existsActiveMember(teamId, userId)) {
-            throw ApiException(TeamErrorCode.ALREADY_JOINED_TEAM)
-        }
+        val existingMember = teamRepository.selectTeamMemberByTeamAndUser(teamId, userId)
 
-        return TeamMemberResponse.from(
-            teamRepository.createTeamMember(
+        val teamMember = when (existingMember?.status) {
+            TeamMemberStatus.ACTIVE -> throw ApiException(TeamErrorCode.ALREADY_JOINED_TEAM)
+            TeamMemberStatus.PENDING -> throw ApiException(TeamErrorCode.TEAM_JOIN_REQUEST_PENDING)
+            TeamMemberStatus.BANNED -> throw ApiException(TeamErrorCode.TEAM_JOIN_REQUEST_FORBIDDEN)
+            TeamMemberStatus.REJECTED,
+            TeamMemberStatus.LEFT -> teamRepository.reopenTeamJoinRequest(existingMember.id)
+            null -> teamRepository.createTeamMember(
                 teamId = teamId,
                 userId = userId,
                 role = TeamMemberRole.MEMBER,
-            ),
-            name = user.name,
-        )
+                status = TeamMemberStatus.PENDING,
+            )
+        }
+
+        return TeamMemberResponse.from(teamMember, name = user.name)
+    }
+
+    @Transactional(readOnly = true)
+    fun getJoinRequests(
+        teamId: Long,
+        userId: Long,
+    ): List<TeamMemberResponse> {
+        validateTeamExists(teamId)
+        validateJoinRequestManagementPermission(teamId, userId)
+
+        return teamRepository.selectPendingMembersByTeamId(teamId).map(::toTeamMemberResponse)
+    }
+
+    fun approveJoinRequest(
+        teamId: Long,
+        teamMemberId: Long,
+        userId: Long,
+    ): TeamMemberResponse {
+        return updateJoinRequest(teamId, teamMemberId, userId, TeamMemberStatus.ACTIVE)
+    }
+
+    fun rejectJoinRequest(
+        teamId: Long,
+        teamMemberId: Long,
+        userId: Long,
+    ): TeamMemberResponse {
+        return updateJoinRequest(teamId, teamMemberId, userId, TeamMemberStatus.REJECTED)
     }
 
     @Transactional(readOnly = true)
@@ -116,14 +149,7 @@ class TeamService(
     fun getTeam(teamId: Long): TeamDetailResponse {
         val team = teamRepository.selectTeamById(teamId)
             ?: throw ApiException(TeamErrorCode.TEAM_NOT_FOUND)
-        val members = teamRepository.selectMembersByTeamId(teamId).map { member ->
-            TeamMemberResponse.from(
-                member = member,
-                name = member.userId
-                    ?.let(userRepository::selectUserById)
-                    ?.name,
-            )
-        }
+        val members = teamRepository.selectMembersByTeamId(teamId).map(::toTeamMemberResponse)
 
         return TeamDetailResponse(
             team = TeamResponse.from(team),
@@ -165,6 +191,42 @@ class TeamService(
         if (role != TeamMemberRole.OWNER && role != TeamMemberRole.SUB_MANAGER) {
             throw ApiException(TeamErrorCode.TEAM_UPDATE_FORBIDDEN)
         }
+    }
+
+    private fun validateJoinRequestManagementPermission(
+        teamId: Long,
+        userId: Long,
+    ) {
+        val role = teamRepository.selectActiveMemberRole(teamId, userId)
+
+        if (role != TeamMemberRole.OWNER && role != TeamMemberRole.SUB_MANAGER) {
+            throw ApiException(TeamErrorCode.TEAM_JOIN_REQUEST_MANAGEMENT_FORBIDDEN)
+        }
+    }
+
+    private fun updateJoinRequest(
+        teamId: Long,
+        teamMemberId: Long,
+        userId: Long,
+        status: TeamMemberStatus,
+    ): TeamMemberResponse {
+        validateTeamExists(teamId)
+        validateJoinRequestManagementPermission(teamId, userId)
+
+        val teamMember = teamRepository.selectTeamMemberById(teamId, teamMemberId)
+            ?.takeIf { it.status == TeamMemberStatus.PENDING }
+            ?: throw ApiException(TeamErrorCode.TEAM_JOIN_REQUEST_NOT_FOUND)
+
+        return toTeamMemberResponse(teamRepository.updateTeamMemberStatus(teamMember.id, status))
+    }
+
+    private fun toTeamMemberResponse(member: com.yonghoo.team_manager.team.domain.TeamMemberRecord): TeamMemberResponse {
+        return TeamMemberResponse.from(
+            member = member,
+            name = member.userId
+                ?.let(userRepository::selectUserById)
+                ?.name,
+        )
     }
 
     private fun validateTeamDeletePermission(

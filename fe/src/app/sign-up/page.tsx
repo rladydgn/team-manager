@@ -2,8 +2,13 @@
 
 import Link from "next/link";
 import { useRouter } from "next/navigation";
-import { FormEvent, useState } from "react";
-import { isUsernameAvailable, signUp } from "@/features/auth/api/auth";
+import { FormEvent, useEffect, useState } from "react";
+import {
+  isEmailAvailable,
+  isUsernameAvailable,
+  signUp,
+} from "@/features/auth/api/auth";
+import { useCurrentUser } from "@/features/auth/model/auth-session";
 import {
   SignUpField,
   SignUpFieldErrors,
@@ -12,11 +17,14 @@ import {
 } from "@/features/auth/model/sign-up-validation";
 import { ApiRequestError } from "@/shared/api/http";
 
-const formFields: SignUpField[] = ["name", "username", "password", "email"];
+const formFields: SignUpField[] = ["name", "birthYear", "username", "password", "email"];
+const currentYear = new Date().getFullYear();
 
 export default function SignUpPage() {
   const router = useRouter();
+  const currentUser = useCurrentUser();
   const [name, setName] = useState("");
+  const [birthYear, setBirthYear] = useState("");
   const [username, setUsername] = useState("");
   const [password, setPassword] = useState("");
   const [email, setEmail] = useState("");
@@ -27,11 +35,18 @@ export default function SignUpPage() {
   const [errorMessage, setErrorMessage] = useState("");
   const [isSubmitting, setIsSubmitting] = useState(false);
 
-  const values = { name, username, password, email };
+  const values = { name, birthYear, username, password, email };
+
+  useEffect(() => {
+    if (currentUser) {
+      router.replace("/teams");
+    }
+  }, [currentUser, router]);
 
   function updateField(field: SignUpField, value: string) {
     const setters = {
       name: setName,
+      birthYear: setBirthYear,
       username: setUsername,
       password: setPassword,
       email: setEmail,
@@ -91,8 +106,16 @@ export default function SignUpPage() {
         return;
       }
 
+      const emailAvailable = await isEmailAvailable(email.trim());
+
+      if (!emailAvailable) {
+        setFieldErrors({ email: "이미 사용 중인 이메일입니다." });
+        return;
+      }
+
       await signUp({
         name: name.trim(),
+        birthDate: `${birthYear}-01-01`,
         username,
         password,
         email: email.trim(),
@@ -102,6 +125,11 @@ export default function SignUpPage() {
     } catch (error) {
       if (error instanceof ApiRequestError && error.code === "DUPLICATED_USERNAME") {
         setFieldErrors({ username: error.message });
+        return;
+      }
+
+      if (error instanceof ApiRequestError && error.code === "DUPLICATED_EMAIL") {
+        setFieldErrors({ email: error.message });
         return;
       }
 
@@ -116,7 +144,7 @@ export default function SignUpPage() {
   return (
     <main className="min-h-screen bg-[#f5f7fb] px-5 py-6 text-[#111827] sm:px-6 lg:px-8">
       <div className="mx-auto flex min-h-[calc(100vh-48px)] w-full max-w-6xl flex-col">
-        <header className="flex items-center justify-between gap-4">
+        <header data-legacy-page-header className="flex items-center justify-between gap-4">
           <Link href="/" className="flex min-w-0 items-center gap-3">
             <span className="grid size-9 shrink-0 place-items-center rounded-md bg-[#4f6f9f] text-sm font-bold text-white">
               TM
@@ -171,6 +199,31 @@ export default function SignUpPage() {
                     <span className="text-xs font-normal leading-5 text-[#64748b]">
                       팀원 목록과 경기 기록에 표시되는 이름입니다.
                     </span>
+                  </label>
+
+                  <label className="grid gap-2 text-sm font-semibold">
+                    태어난 연도
+                    <input
+                      value={birthYear}
+                      onBlur={() => validateField("birthYear")}
+                      onChange={(event) => updateField("birthYear", event.target.value)}
+                      aria-describedby={fieldErrors.birthYear ? "birth-year-error" : undefined}
+                      aria-invalid={Boolean(fieldErrors.birthYear)}
+                      className={inputClassName("birthYear")}
+                      placeholder="1998"
+                      type="number"
+                      inputMode="numeric"
+                      autoComplete="bday-year"
+                      min="1900"
+                      max={currentYear}
+                      required
+                      disabled={isSubmitting}
+                    />
+                    {fieldErrors.birthYear ? (
+                      <span id="birth-year-error" className="text-xs font-normal leading-5 text-[#dc2626]">
+                        {fieldErrors.birthYear}
+                      </span>
+                    ) : null}
                   </label>
 
                   <label className="grid gap-2 text-sm font-semibold">

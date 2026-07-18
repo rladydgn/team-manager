@@ -1,5 +1,9 @@
 @import "tailwindcss";
 
+[data-legacy-page-header] {
+  display: none;
+}
+
 :root {
   --background: #f5f7fb;
   --foreground: #111827;

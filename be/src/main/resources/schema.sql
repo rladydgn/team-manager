@@ -3,6 +3,7 @@ CREATE TABLE users (
     username VARCHAR(50) NOT NULL,
     password_hash VARCHAR(255) NOT NULL,
     name VARCHAR(50) NOT NULL,
+    birth_date DATE NOT NULL,
     email VARCHAR(255) NOT NULL,
     phone_number VARCHAR(30) NULL,
     profile_image_url VARCHAR(500) NULL,
@@ -12,8 +13,8 @@ CREATE TABLE users (
     updated_at DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
     deleted_at DATETIME NULL,
     PRIMARY KEY (id),
-    KEY idx_users_username (username),
-    KEY idx_users_email (email)
+    UNIQUE KEY uk_users_username (username),
+    UNIQUE KEY uk_users_email (email)
 );
 
 CREATE TABLE soccer_teams (
@@ -55,7 +56,7 @@ CREATE TABLE team_members (
     team_id BIGINT UNSIGNED NOT NULL,
     user_id BIGINT UNSIGNED NULL,
     role ENUM('OWNER', 'SUB_MANAGER', 'MEMBER', 'GUEST') NOT NULL DEFAULT 'MEMBER',
-    status ENUM('ACTIVE', 'PENDING', 'LEFT', 'BANNED') NOT NULL DEFAULT 'ACTIVE',
+    status ENUM('ACTIVE', 'PENDING', 'REJECTED', 'LEFT', 'BANNED') NOT NULL DEFAULT 'ACTIVE',
     joined_at DATETIME NULL,
     created_at DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP,
     updated_at DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
@@ -63,7 +64,8 @@ CREATE TABLE team_members (
     PRIMARY KEY (id),
     KEY idx_team_members_team_user (team_id, user_id),
     KEY idx_team_members_user_id (user_id),
-    KEY idx_team_members_team_role (team_id, role)
+    KEY idx_team_members_team_role (team_id, role),
+    KEY idx_team_members_team_status (team_id, status)
 );
 
 CREATE TABLE matches (

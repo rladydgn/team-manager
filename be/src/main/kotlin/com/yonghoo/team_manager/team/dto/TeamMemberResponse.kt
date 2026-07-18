@@ -12,6 +12,7 @@ data class TeamMemberResponse(
     val role: TeamMemberRole,
     val status: TeamMemberStatus,
     val joinedAt: LocalDateTime?,
+    val requestedAt: LocalDateTime,
 ) {
     companion object {
         fun from(
@@ -25,6 +26,7 @@ data class TeamMemberResponse(
                 role = member.role,
                 status = member.status,
                 joinedAt = member.joinedAt,
+                requestedAt = member.updatedAt,
             )
         }
     }

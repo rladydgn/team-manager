@@ -41,8 +41,9 @@ export type TeamMember = {
   userId: number | null;
   name: string | null;
   role: "OWNER" | "SUB_MANAGER" | "MEMBER" | "GUEST";
-  status: "ACTIVE" | "PENDING" | "LEFT" | "BANNED";
+  status: "ACTIVE" | "PENDING" | "REJECTED" | "LEFT" | "BANNED";
   joinedAt: string | null;
+  requestedAt: string;
 };
 
 export type TeamDetail = {
@@ -64,6 +65,22 @@ export function createTeam(request: TeamCreateRequest) {
 
 export function joinTeam(teamId: number) {
   return postJson<TeamMember>(`/teams/${teamId}/members`);
+}
+
+export function getTeamJoinRequests(teamId: number) {
+  return getJson<TeamMember[]>(`/teams/${teamId}/join-requests`);
+}
+
+export function approveTeamJoinRequest(teamId: number, teamMemberId: number) {
+  return postJson<TeamMember>(
+    `/teams/${teamId}/join-requests/${teamMemberId}/approve`
+  );
+}
+
+export function rejectTeamJoinRequest(teamId: number, teamMemberId: number) {
+  return postJson<TeamMember>(
+    `/teams/${teamId}/join-requests/${teamMemberId}/reject`
+  );
 }
 
 export function updateTeam(teamId: number, request: TeamUpdateRequest) {

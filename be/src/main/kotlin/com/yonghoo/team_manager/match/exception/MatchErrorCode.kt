@@ -18,6 +18,10 @@ enum class MatchErrorCode(
     MATCH_CREATION_FORBIDDEN(
         status = HttpStatus.FORBIDDEN,
         message = "팀장 또는 부관리자만 매치를 생성할 수 있습니다.",
+    ),
+    MATCH_VIEW_FORBIDDEN(
+        status = HttpStatus.FORBIDDEN,
+        message = "팀에 가입한 회원만 경기 일정을 조회할 수 있습니다.",
     );
 
     override val code: String

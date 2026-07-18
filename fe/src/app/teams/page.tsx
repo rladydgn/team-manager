@@ -144,7 +144,7 @@ export default function TeamsPage() {
 
     try {
       await joinTeam(teamId);
-      setNoticeMessage(`${teamNameValue} 팀 가입이 완료되었습니다.`);
+      setNoticeMessage(`${teamNameValue} 팀 가입 신청이 완료되었습니다.`);
     } catch (error) {
       setErrorMessage(
         error instanceof Error ? error.message : "팀 가입에 실패했습니다."
@@ -156,7 +156,7 @@ export default function TeamsPage() {
 
   return (
     <main className="min-h-screen bg-[#f5f7fb] text-[#111827]">
-      <header className="border-b border-[#dbe4f0] bg-white/90">
+      <header data-legacy-page-header className="border-b border-[#dbe4f0] bg-white/90">
         <div className="mx-auto flex w-full max-w-6xl items-center justify-between gap-4 px-5 py-4 sm:px-6 lg:px-8">
           <Link href="/" className="flex min-w-0 items-center gap-3">
             <span className="grid size-9 shrink-0 place-items-center rounded-md bg-[#4f6f9f] text-sm font-bold text-white">
@@ -422,10 +422,10 @@ export default function TeamsPage() {
                       className="inline-flex h-11 items-center justify-center rounded-md bg-[#4f6f9f] px-4 text-sm font-semibold text-white transition-colors hover:bg-[#435f88] disabled:cursor-not-allowed disabled:bg-[#e1e8f2] disabled:text-[#52627b]"
                     >
                       {joiningTeamId === team.id
-                        ? "가입 중..."
+                        ? "신청 중..."
                         : isOwner
                           ? "내가 만든 팀"
-                          : "팀 가입"}
+                          : "가입 신청"}
                     </button>
                   </div>
                 </article>

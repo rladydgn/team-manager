@@ -92,14 +92,15 @@ class TeamRepository {
         teamId: Long,
         userId: Long?,
         role: TeamMemberRole,
+        status: TeamMemberStatus = TeamMemberStatus.ACTIVE,
     ): TeamMemberRecord {
         val now = LocalDateTime.now()
         val teamMember = TeamMemberEntity.new {
             this.teamId = teamId
             this.userId = userId
             this.role = role
-            status = TeamMemberStatus.ACTIVE
-            joinedAt = now
+            this.status = status
+            joinedAt = now.takeIf { status == TeamMemberStatus.ACTIVE }
             createdAt = now
             updatedAt = now
         }
@@ -126,6 +127,62 @@ class TeamRepository {
                 (TeamMembersTable.status eq TeamMemberStatus.ACTIVE) and
                 TeamMembersTable.deletedAt.isNull()
         }.map(TeamMemberRecord::from)
+    }
+
+    fun selectPendingMembersByTeamId(teamId: Long): List<TeamMemberRecord> {
+        return TeamMemberEntity.find {
+            (TeamMembersTable.teamId eq teamId) and
+                (TeamMembersTable.status eq TeamMemberStatus.PENDING) and
+                TeamMembersTable.deletedAt.isNull()
+        }.map(TeamMemberRecord::from)
+    }
+
+    fun selectTeamMemberById(
+        teamId: Long,
+        teamMemberId: Long,
+    ): TeamMemberRecord? {
+        return TeamMemberEntity.find {
+            (TeamMembersTable.id eq teamMemberId) and
+                (TeamMembersTable.teamId eq teamId) and
+                TeamMembersTable.deletedAt.isNull()
+        }.firstOrNull()?.let(TeamMemberRecord::from)
+    }
+
+    fun selectTeamMemberByTeamAndUser(
+        teamId: Long,
+        userId: Long,
+    ): TeamMemberRecord? {
+        return TeamMemberEntity.find {
+            (TeamMembersTable.teamId eq teamId) and
+                (TeamMembersTable.userId eq userId) and
+                TeamMembersTable.deletedAt.isNull()
+        }.firstOrNull()?.let(TeamMemberRecord::from)
+    }
+
+    fun updateTeamMemberStatus(
+        teamMemberId: Long,
+        status: TeamMemberStatus,
+    ): TeamMemberRecord {
+        val now = LocalDateTime.now()
+        val teamMember = TeamMemberEntity[teamMemberId]
+
+        teamMember.status = status
+        teamMember.joinedAt = now.takeIf { status == TeamMemberStatus.ACTIVE }
+        teamMember.updatedAt = now
+
+        return TeamMemberRecord.from(teamMember)
+    }
+
+    fun reopenTeamJoinRequest(teamMemberId: Long): TeamMemberRecord {
+        val now = LocalDateTime.now()
+        val teamMember = TeamMemberEntity[teamMemberId]
+
+        teamMember.role = TeamMemberRole.MEMBER
+        teamMember.status = TeamMemberStatus.PENDING
+        teamMember.joinedAt = null
+        teamMember.updatedAt = now
+
+        return TeamMemberRecord.from(teamMember)
     }
 
     fun existsActiveMember(

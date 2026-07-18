@@ -1,6 +1,7 @@
 import type { Metadata } from "next";
 import "./globals.css";
 import { AuthSessionProvider } from "@/features/auth/model/auth-session";
+import { AppHeader } from "@/shared/ui/AppHeader";
 
 export const metadata: Metadata = {
   title: "Team Manager",
@@ -15,7 +16,10 @@ export default function RootLayout({
   return (
     <html lang="ko" className="h-full antialiased">
       <body className="min-h-full flex flex-col">
-        <AuthSessionProvider>{children}</AuthSessionProvider>
+        <AuthSessionProvider>
+          <AppHeader />
+          {children}
+        </AuthSessionProvider>
       </body>
     </html>
   );

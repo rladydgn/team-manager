@@ -3,232 +3,209 @@
 import Link from "next/link";
 import { useCurrentUser } from "@/features/auth/model/auth-session";
 
-const featureItems = [
+const activityItems = [
+  { label: "다가오는 경기", value: "일정 관리", detail: "경기 일정과 장소를 한눈에" },
+  { label: "팀원 현황", value: "구성원 관리", detail: "역할과 참여 상태를 정리" },
+  { label: "경기 기록", value: "결과 축적", detail: "스코어와 메모를 팀의 자산으로" },
+];
+
+const anonymousActions = [
   {
-    title: "팀원 관리",
-    description: "팀원 정보와 역할, 활동 상태를 한 곳에서 관리합니다.",
+    title: "팀 둘러보기",
+    description: "등록된 팀의 정보와 멤버 구성을 확인합니다.",
+    href: "/teams",
+    action: "팀 목록 보기",
   },
   {
-    title: "일정 관리",
-    description: "다가오는 경기와 모임 일정을 관리 합니다.",
-  },
-  {
-    title: "경기 기록",
-    description: "스코어와 참여 인원, 기록을 남겨 돌아봅니다.",
-  },
-  {
-    title: "회비 관리",
-    description: "납부 현황과 미납 항목을 빠르게 확인합니다.",
+    title: "운영 시작",
+    description: "계정을 만들고 첫 팀을 등록해 운영을 시작합니다.",
+    href: "/sign-up",
+    action: "회원가입",
   },
 ];
 
-const matchRows = [
-  { label: "다음 경기", value: "토요일 19:00", sub: "서울 풋살파크 A구장" },
-  { label: "참석 응답", value: "12 / 18명", sub: "마감까지 2일" },
-  { label: "이번 달 회비", value: "83%", sub: "15명 납부 완료" },
-];
-
-const memberRows = [
-  { name: "김민준", status: "참석", fee: "납부" },
-  { name: "이서준", status: "미응답", fee: "납부" },
-  { name: "박도윤", status: "참석", fee: "미납" },
+const memberActions = [
+  {
+    title: "내 팀 관리",
+    description: "팀 정보, 멤버, 경기 일정을 한곳에서 관리합니다.",
+    href: "/teams",
+    action: "팀 관리로 이동",
+  },
+  {
+    title: "새 팀 만들기",
+    description: "새로운 팀을 등록하고 운영진으로 바로 시작합니다.",
+    href: "/teams",
+    action: "팀 목록 열기",
+  },
 ];
 
 export default function HomePage() {
   const currentUser = useCurrentUser();
+  const isSignedIn = Boolean(currentUser);
+  const primaryAction = isSignedIn
+    ? { href: "/teams", label: "내 팀 관리" }
+    : { href: "/login", label: "로그인" };
+  const secondaryAction = isSignedIn
+    ? { href: "/teams", label: "팀 둘러보기" }
+    : { href: "/sign-up", label: "회원가입" };
+  const actionItems = isSignedIn ? memberActions : anonymousActions;
 
   return (
-    <div className="min-h-screen bg-[#f5f7fb] text-[#111827]">
-      <header className="border-b border-[#dbe4f0] bg-white/90">
+    <main className="min-h-screen bg-[#f5f7fb] text-[#111827]">
+      <header data-legacy-page-header className="border-b border-[#dbe4f0] bg-white">
         <div className="mx-auto flex w-full max-w-6xl items-center justify-between gap-4 px-5 py-4 sm:px-6 lg:px-8">
           <Link href="/" className="flex min-w-0 items-center gap-3">
             <span className="grid size-9 shrink-0 place-items-center rounded-md bg-[#4f6f9f] text-sm font-bold text-white">
               TM
             </span>
-            <span className="truncate text-base font-semibold tracking-normal">
-              Team Manager
-            </span>
+            <span className="truncate text-base font-semibold">Team Manager</span>
           </Link>
 
-          <nav className="hidden items-center gap-6 text-sm font-medium text-[#64748b] md:flex">
-            <a href="#features">기능</a>
-            <a href="#preview">운영 흐름</a>
-            <a href="#start">시작하기</a>
-          </nav>
-
-          {currentUser ? (
-            <Link
-              href="/teams"
-              className="inline-flex h-10 shrink-0 items-center justify-center rounded-md border border-[#c8d4e6] bg-white px-4 text-sm font-semibold text-[#3d5b86] shadow-sm transition-colors hover:bg-[#f0f4fa]"
-            >
-              {currentUser.username}
-            </Link>
+          {isSignedIn ? (
+            <div className="flex min-w-0 items-center gap-2 sm:gap-3">
+              <span className="hidden truncate text-sm font-semibold text-[#52627b] sm:block">
+                {currentUser?.name}
+              </span>
+              <Link
+                href="/teams"
+                className="inline-flex h-10 shrink-0 items-center justify-center rounded-md bg-[#4f6f9f] px-4 text-sm font-semibold text-white transition-colors hover:bg-[#435f88]"
+              >
+                팀 관리
+              </Link>
+            </div>
           ) : (
-            <Link
-              href="/login"
-              className="inline-flex h-10 shrink-0 items-center justify-center rounded-md border border-[#c8d4e6] bg-white px-4 text-sm font-semibold text-[#3d5b86] shadow-sm transition-colors hover:bg-[#f0f4fa]"
-            >
-              로그인
-            </Link>
+            <div className="flex shrink-0 items-center gap-2">
+              <Link
+                href="/login"
+                className="inline-flex h-10 items-center justify-center rounded-md px-3 text-sm font-semibold text-[#3d5b86] transition-colors hover:bg-[#f0f4fa] sm:px-4"
+              >
+                로그인
+              </Link>
+              <Link
+                href="/sign-up"
+                className="inline-flex h-10 items-center justify-center rounded-md border border-[#c8d4e6] bg-white px-3 text-sm font-semibold text-[#3d5b86] transition-colors hover:bg-[#f0f4fa] sm:px-4"
+              >
+                회원가입
+              </Link>
+            </div>
           )}
         </div>
       </header>
 
-      <main>
-        <section className="mx-auto grid w-full max-w-6xl gap-8 px-5 py-10 sm:px-6 sm:py-14 lg:grid-cols-[1fr_1fr] lg:px-8 lg:py-16">
-          <div className="flex flex-col justify-center">
-            <p className="mb-4 w-fit rounded-md border border-[#c8d4e6] bg-white px-3 py-1 text-sm font-semibold text-[#4f6f9f]">
-              팀 운영과 기록을 한 곳에서
+      <section className="border-b border-[#dbe4f0] bg-white">
+        <div className="mx-auto grid w-full max-w-6xl gap-10 px-5 py-10 sm:px-6 sm:py-14 lg:grid-cols-[minmax(0,1fr)_minmax(22rem,0.86fr)] lg:items-center lg:px-8 lg:py-16">
+          <div className="min-w-0">
+            <p className="text-sm font-semibold text-[#4f6f9f]">
+              {isSignedIn ? "TEAM OPERATIONS" : "FOOTBALL TEAM MANAGEMENT"}
             </p>
-            <h1 className="max-w-3xl text-4xl font-bold leading-tight tracking-normal text-[#0f172a] sm:text-5xl lg:text-6xl">
-              팀 운영은 가볍게, 지난 기록은 또렷하게.
+            <h1 className="mt-3 max-w-3xl text-4xl font-bold leading-tight text-[#0f172a] sm:text-5xl">
+              {isSignedIn
+                ? `${currentUser?.name}님, 팀 운영을 이어가세요.`
+                : "팀 운영에 필요한 일을 한곳에 모으세요."}
             </h1>
             <p className="mt-5 max-w-2xl text-base leading-7 text-[#64748b] sm:text-lg">
-              Team Manager는 팀원, 일정, 참석 여부, 회비처럼 매주 챙겨야 하는
-              운영 업무를 정리하고 경기 결과와 메모를 기록으로 남길 수 있게
-              돕습니다.
+              {isSignedIn
+                ? "팀 정보와 멤버 현황, 경기 일정을 빠르게 확인하고 다음 작업으로 이어갈 수 있습니다."
+                : "팀 정보, 멤버, 경기 일정과 결과를 차분하고 명확하게 관리할 수 있습니다."}
             </p>
 
-            <div
-              id="start"
-              className="mt-8 flex flex-col gap-3 sm:flex-row sm:items-center"
-            >
+            <div className="mt-8 flex flex-col gap-3 sm:flex-row">
               <Link
-                href={currentUser ? "/teams" : "/login"}
-                className="inline-flex h-12 items-center justify-center rounded-md bg-[#4f6f9f] px-6 text-base font-semibold text-white shadow-sm transition-colors hover:bg-[#435f88]"
+                href={primaryAction.href}
+                className="inline-flex h-12 items-center justify-center rounded-md bg-[#4f6f9f] px-6 text-base font-semibold text-white transition-colors hover:bg-[#435f88]"
               >
-                {currentUser ? "팀 관리로 이동" : "팀 운영 시작하기"}
+                {primaryAction.label}
               </Link>
               <Link
-                href="/sign-up"
-                className="inline-flex h-12 items-center justify-center rounded-md border border-[#cbd5e1] bg-white px-6 text-base font-semibold text-[#111827] transition-colors hover:bg-[#f1f5f9]"
+                href={secondaryAction.href}
+                className="inline-flex h-12 items-center justify-center rounded-md border border-[#c8d4e6] bg-white px-6 text-base font-semibold text-[#3d5b86] transition-colors hover:bg-[#f0f4fa]"
               >
-                새 계정 만들기
+                {secondaryAction.label}
               </Link>
             </div>
           </div>
 
-          <div
-            id="preview"
-            className="flex h-full flex-col rounded-lg border border-[#dbe4f0] bg-white p-4 shadow-[0_18px_50px_rgba(15,23,42,0.08)] sm:p-5"
-          >
-            <div className="rounded-md border border-[#d7dfeb] bg-[#f3f6fb] p-4 text-[#172033] sm:p-5">
-              <div className="flex items-start justify-between gap-4">
+          <section className="border border-[#d3deec] bg-[#edf3fa] p-4 shadow-[0_18px_50px_rgba(15,23,42,0.08)] sm:p-5">
+            <div className="border border-[#cbd9ea] bg-white">
+              <div className="flex items-center justify-between gap-4 border-b border-[#e5eaf3] px-4 py-4 sm:px-5">
                 <div>
-                  <p className="text-sm font-semibold text-[#4f6f9f]">
-                    이번 주 운영 현황
-                  </p>
-                  <h2 className="mt-1 text-2xl font-bold">우리 FC</h2>
+                  <p className="text-xs font-semibold text-[#4f6f9f]">이번 주 운영 보드</p>
+                  <h2 className="mt-1 text-xl font-bold text-[#0f172a]">
+                    {isSignedIn ? "팀 운영 현황" : "팀 활동 한눈에 보기"}
+                  </h2>
                 </div>
-                <span className="rounded-md border border-[#c8d4e6] bg-white px-3 py-1 text-sm font-semibold text-[#3d5b86]">
-                  OWNER
+                <span className="rounded-md border border-[#c8d4e6] bg-[#f8fafc] px-2.5 py-1 text-xs font-semibold text-[#3d5b86]">
+                  ACTIVE
                 </span>
               </div>
 
-              <div className="mt-6 grid grid-cols-2 gap-2 text-sm">
-                {["팀원 18명", "경기 2건", "기록 14개", "회비 83%"].map(
-                  (item) => (
-                    <div
-                      key={item}
-                      className="rounded-md border border-[#d5deeb] bg-white px-3 py-3 font-semibold text-[#25324a]"
-                    >
-                      {item}
-                    </div>
-                  )
-                )}
+              <div className="grid gap-px bg-[#e5eaf3] sm:grid-cols-3">
+                {activityItems.map((item) => (
+                  <div key={item.label} className="bg-white px-4 py-4">
+                    <p className="text-xs font-semibold text-[#64748b]">{item.label}</p>
+                    <p className="mt-2 text-base font-bold text-[#1f2937]">{item.value}</p>
+                    <p className="mt-1 text-xs leading-5 text-[#64748b]">{item.detail}</p>
+                  </div>
+                ))}
               </div>
-            </div>
 
-            <div className="mt-4 grid gap-3 sm:grid-cols-3">
-              {matchRows.map((row) => (
-                <div
-                  key={row.label}
-                  className="rounded-md border border-[#e5eaf3] bg-[#f8fafc] p-4"
-                >
-                  <div className="flex flex-col gap-1">
-                    <p className="text-sm font-semibold text-[#64748b]">
-                      {row.label}
-                    </p>
-                    <p className="text-base font-bold text-[#111827]">
-                      {row.value}
+              <div className="p-4 sm:p-5">
+                <div className="flex items-center justify-between gap-4">
+                  <div>
+                    <p className="text-sm font-bold text-[#1f2937]">다음 운영 작업</p>
+                    <p className="mt-1 text-sm text-[#64748b]">
+                      {isSignedIn ? "팀을 선택해 멤버와 경기 일정을 관리하세요." : "로그인 후 팀 운영을 시작할 수 있습니다."}
                     </p>
                   </div>
-                  <p className="mt-2 text-xs leading-5 text-[#64748b]">
-                    {row.sub}
-                  </p>
-                </div>
-              ))}
-            </div>
-
-            <div className="mt-4 grid flex-1 gap-4 lg:grid-cols-[1fr_0.9fr]">
-              <div className="rounded-md border border-[#e5eaf3] bg-white p-4">
-                <div className="flex items-center justify-between gap-3">
-                  <h3 className="text-sm font-bold text-[#111827]">
-                    참석과 회비
-                  </h3>
-                  <span className="text-xs font-semibold text-[#4f6f9f]">
-                    최근 업데이트
-                  </span>
-                </div>
-                <div className="mt-4 grid gap-2">
-                  {memberRows.map((member) => (
-                    <div
-                      key={member.name}
-                      className="grid grid-cols-[1fr_auto_auto] items-center gap-2 rounded-md bg-[#f8fafc] px-3 py-2 text-sm"
-                    >
-                      <span className="font-semibold text-[#1f2937]">
-                        {member.name}
-                      </span>
-                      <span className="rounded-md bg-white px-2 py-1 text-xs font-semibold text-[#475569]">
-                        {member.status}
-                      </span>
-                      <span className="rounded-md bg-white px-2 py-1 text-xs font-semibold text-[#475569]">
-                        {member.fee}
-                      </span>
-                    </div>
-                  ))}
-                </div>
-              </div>
-
-              <div className="rounded-md border border-[#e5eaf3] bg-[#f8fafc] p-4">
-                <h3 className="text-sm font-bold text-[#111827]">경기 기록</h3>
-                <div className="mt-4 rounded-md bg-white p-4">
-                  <p className="text-xs font-semibold text-[#64748b]">
-                    지난 경기
-                  </p>
-                  <p className="mt-2 text-2xl font-bold text-[#111827]">
-                    3 : 2
-                  </p>
-                  <p className="mt-2 text-sm leading-6 text-[#64748b]">
-                    후반 추가 득점으로 승리. 다음 경기 전 수비 라인 조정 필요.
-                  </p>
+                  <Link
+                    href={primaryAction.href}
+                    className="inline-flex h-10 shrink-0 items-center justify-center rounded-md border border-[#c8d4e6] bg-white px-3 text-sm font-semibold text-[#3d5b86] transition-colors hover:bg-[#f0f4fa]"
+                  >
+                    이동
+                  </Link>
                 </div>
               </div>
             </div>
+          </section>
+        </div>
+      </section>
+
+      <section className="mx-auto w-full max-w-6xl px-5 py-8 sm:px-6 sm:py-10 lg:px-8">
+        <div className="flex flex-col gap-2 sm:flex-row sm:items-end sm:justify-between">
+          <div>
+            <p className="text-sm font-semibold text-[#4f6f9f]">QUICK ACTIONS</p>
+            <h2 className="mt-2 text-2xl font-bold text-[#0f172a]">
+              {isSignedIn ? "바로 이어서 관리하기" : "팀 운영을 시작하는 방법"}
+            </h2>
           </div>
-        </section>
+          <Link
+            href="/teams"
+            className="inline-flex w-fit text-sm font-semibold text-[#3d5b86] transition-colors hover:text-[#283f62]"
+          >
+            팀 목록 보기
+          </Link>
+        </div>
 
-        <section
-          id="features"
-          className="border-y border-[#dbe4f0] bg-white px-5 py-8 sm:px-6 lg:px-8"
-        >
-          <div className="mx-auto grid w-full max-w-6xl gap-4 sm:grid-cols-2 lg:grid-cols-4">
-            {featureItems.map((feature) => (
-              <article
-                key={feature.title}
-                className="rounded-lg border border-[#e5eaf3] bg-white p-5"
+        <div className="mt-5 grid gap-4 md:grid-cols-2">
+          {actionItems.map((item) => (
+            <article
+              key={item.title}
+              className="flex min-h-44 flex-col justify-between border border-[#dbe4f0] bg-white p-5 shadow-[0_10px_26px_rgba(15,23,42,0.04)]"
+            >
+              <div>
+                <h3 className="text-lg font-bold text-[#0f172a]">{item.title}</h3>
+                <p className="mt-3 max-w-lg text-sm leading-6 text-[#64748b]">{item.description}</p>
+              </div>
+              <Link
+                href={item.href}
+                className="mt-5 inline-flex w-fit text-sm font-semibold text-[#3d5b86] transition-colors hover:text-[#283f62]"
               >
-                <h2 className="text-lg font-bold text-[#111827]">
-                  {feature.title}
-                </h2>
-                <p className="mt-3 text-sm leading-6 text-[#64748b]">
-                  {feature.description}
-                </p>
-              </article>
-            ))}
-          </div>
-        </section>
-      </main>
-    </div>
+                {item.action}
+              </Link>
+            </article>
+          ))}
+        </div>
+      </section>
+    </main>
   );
 }

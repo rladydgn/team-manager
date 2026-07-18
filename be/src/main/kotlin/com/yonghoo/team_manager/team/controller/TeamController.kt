@@ -54,6 +54,53 @@ class TeamController(
         return ResponseEntity.ok(CommonResponse(data = teamService.joinTeam(teamId, requireAuthenticatedUserId(userId))))
     }
 
+    @Operation(summary = "팀 가입 신청 목록 조회")
+    @GetMapping("/{teamId}/join-requests")
+    fun getJoinRequests(
+        @PathVariable teamId: Long,
+        @RequestAttribute(name = AUTHENTICATED_USER_ID_ATTRIBUTE, required = false) userId: Long?,
+    ): ResponseEntity<CommonResponse<List<TeamMemberResponse>>> {
+        return ResponseEntity.ok(
+            CommonResponse(data = teamService.getJoinRequests(teamId, requireAuthenticatedUserId(userId))),
+        )
+    }
+
+    @Operation(summary = "팀 가입 신청 승인")
+    @PostMapping("/{teamId}/join-requests/{teamMemberId}/approve")
+    fun approveJoinRequest(
+        @PathVariable teamId: Long,
+        @PathVariable teamMemberId: Long,
+        @RequestAttribute(name = AUTHENTICATED_USER_ID_ATTRIBUTE, required = false) userId: Long?,
+    ): ResponseEntity<CommonResponse<TeamMemberResponse>> {
+        return ResponseEntity.ok(
+            CommonResponse(
+                data = teamService.approveJoinRequest(
+                    teamId = teamId,
+                    teamMemberId = teamMemberId,
+                    userId = requireAuthenticatedUserId(userId),
+                ),
+            ),
+        )
+    }
+
+    @Operation(summary = "팀 가입 신청 거부")
+    @PostMapping("/{teamId}/join-requests/{teamMemberId}/reject")
+    fun rejectJoinRequest(
+        @PathVariable teamId: Long,
+        @PathVariable teamMemberId: Long,
+        @RequestAttribute(name = AUTHENTICATED_USER_ID_ATTRIBUTE, required = false) userId: Long?,
+    ): ResponseEntity<CommonResponse<TeamMemberResponse>> {
+        return ResponseEntity.ok(
+            CommonResponse(
+                data = teamService.rejectJoinRequest(
+                    teamId = teamId,
+                    teamMemberId = teamMemberId,
+                    userId = requireAuthenticatedUserId(userId),
+                ),
+            ),
+        )
+    }
+
     @Operation(
         summary = "팀 수정",
         description = "팀 OWNER 또는 SUB_MANAGER가 팀 정보를 수정하고 변경 이력을 저장합니다.",

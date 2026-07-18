@@ -20,6 +20,7 @@ class UserRepository {
             username = request.username
             this.passwordHash = passwordHash
             name = request.name.trim()
+            birthDate = request.birthDate
             email = request.email.trim()
         }
         return UserRecord.from(user)
@@ -40,6 +41,12 @@ class UserRepository {
     fun existsByUsername(username: String): Boolean {
         return UserEntity.find {
             (UsersTable.username eq username) and UsersTable.deletedAt.isNull()
+        }.empty().not()
+    }
+
+    fun existsByEmail(email: String): Boolean {
+        return UserEntity.find {
+            (UsersTable.email eq email.trim()) and UsersTable.deletedAt.isNull()
         }.empty().not()
     }
 

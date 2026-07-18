@@ -15,6 +15,10 @@ enum class UserErrorCode(
         status = HttpStatus.CONFLICT,
         message = "이미 사용 중인 아이디입니다.",
     ),
+    DUPLICATED_EMAIL(
+        status = HttpStatus.CONFLICT,
+        message = "이미 사용 중인 이메일입니다.",
+    ),
     LOGIN_FAILED(
         status = HttpStatus.UNAUTHORIZED,
         message = "아이디 또는 비밀번호가 올바르지 않습니다.",

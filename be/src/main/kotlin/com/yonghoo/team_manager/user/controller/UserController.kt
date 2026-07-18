@@ -50,6 +50,13 @@ class UserController(
         return ResponseEntity.ok(CommonResponse(data = userService.isValidUsername(id)))
     }
 
+    @GetMapping("/email/check")
+    fun checkEmail(
+        @RequestParam email: String,
+    ): ResponseEntity<CommonResponse<Boolean>> {
+        return ResponseEntity.ok(CommonResponse(data = userService.isValidEmail(email)))
+    }
+
     @Operation(
         summary = "로그인",
         description = "아이디와 비밀번호를 검증하고 액세스 토큰을 반환하며 리프레시 토큰을 HttpOnly 쿠키로 설정합니다.",
@@ -63,6 +70,13 @@ class UserController(
         return ResponseEntity.ok()
             .header(HttpHeaders.SET_COOKIE, createRefreshCookie(result.refreshToken).toString())
             .body(CommonResponse(data = result.response))
+    }
+
+    @PostMapping("/sign-out")
+    fun signOut(): ResponseEntity<CommonResponse<Nothing>> {
+        return ResponseEntity.ok()
+            .header(HttpHeaders.SET_COOKIE, clearRefreshCookie().toString())
+            .body(CommonResponse())
     }
 
     @Operation(
@@ -89,6 +103,16 @@ class UserController(
             .sameSite("Lax")
             .path("/")
             .maxAge(jwtProperties.refreshTokenExpiration)
+            .build()
+    }
+
+    private fun clearRefreshCookie(): ResponseCookie {
+        return ResponseCookie.from(REFRESH_TOKEN_COOKIE_NAME, "")
+            .httpOnly(true)
+            .secure(jwtProperties.refreshCookieSecure)
+            .sameSite("Lax")
+            .path("/")
+            .maxAge(0)
             .build()
     }
 

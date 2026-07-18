@@ -13,6 +13,7 @@ import com.yonghoo.team_manager.user.repository.UserRepository
 import org.springframework.stereotype.Service
 import org.springframework.transaction.annotation.Transactional
 import java.time.LocalDateTime
+import java.time.Year
 
 @Transactional
 @Service
@@ -26,6 +27,10 @@ class UserService(
 
         if (userRepository.existsByUsername(request.username)) {
             throw ApiException(UserErrorCode.DUPLICATED_USERNAME)
+        }
+
+        if (userRepository.existsByEmail(request.email)) {
+            throw ApiException(UserErrorCode.DUPLICATED_EMAIL)
         }
 
         val passwordHash = passwordHasher.hash(request.password)
@@ -71,12 +76,19 @@ class UserService(
         return USERNAME_REGEX.matches(username) && !userRepository.existsByUsername(username)
     }
 
+    fun isValidEmail(email: String): Boolean {
+        return email.isNotBlank() && !userRepository.existsByEmail(email)
+    }
+
     private fun validateRegisterRequest(request: UserRegisterRequest) {
         val name = request.name.trim()
 
         if (!USERNAME_REGEX.matches(request.username) ||
             !PASSWORD_REGEX.matches(request.password) ||
             name.isBlank() || name.length > NAME_MAX_LENGTH ||
+            request.birthDate.year !in MIN_BIRTH_YEAR..Year.now().value ||
+            request.birthDate.monthValue != JANUARY ||
+            request.birthDate.dayOfMonth != FIRST_DAY_OF_MONTH ||
             request.email.isBlank()
         ) {
             throw ApiException(UserErrorCode.INVALID_REGISTER_REQUEST)
@@ -92,6 +104,9 @@ class UserService(
 
     companion object {
         private const val NAME_MAX_LENGTH = 50
+        private const val MIN_BIRTH_YEAR = 1900
+        private const val JANUARY = 1
+        private const val FIRST_DAY_OF_MONTH = 1
         private val USERNAME_REGEX = Regex("^[a-z0-9_-]{5,20}$")
         private val PASSWORD_REGEX = Regex("^(?=.*[A-Za-z])(?=.*\\d)(?=.*[!@#\$%^&*()_+\\-={}\\[\\]:\";'<>?,./]).{8,20}$")
     }

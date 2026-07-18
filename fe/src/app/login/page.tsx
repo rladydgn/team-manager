@@ -2,17 +2,23 @@
 
 import Link from "next/link";
 import { useRouter } from "next/navigation";
-import { FormEvent, useState } from "react";
+import { FormEvent, useEffect, useState } from "react";
 import { signIn } from "@/features/auth/api/auth";
 import { useAuthSession } from "@/features/auth/model/auth-session";
 
 export default function LoginPage() {
   const router = useRouter();
-  const { startSession } = useAuthSession();
+  const { currentUser, startSession } = useAuthSession();
   const [username, setUsername] = useState("");
   const [password, setPassword] = useState("");
   const [errorMessage, setErrorMessage] = useState("");
   const [isSubmitting, setIsSubmitting] = useState(false);
+
+  useEffect(() => {
+    if (currentUser) {
+      router.replace("/teams");
+    }
+  }, [currentUser, router]);
 
   async function handleSubmit(event: FormEvent<HTMLFormElement>) {
     event.preventDefault();
@@ -49,7 +55,7 @@ export default function LoginPage() {
   return (
     <main className="min-h-screen bg-[#f5f7fb] px-5 py-6 text-[#111827] sm:px-6 lg:px-8">
       <div className="mx-auto flex min-h-[calc(100vh-48px)] w-full max-w-6xl flex-col">
-        <header className="flex items-center justify-between gap-4">
+        <header data-legacy-page-header className="flex items-center justify-between gap-4">
           <Link href="/" className="flex min-w-0 items-center gap-3">
             <span className="grid size-9 shrink-0 place-items-center rounded-md bg-[#4f6f9f] text-sm font-bold text-white">
               TM

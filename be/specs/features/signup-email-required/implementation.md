@@ -6,8 +6,7 @@
 
 ## 변경 사항
 
-- `UserRegisterRequest.email`을 필수 `String`으로 변경했다.
-- 공백 이메일을 `INVALID_REGISTER_REQUEST`로 거부하도록 했다.
-- 저장되는 이메일의 앞뒤 공백을 제거하도록 했다.
-- `schema.sql`과 Exposed 테이블 정의의 이메일 컬럼을 non-null로 변경했다.
-- 로그인 응답과 프론트 사용자 타입의 이메일도 non-null 계약으로 변경했다.
+- `schema.sql`에 `uk_users_username`, `uk_users_email` 고유 키를 추가했다.
+- Exposed 사용자 테이블에도 동일한 이름의 고유 인덱스를 지정했다.
+- 가입 서비스에서 아이디와 이메일 중복을 모두 확인한다.
+- 이메일 중복 오류 코드와 `/users/email/check` API를 추가했다.

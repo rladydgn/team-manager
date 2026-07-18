@@ -38,8 +38,9 @@ class MatchController(
     @GetMapping("/{matchId}")
     fun getMatch(
         @PathVariable matchId: Long,
+        @RequestAttribute(name = AUTHENTICATED_USER_ID_ATTRIBUTE, required = false) userId: Long?,
     ): ResponseEntity<CommonResponse<MatchResponse>> {
-        return ResponseEntity.ok(CommonResponse(data = matchService.getMatch(matchId)))
+        return ResponseEntity.ok(CommonResponse(data = matchService.getMatch(matchId, requireAuthenticatedUserId(userId))))
     }
 
     private fun requireAuthenticatedUserId(userId: Long?): Long {
