@@ -8,6 +8,20 @@ This version has breaking changes — APIs, conventions, and file structure may 
 
 This project is Team Manager, a football team management service for member management, match schedules, match records, match participation, guest players, and membership fee management.
 
+This frontend project follows the Spec-Driven Development workflow from Paul Everitt's DeepLearning.AI short course:
+https://www.deeplearning.ai/courses/spec-driven-development-with-coding-agents
+
+Use the local SDD files under `specs/` before implementing changes:
+
+- `specs/constitution.md` defines the frontend development principles.
+- `specs/mission.md` defines the product and frontend mission.
+- `specs/tech-stack.md` defines the accepted frontend stack and architecture.
+- `specs/roadmap.md` defines the planned frontend phases.
+- `specs/workflow.md` defines the project workflow: constitution, feature spec, implementation, validation, replanning, legacy support, and workflow improvement.
+- `specs/features/_template/` contains the feature-spec document set to copy for new frontend features.
+
+For feature work, create or update the feature spec first, then produce the plan, implementation notes, validation notes, replanning notes when needed, and legacy-support notes for existing behavior changes.
+
 The frontend should help team owners and sub-managers quickly understand what needs attention: upcoming matches, member attendance, match records, and fee status. The default experience should feel like a practical team operations tool, not a marketing page.
 
 This frontend must be built as a responsive application.

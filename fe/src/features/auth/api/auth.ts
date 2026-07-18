@@ -1,4 +1,4 @@
-import { postJson } from "@/shared/api/http";
+import { getJson, postJson } from "@/shared/api/http";
 
 export type SignInRequest = {
   username: string;
@@ -9,14 +9,14 @@ export type SignUpRequest = {
   name: string;
   username: string;
   password: string;
-  email?: string;
+  email: string;
 };
 
 export type UserResponse = {
   id: number;
   name: string;
   username: string;
-  email: string | null;
+  email: string;
 };
 
 export type SignInResponse = UserResponse & {
@@ -33,4 +33,12 @@ export function refreshSession() {
 
 export function signUp(request: SignUpRequest) {
   return postJson<null, SignUpRequest>("/users/sign-up", request);
+}
+
+export async function isUsernameAvailable(username: string) {
+  const response = await getJson<boolean>(
+    `/users/id/check?id=${encodeURIComponent(username)}`
+  );
+
+  return response.data === true;
 }

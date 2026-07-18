@@ -76,7 +76,8 @@ class UserService(
 
         if (!USERNAME_REGEX.matches(request.username) ||
             !PASSWORD_REGEX.matches(request.password) ||
-            name.isBlank() || name.length > NAME_MAX_LENGTH
+            name.isBlank() || name.length > NAME_MAX_LENGTH ||
+            request.email.isBlank()
         ) {
             throw ApiException(UserErrorCode.INVALID_REGISTER_REQUEST)
         }

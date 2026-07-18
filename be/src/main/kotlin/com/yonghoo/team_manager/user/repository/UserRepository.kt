@@ -20,7 +20,7 @@ class UserRepository {
             username = request.username
             this.passwordHash = passwordHash
             name = request.name.trim()
-            email = request.email
+            email = request.email.trim()
         }
         return UserRecord.from(user)
     }

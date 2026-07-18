@@ -1,23 +1,12 @@
 package com.yonghoo.team_manager.user.dto
 
 import com.yonghoo.team_manager.user.domain.UserRecord
-import io.swagger.v3.oas.annotations.media.Schema
 
-@Schema(description = "로그인 응답")
 data class UserLoginResponse(
-    @field:Schema(description = "유저 ID", example = "1")
     val id: Long,
-
-    @field:Schema(description = "아이디", example = "user_01")
     val username: String,
-
-    @field:Schema(description = "이름", example = "홍길동")
     val name: String,
-
-    @field:Schema(description = "이메일", example = "user@example.com", nullable = true)
-    val email: String?,
-
-    @field:Schema(description = "API 인증용 액세스 토큰")
+    val email: String,
     val accessToken: String,
 ) {
     companion object {

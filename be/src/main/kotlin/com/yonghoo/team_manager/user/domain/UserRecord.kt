@@ -7,7 +7,7 @@ data class UserRecord(
     val username: String,
     val passwordHash: String,
     val name: String,
-    val email: String?,
+    val email: String,
     val status: UserStatus,
     val lastLoginAt: LocalDateTime?,
     val createdAt: LocalDateTime,

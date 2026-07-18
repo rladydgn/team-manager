@@ -12,20 +12,34 @@ type ApiErrorResponse = {
   message?: string;
 };
 
+export class ApiRequestError extends Error {
+  constructor(
+    message: string,
+    readonly status: number,
+    readonly code?: string
+  ) {
+    super(message);
+    this.name = "ApiRequestError";
+  }
+}
+
 async function resolveResponse<TResponse>(
   response: Response
 ): Promise<ApiResponse<TResponse>> {
   if (!response.ok) {
     let errorMessage = "요청을 처리하지 못했습니다.";
 
+    let errorCode: string | undefined;
+
     try {
       const errorBody = (await response.json()) as ApiErrorResponse;
       errorMessage = errorBody.message ?? errorMessage;
+      errorCode = errorBody.code;
     } catch {
       errorMessage = response.statusText || errorMessage;
     }
 
-    throw new Error(errorMessage);
+    throw new ApiRequestError(errorMessage, response.status, errorCode);
   }
 
   return response.json() as Promise<ApiResponse<TResponse>>;

@@ -3,7 +3,16 @@
 import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { FormEvent, useState } from "react";
-import { signUp } from "@/features/auth/api/auth";
+import { isUsernameAvailable, signUp } from "@/features/auth/api/auth";
+import {
+  SignUpField,
+  SignUpFieldErrors,
+  validateSignUp,
+  validateSignUpField,
+} from "@/features/auth/model/sign-up-validation";
+import { ApiRequestError } from "@/shared/api/http";
+
+const formFields: SignUpField[] = ["name", "username", "password", "email"];
 
 export default function SignUpPage() {
   const router = useRouter();
@@ -11,24 +20,91 @@ export default function SignUpPage() {
   const [username, setUsername] = useState("");
   const [password, setPassword] = useState("");
   const [email, setEmail] = useState("");
+  const [fieldErrors, setFieldErrors] = useState<SignUpFieldErrors>({});
+  const [touchedFields, setTouchedFields] = useState<
+    Partial<Record<SignUpField, boolean>>
+  >({});
   const [errorMessage, setErrorMessage] = useState("");
   const [isSubmitting, setIsSubmitting] = useState(false);
 
+  const values = { name, username, password, email };
+
+  function updateField(field: SignUpField, value: string) {
+    const setters = {
+      name: setName,
+      username: setUsername,
+      password: setPassword,
+      email: setEmail,
+    };
+
+    setters[field](value);
+
+    if (touchedFields[field] || fieldErrors[field]) {
+      setFieldErrors((currentErrors) => ({
+        ...currentErrors,
+        [field]: validateSignUpField(field, value),
+      }));
+    }
+  }
+
+  function validateField(field: SignUpField) {
+    setTouchedFields((currentTouchedFields) => ({
+      ...currentTouchedFields,
+      [field]: true,
+    }));
+    setFieldErrors((currentErrors) => ({
+      ...currentErrors,
+      [field]: validateSignUpField(field, values[field]),
+    }));
+  }
+
+  function inputClassName(field: SignUpField) {
+    return `h-12 rounded-md border bg-white px-4 text-base font-normal outline-none transition-colors placeholder:text-[#94a3b8] disabled:cursor-not-allowed disabled:bg-[#f8fafc] ${
+      fieldErrors[field]
+        ? "border-[#dc2626] focus:border-[#dc2626] focus:ring-4 focus:ring-[#fee2e2]"
+        : "border-[#cbd5e1] focus:border-[#4f6f9f] focus:ring-4 focus:ring-[#e3eaf5]"
+    }`;
+  }
+
   async function handleSubmit(event: FormEvent<HTMLFormElement>) {
     event.preventDefault();
+
+    const validationErrors = validateSignUp(values);
+
+    setTouchedFields(
+      Object.fromEntries(formFields.map((field) => [field, true]))
+    );
+    setFieldErrors(validationErrors);
     setErrorMessage("");
+
+    if (Object.keys(validationErrors).length > 0) {
+      return;
+    }
+
     setIsSubmitting(true);
 
     try {
+      const usernameAvailable = await isUsernameAvailable(username);
+
+      if (!usernameAvailable) {
+        setFieldErrors({ username: "이미 사용 중인 아이디입니다." });
+        return;
+      }
+
       await signUp({
         name: name.trim(),
         username,
         password,
-        email: email.trim() || undefined,
+        email: email.trim(),
       });
 
       router.replace("/login");
     } catch (error) {
+      if (error instanceof ApiRequestError && error.code === "DUPLICATED_USERNAME") {
+        setFieldErrors({ username: error.message });
+        return;
+      }
+
       setErrorMessage(
         error instanceof Error ? error.message : "회원가입에 실패했습니다."
       );
@@ -72,20 +148,28 @@ export default function SignUpPage() {
                   이름과 계정 정보만 입력하면 바로 팀 운영을 시작할 수 있습니다.
                 </p>
 
-                <form className="mt-8 grid gap-5" onSubmit={handleSubmit}>
+                <form className="mt-8 grid gap-5" noValidate onSubmit={handleSubmit}>
                   <label className="grid gap-2 text-sm font-semibold">
                     이름
                     <input
                       value={name}
-                      onChange={(event) => setName(event.target.value)}
-                      className="h-12 rounded-md border border-[#cbd5e1] bg-white px-4 text-base font-normal outline-none transition-colors placeholder:text-[#94a3b8] focus:border-[#4f6f9f] focus:ring-4 focus:ring-[#e3eaf5]"
+                      onBlur={() => validateField("name")}
+                      onChange={(event) => updateField("name", event.target.value)}
+                      aria-describedby={fieldErrors.name ? "name-error" : undefined}
+                      aria-invalid={Boolean(fieldErrors.name)}
+                      className={inputClassName("name")}
                       placeholder="홍길동"
                       autoComplete="name"
-                      maxLength={50}
                       required
+                      disabled={isSubmitting}
                     />
+                    {fieldErrors.name ? (
+                      <span id="name-error" className="text-xs font-normal leading-5 text-[#dc2626]">
+                        {fieldErrors.name}
+                      </span>
+                    ) : null}
                     <span className="text-xs font-normal leading-5 text-[#64748b]">
-                      (팀원 목록과 경기 기록에 표시될 이름입니다.)
+                      팀원 목록과 경기 기록에 표시되는 이름입니다.
                     </span>
                   </label>
 
@@ -93,12 +177,21 @@ export default function SignUpPage() {
                     아이디
                     <input
                       value={username}
-                      onChange={(event) => setUsername(event.target.value)}
-                      className="h-12 rounded-md border border-[#cbd5e1] bg-white px-4 text-base font-normal outline-none transition-colors placeholder:text-[#94a3b8] focus:border-[#4f6f9f] focus:ring-4 focus:ring-[#e3eaf5]"
+                      onBlur={() => validateField("username")}
+                      onChange={(event) => updateField("username", event.target.value)}
+                      aria-describedby={fieldErrors.username ? "username-error" : undefined}
+                      aria-invalid={Boolean(fieldErrors.username)}
+                      className={inputClassName("username")}
                       placeholder="user_01"
                       autoComplete="username"
                       required
+                      disabled={isSubmitting}
                     />
+                    {fieldErrors.username ? (
+                      <span id="username-error" className="text-xs font-normal leading-5 text-[#dc2626]">
+                        {fieldErrors.username}
+                      </span>
+                    ) : null}
                     <span className="text-xs font-normal leading-5 text-[#64748b]">
                       영문 소문자, 숫자, -, _ 조합 5~20자
                     </span>
@@ -108,13 +201,22 @@ export default function SignUpPage() {
                     비밀번호
                     <input
                       value={password}
-                      onChange={(event) => setPassword(event.target.value)}
-                      className="h-12 rounded-md border border-[#cbd5e1] bg-white px-4 text-base font-normal outline-none transition-colors placeholder:text-[#94a3b8] focus:border-[#4f6f9f] focus:ring-4 focus:ring-[#e3eaf5]"
+                      onBlur={() => validateField("password")}
+                      onChange={(event) => updateField("password", event.target.value)}
+                      aria-describedby={fieldErrors.password ? "password-error" : undefined}
+                      aria-invalid={Boolean(fieldErrors.password)}
+                      className={inputClassName("password")}
                       placeholder="Password1!"
                       type="password"
                       autoComplete="new-password"
                       required
+                      disabled={isSubmitting}
                     />
+                    {fieldErrors.password ? (
+                      <span id="password-error" className="text-xs font-normal leading-5 text-[#dc2626]">
+                        {fieldErrors.password}
+                      </span>
+                    ) : null}
                     <span className="text-xs font-normal leading-5 text-[#64748b]">
                       영문, 숫자, 특수문자를 포함한 8~20자
                     </span>
@@ -124,12 +226,22 @@ export default function SignUpPage() {
                     이메일
                     <input
                       value={email}
-                      onChange={(event) => setEmail(event.target.value)}
-                      className="h-12 rounded-md border border-[#cbd5e1] bg-white px-4 text-base font-normal outline-none transition-colors placeholder:text-[#94a3b8] focus:border-[#4f6f9f] focus:ring-4 focus:ring-[#e3eaf5]"
+                      onBlur={() => validateField("email")}
+                      onChange={(event) => updateField("email", event.target.value)}
+                      aria-describedby={fieldErrors.email ? "email-error" : undefined}
+                      aria-invalid={Boolean(fieldErrors.email)}
+                      className={inputClassName("email")}
                       placeholder="team@example.com"
                       type="email"
                       autoComplete="email"
+                      required
+                      disabled={isSubmitting}
                     />
+                    {fieldErrors.email ? (
+                      <span id="email-error" className="text-xs font-normal leading-5 text-[#dc2626]">
+                        {fieldErrors.email}
+                      </span>
+                    ) : null}
                   </label>
 
                   {errorMessage ? (
