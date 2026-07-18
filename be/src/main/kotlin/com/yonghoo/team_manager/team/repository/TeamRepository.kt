@@ -1,6 +1,8 @@
 package com.yonghoo.team_manager.team.repository
 
 import com.yonghoo.team_manager.team.domain.TeamEntity
+import com.yonghoo.team_manager.team.domain.TeamHistoryAction
+import com.yonghoo.team_manager.team.domain.TeamHistoryEntity
 import com.yonghoo.team_manager.team.domain.TeamMemberEntity
 import com.yonghoo.team_manager.team.domain.TeamMemberRecord
 import com.yonghoo.team_manager.team.domain.TeamMemberRole
@@ -10,6 +12,7 @@ import com.yonghoo.team_manager.team.domain.TeamRecord
 import com.yonghoo.team_manager.team.domain.TeamStatus
 import com.yonghoo.team_manager.team.domain.TeamsTable
 import com.yonghoo.team_manager.team.dto.TeamCreateRequest
+import com.yonghoo.team_manager.team.dto.TeamUpdateRequest
 import org.jetbrains.exposed.v1.core.and
 import org.jetbrains.exposed.v1.core.eq
 import org.jetbrains.exposed.v1.core.isNull
@@ -38,6 +41,51 @@ class TeamRepository {
             updatedAt = now
         }
         return TeamRecord.from(team)
+    }
+
+    fun updateTeam(
+        teamId: Long,
+        request: TeamUpdateRequest,
+    ): TeamRecord {
+        val team = TeamEntity[teamId]
+
+        team.name = request.name.trim()
+        team.shortName = request.shortName.cleanOptional()
+        team.logoUrl = request.logoUrl.cleanOptional()
+        team.description = request.description.cleanOptional()
+        team.region = request.region.cleanOptional()
+        team.homeStadium = request.homeStadium.cleanOptional()
+        team.foundedAt = request.foundedAt
+        team.teamColor = request.teamColor.cleanOptional()
+        team.updatedAt = LocalDateTime.now()
+
+        return TeamRecord.from(team)
+    }
+
+    fun createTeamHistory(
+        teamId: Long,
+        action: TeamHistoryAction,
+        changedByUserId: Long,
+        beforeSnapshot: String,
+        afterSnapshot: String?,
+    ) {
+        TeamHistoryEntity.new {
+            this.teamId = teamId
+            this.action = action
+            this.changedByUserId = changedByUserId
+            this.beforeSnapshot = beforeSnapshot
+            this.afterSnapshot = afterSnapshot
+            createdAt = LocalDateTime.now()
+        }
+    }
+
+    fun softDeleteTeam(teamId: Long) {
+        val now = LocalDateTime.now()
+        val team = TeamEntity[teamId]
+
+        team.status = TeamStatus.INACTIVE
+        team.deletedAt = now
+        team.updatedAt = now
     }
 
     fun createTeamMember(
@@ -102,5 +150,9 @@ class TeamRepository {
                 (TeamMembersTable.status eq TeamMemberStatus.ACTIVE) and
                 TeamMembersTable.deletedAt.isNull()
         }.firstOrNull()?.role
+    }
+
+    private fun String?.cleanOptional(): String? {
+        return this?.trim()?.takeIf(String::isNotBlank)
     }
 }

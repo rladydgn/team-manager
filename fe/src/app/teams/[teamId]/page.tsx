@@ -1,7 +1,7 @@
 "use client";
 
 import Link from "next/link";
-import { useParams } from "next/navigation";
+import { useParams, useRouter } from "next/navigation";
 import {
   useCallback,
   useEffect,
@@ -10,6 +10,7 @@ import {
 } from "react";
 import { useCurrentUser } from "@/features/auth/model/auth-session";
 import {
+  deleteTeam,
   getTeam,
   joinTeam,
   TeamDetail,
@@ -41,11 +42,14 @@ function getInitials(name: string) {
 
 export default function TeamDetailPage() {
   const params = useParams<{ teamId: string }>();
+  const router = useRouter();
   const teamId = Number(params.teamId);
   const currentUser = useCurrentUser();
   const [teamDetail, setTeamDetail] = useState<TeamDetail | null>(null);
   const [isLoading, setIsLoading] = useState(true);
   const [isJoining, setIsJoining] = useState(false);
+  const [isDeleting, setIsDeleting] = useState(false);
+  const [isDeleteConfirmOpen, setIsDeleteConfirmOpen] = useState(false);
   const [errorMessage, setErrorMessage] = useState("");
   const [noticeMessage, setNoticeMessage] = useState("");
 
@@ -98,6 +102,12 @@ export default function TeamDetailPage() {
   const isMember = Boolean(currentMember);
   const canCreateMatch =
     currentMember?.role === "OWNER" || currentMember?.role === "SUB_MANAGER";
+  const canEditTeam =
+    currentMember?.role === "OWNER" || currentMember?.role === "SUB_MANAGER";
+  const isSoleActiveMember =
+    isOwner &&
+    teamDetail?.members.length === 1 &&
+    teamDetail?.members[0]?.userId === currentUser?.id;
 
   async function handleJoin() {
     if (!teamDetail) {
@@ -127,6 +137,41 @@ export default function TeamDetailPage() {
       );
     } finally {
       setIsJoining(false);
+    }
+  }
+
+  function openDeleteConfirmation() {
+    setErrorMessage("");
+    setNoticeMessage("");
+
+    if (!isSoleActiveMember) {
+      setErrorMessage("팀 삭제는 OWNER가 팀에 혼자 남아 있을 때만 할 수 있습니다.");
+      return;
+    }
+
+    setIsDeleteConfirmOpen(true);
+  }
+
+  async function handleDelete() {
+    if (!teamDetail || !isSoleActiveMember) {
+      setErrorMessage("팀 삭제 조건을 다시 확인해 주세요.");
+      setIsDeleteConfirmOpen(false);
+      return;
+    }
+
+    setIsDeleting(true);
+    setErrorMessage("");
+
+    try {
+      await deleteTeam(teamDetail.team.id);
+      router.replace("/teams");
+    } catch (error) {
+      setErrorMessage(
+        error instanceof Error ? error.message : "팀을 삭제하지 못했습니다."
+      );
+      setIsDeleteConfirmOpen(false);
+    } finally {
+      setIsDeleting(false);
     }
   }
 
@@ -207,6 +252,23 @@ export default function TeamDetailPage() {
                 </div>
 
                 <div className="flex w-full flex-col gap-2 sm:w-auto sm:flex-row">
+                  {canEditTeam ? (
+                    <Link
+                      href={`/teams/${teamDetail.team.id}/edit`}
+                      className="inline-flex h-11 w-full items-center justify-center rounded-md border border-[#b9c9df] bg-white px-5 text-sm font-semibold text-[#3d5b86] transition-colors hover:bg-[#f0f4fa] sm:w-auto"
+                    >
+                      팀 수정
+                    </Link>
+                  ) : null}
+                  {isOwner ? (
+                    <button
+                      type="button"
+                      onClick={openDeleteConfirmation}
+                      className="inline-flex h-11 w-full items-center justify-center rounded-md border border-[#fca5a5] bg-white px-5 text-sm font-semibold text-[#b91c1c] transition-colors hover:bg-[#fef2f2] sm:w-auto"
+                    >
+                      팀 삭제
+                    </button>
+                  ) : null}
                   <Link
                     href={`/teams/${teamDetail.team.id}/matches`}
                     className="inline-flex h-11 w-full items-center justify-center rounded-md border border-[#b9c9df] bg-white px-5 text-sm font-semibold text-[#3d5b86] transition-colors hover:bg-[#f0f4fa] sm:w-auto"
@@ -262,6 +324,37 @@ export default function TeamDetailPage() {
               <p className="rounded-md border border-[#c8d4e6] bg-[#f0f4fa] px-4 py-3 text-sm font-medium text-[#3d5b86]">
                 {noticeMessage}
               </p>
+            ) : null}
+
+            {isDeleteConfirmOpen ? (
+              <section className="border border-[#fecaca] bg-[#fff7f7] px-5 py-5 sm:px-6">
+                <div className="flex flex-col gap-4 sm:flex-row sm:items-end sm:justify-between">
+                  <div>
+                    <h2 className="text-base font-bold text-[#991b1b]">팀을 삭제할까요?</h2>
+                    <p className="mt-2 text-sm leading-6 text-[#7f1d1d]">
+                      팀은 삭제되며 복구할 수 없습니다. 이 작업은 팀에 본인만 남아 있을 때만 가능합니다.
+                    </p>
+                  </div>
+                  <div className="flex shrink-0 gap-2">
+                    <button
+                      type="button"
+                      onClick={() => setIsDeleteConfirmOpen(false)}
+                      disabled={isDeleting}
+                      className="inline-flex h-10 items-center justify-center rounded-md border border-[#fecaca] bg-white px-4 text-sm font-semibold text-[#991b1b] transition-colors hover:bg-[#fef2f2] disabled:cursor-not-allowed"
+                    >
+                      취소
+                    </button>
+                    <button
+                      type="button"
+                      onClick={() => void handleDelete()}
+                      disabled={isDeleting}
+                      className="inline-flex h-10 items-center justify-center rounded-md bg-[#b91c1c] px-4 text-sm font-semibold text-white transition-colors hover:bg-[#991b1b] disabled:cursor-not-allowed disabled:bg-[#fca5a5]"
+                    >
+                      {isDeleting ? "삭제 중..." : "팀 삭제"}
+                    </button>
+                  </div>
+                </div>
+              </section>
             ) : null}
 
             <section className="grid gap-3 sm:grid-cols-3">

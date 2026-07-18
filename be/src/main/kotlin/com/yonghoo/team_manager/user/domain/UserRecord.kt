@@ -21,7 +21,7 @@ data class UserRecord(
                 username = user.username,
                 passwordHash = user.passwordHash,
                 name = user.name,
-                email = user.email,
+                email = requireNotNull(user.email),
                 status = user.status,
                 lastLoginAt = user.lastLoginAt,
                 createdAt = user.createdAt,

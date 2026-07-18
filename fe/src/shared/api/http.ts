@@ -84,3 +84,29 @@ export async function postJson<TResponse, TBody = undefined>(
 
   return resolveResponse<TResponse>(response);
 }
+
+export async function putJson<TResponse, TBody>(
+  path: string,
+  body: TBody
+): Promise<ApiResponse<TResponse>> {
+  const response = await fetch(`${API_BASE_URL}${path}`, {
+    method: "PUT",
+    headers: createHeaders(true),
+    body: JSON.stringify(body),
+    credentials: "include",
+  });
+
+  return resolveResponse<TResponse>(response);
+}
+
+export async function deleteJson<TResponse>(
+  path: string
+): Promise<ApiResponse<TResponse>> {
+  const response = await fetch(`${API_BASE_URL}${path}`, {
+    method: "DELETE",
+    headers: createHeaders(),
+    credentials: "include",
+  });
+
+  return resolveResponse<TResponse>(response);
+}

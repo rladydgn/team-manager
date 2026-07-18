@@ -36,6 +36,20 @@ CREATE TABLE soccer_teams (
     KEY idx_soccer_teams_name (name)
 );
 
+CREATE TABLE team_histories (
+    id BIGINT UNSIGNED NOT NULL AUTO_INCREMENT,
+    team_id BIGINT UNSIGNED NOT NULL,
+    action ENUM('UPDATE', 'DELETE') NOT NULL,
+    changed_by_user_id BIGINT UNSIGNED NOT NULL,
+    before_snapshot TEXT NOT NULL,
+    after_snapshot TEXT NULL,
+    created_at DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP,
+    PRIMARY KEY (id),
+    KEY idx_team_histories_team_id (team_id),
+    KEY idx_team_histories_changed_by_user_id (changed_by_user_id),
+    KEY idx_team_histories_action (action)
+);
+
 CREATE TABLE team_members (
     id BIGINT UNSIGNED NOT NULL AUTO_INCREMENT,
     team_id BIGINT UNSIGNED NOT NULL,

@@ -15,9 +15,21 @@ enum class TeamErrorCode(
         status = HttpStatus.NOT_FOUND,
         message = "팀을 찾을 수 없습니다.",
     ),
+    TEAM_UPDATE_FORBIDDEN(
+        status = HttpStatus.FORBIDDEN,
+        message = "팀 수정 권한이 없습니다.",
+    ),
+    TEAM_DELETE_FORBIDDEN(
+        status = HttpStatus.FORBIDDEN,
+        message = "팀 삭제는 OWNER만 할 수 있습니다.",
+    ),
+    TEAM_DELETE_REQUIRES_SOLE_MEMBER(
+        status = HttpStatus.CONFLICT,
+        message = "팀에 본인만 남아 있을 때 삭제할 수 있습니다.",
+    ),
     USER_NOT_FOUND(
         status = HttpStatus.NOT_FOUND,
-        message = "유저를 찾을 수 없습니다.",
+        message = "사용자를 찾을 수 없습니다.",
     ),
     ALREADY_JOINED_TEAM(
         status = HttpStatus.CONFLICT,

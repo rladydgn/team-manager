@@ -1,4 +1,4 @@
-import { getJson, postJson } from "@/shared/api/http";
+import { deleteJson, getJson, postJson, putJson } from "@/shared/api/http";
 
 export type Team = {
   id: number;
@@ -23,6 +23,17 @@ export type TeamCreateRequest = {
   region?: string;
   homeStadium?: string;
   foundedAt?: string;
+};
+
+export type TeamUpdateRequest = {
+  name: string;
+  shortName?: string;
+  logoUrl?: string;
+  description?: string;
+  region?: string;
+  homeStadium?: string;
+  foundedAt?: string;
+  teamColor?: string;
 };
 
 export type TeamMember = {
@@ -53,4 +64,12 @@ export function createTeam(request: TeamCreateRequest) {
 
 export function joinTeam(teamId: number) {
   return postJson<TeamMember>(`/teams/${teamId}/members`);
+}
+
+export function updateTeam(teamId: number, request: TeamUpdateRequest) {
+  return putJson<Team, TeamUpdateRequest>(`/teams/${teamId}`, request);
+}
+
+export function deleteTeam(teamId: number) {
+  return deleteJson<null>(`/teams/${teamId}`);
 }
