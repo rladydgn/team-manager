@@ -20,16 +20,12 @@ export type UserResponse = {
   email: string;
 };
 
-export type SignInResponse = UserResponse & {
-  accessToken: string;
-};
-
 export function signIn(request: SignInRequest) {
-  return postJson<SignInResponse, SignInRequest>("/users/sign-in", request);
+  return postJson<UserResponse, SignInRequest>("/users/sign-in", request);
 }
 
 export function refreshSession() {
-  return postJson<SignInResponse>("/users/token/refresh");
+  return postJson<UserResponse>("/users/token/refresh");
 }
 
 export function signOut() {

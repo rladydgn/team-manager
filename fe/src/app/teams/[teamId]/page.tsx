@@ -9,6 +9,7 @@ import {
   useState,
 } from "react";
 import { useCurrentUser } from "@/features/auth/model/auth-session";
+import { TeamDetailTabs } from "@/features/team/ui/TeamDetailTabs";
 import {
   deleteTeam,
   getTeam,
@@ -88,11 +89,9 @@ export default function TeamDetailPage() {
     const members = teamDetail?.members ?? [];
 
     return {
-      total: members.length,
-      managers: members.filter(
-        (member) => member.role === "OWNER" || member.role === "SUB_MANAGER"
+      total: members.filter(
+        (member) => member.status === "ACTIVE" && member.userId !== null
       ).length,
-      guests: members.filter((member) => member.role === "GUEST").length,
     };
   }, [teamDetail]);
 
@@ -206,6 +205,10 @@ export default function TeamDetailPage() {
           팀 목록으로
         </Link>
 
+        {Number.isInteger(teamId) && teamId > 0 ? (
+          <TeamDetailTabs teamId={teamId} activeTab="overview" />
+        ) : null}
+
         {errorMessage && !teamDetail ? (
           <section className="flex min-h-72 flex-col items-center justify-center rounded-lg border border-[#fecaca] bg-white px-5 py-12 text-center">
             <h1 className="text-xl font-bold text-[#0f172a]">팀 정보를 불러올 수 없습니다.</h1>
@@ -265,14 +268,6 @@ export default function TeamDetailPage() {
                     >
                       팀 삭제
                     </button>
-                  ) : null}
-                  {isMember ? (
-                    <Link
-                      href={`/teams/${teamDetail.team.id}/matches`}
-                      className="inline-flex h-11 w-full items-center justify-center rounded-md border border-[#b9c9df] bg-white px-5 text-sm font-semibold text-[#3d5b86] transition-colors hover:bg-[#f0f4fa] sm:w-auto"
-                    >
-                      경기 일정
-                    </Link>
                   ) : null}
                   {canEditTeam ? (
                     <Link
@@ -368,18 +363,10 @@ export default function TeamDetailPage() {
               </section>
             ) : null}
 
-            <section className="grid gap-3 sm:grid-cols-3">
+            <section>
               <div className="rounded-md border border-[#dbe4f0] bg-white px-4 py-4">
-                <p className="text-sm font-semibold text-[#64748b]">활성 팀원</p>
+                <p className="text-sm font-semibold text-[#64748b]">팀원</p>
                 <p className="mt-2 text-2xl font-bold text-[#0f172a]">{memberSummary.total}명</p>
-              </div>
-              <div className="rounded-md border border-[#dbe4f0] bg-white px-4 py-4">
-                <p className="text-sm font-semibold text-[#64748b]">운영진</p>
-                <p className="mt-2 text-2xl font-bold text-[#0f172a]">{memberSummary.managers}명</p>
-              </div>
-              <div className="rounded-md border border-[#dbe4f0] bg-white px-4 py-4">
-                <p className="text-sm font-semibold text-[#64748b]">용병</p>
-                <p className="mt-2 text-2xl font-bold text-[#0f172a]">{memberSummary.guests}명</p>
               </div>
             </section>
 

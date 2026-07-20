@@ -44,6 +44,6 @@ class MatchRepository {
     fun selectMatchesByTeamId(teamId: Long): List<MatchRecord> {
         return MatchEntity.find {
             (MatchesTable.teamId eq teamId) and MatchesTable.deletedAt.isNull()
-        }.map(MatchRecord::from).sortedBy(MatchRecord::matchAt)
+        }.map(MatchRecord::from).sortedByDescending(MatchRecord::matchAt)
     }
 }

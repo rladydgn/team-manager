@@ -11,18 +11,12 @@ import {
   useState,
 } from "react";
 import { refreshSession, signOut } from "@/features/auth/api/auth";
-import { setAccessToken } from "@/shared/auth/access-token";
+import type { CurrentUser } from "@/features/auth/model/auth-user";
 
-export type CurrentUser = {
-  id: number;
-  name: string;
-  username: string;
-  email: string | null;
-};
+export type { CurrentUser } from "@/features/auth/model/auth-user";
 
 type AuthSession = {
   user: CurrentUser;
-  accessToken: string;
 };
 
 type AuthSessionContextValue = {
@@ -34,12 +28,17 @@ type AuthSessionContextValue = {
 
 const AuthSessionContext = createContext<AuthSessionContextValue | null>(null);
 
-export function AuthSessionProvider({ children }: { children: ReactNode }) {
-  const [currentUser, setCurrentUser] = useState<CurrentUser | null>(null);
-  const [isSessionReady, setIsSessionReady] = useState(false);
+export function AuthSessionProvider({
+  children,
+  initialUser,
+}: {
+  children: ReactNode;
+  initialUser: CurrentUser | null;
+}) {
+  const [currentUser, setCurrentUser] = useState<CurrentUser | null>(initialUser);
+  const [isSessionReady, setIsSessionReady] = useState(initialUser !== null);
   const sessionVersionRef = useRef(0);
   const startSession = useCallback((session: AuthSession) => {
-    setAccessToken(session.accessToken);
     setCurrentUser(session.user);
   }, []);
   const endSession = useCallback(async () => {
@@ -48,11 +47,14 @@ export function AuthSessionProvider({ children }: { children: ReactNode }) {
     try {
       await signOut();
     } finally {
-      setAccessToken(null);
       setCurrentUser(null);
     }
   }, []);
   useEffect(() => {
+    if (initialUser) {
+      return;
+    }
+
     let isMounted = true;
     const sessionVersion = sessionVersionRef.current;
 
@@ -72,7 +74,6 @@ export function AuthSessionProvider({ children }: { children: ReactNode }) {
               username: response.data.username,
               email: response.data.email,
             },
-            accessToken: response.data.accessToken,
           });
         }
       } catch {
@@ -89,7 +90,7 @@ export function AuthSessionProvider({ children }: { children: ReactNode }) {
     return () => {
       isMounted = false;
     };
-  }, [startSession]);
+  }, [initialUser, startSession]);
   const value = useMemo(
     () => ({ currentUser, isSessionReady, startSession, endSession }),
     [currentUser, endSession, isSessionReady, startSession]

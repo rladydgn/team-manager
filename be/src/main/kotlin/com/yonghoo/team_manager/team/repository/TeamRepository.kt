@@ -159,6 +159,18 @@ class TeamRepository {
         }.firstOrNull()?.let(TeamMemberRecord::from)
     }
 
+    fun selectActiveTeamMemberByTeamAndUser(
+        teamId: Long,
+        userId: Long,
+    ): TeamMemberRecord? {
+        return TeamMemberEntity.find {
+            (TeamMembersTable.teamId eq teamId) and
+                (TeamMembersTable.userId eq userId) and
+                (TeamMembersTable.status eq TeamMemberStatus.ACTIVE) and
+                TeamMembersTable.deletedAt.isNull()
+        }.firstOrNull()?.let(TeamMemberRecord::from)
+    }
+
     fun updateTeamMemberStatus(
         teamMemberId: Long,
         status: TeamMemberStatus,

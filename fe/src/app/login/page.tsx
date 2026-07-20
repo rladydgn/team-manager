@@ -40,7 +40,6 @@ export default function LoginPage() {
           username: response.data.username,
           email: response.data.email,
         },
-        accessToken: response.data.accessToken,
       });
       router.replace("/teams");
     } catch (error) {

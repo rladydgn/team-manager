@@ -48,7 +48,9 @@ export default function NewMatchPage() {
       setTeamDetail(response.data);
     } catch (error) {
       setErrorMessage(
-        error instanceof Error ? error.message : "팀 정보를 불러오지 못했습니다."
+        error instanceof Error
+          ? error.message
+          : "팀 정보를 불러오지 못했습니다.",
       );
     } finally {
       setIsLoading(false);
@@ -66,7 +68,7 @@ export default function NewMatchPage() {
   const currentMember = useMemo(
     () =>
       teamDetail?.members.find((member) => member.userId === currentUser?.id),
-    [currentUser?.id, teamDetail?.members]
+    [currentUser?.id, teamDetail?.members],
   );
   const canCreateMatch =
     currentMember?.role === "OWNER" || currentMember?.role === "SUB_MANAGER";
@@ -110,7 +112,7 @@ export default function NewMatchPage() {
       router.replace(`/matches/${response.data.id}`);
     } catch (error) {
       setErrorMessage(
-        error instanceof Error ? error.message : "매치를 등록하지 못했습니다."
+        error instanceof Error ? error.message : "매치를 등록하지 못했습니다.",
       );
     } finally {
       setIsSubmitting(false);
@@ -119,13 +121,18 @@ export default function NewMatchPage() {
 
   return (
     <main className="min-h-screen bg-[#f5f7fb] text-[#111827]">
-      <header data-legacy-page-header className="border-b border-[#dbe4f0] bg-white/90">
+      <header
+        data-legacy-page-header
+        className="border-b border-[#dbe4f0] bg-white/90"
+      >
         <div className="mx-auto flex w-full max-w-4xl items-center justify-between gap-4 px-5 py-4 sm:px-6 lg:px-8">
           <Link href="/" className="flex min-w-0 items-center gap-3">
             <span className="grid size-9 shrink-0 place-items-center rounded-md bg-[#4f6f9f] text-sm font-bold text-white">
               TM
             </span>
-            <span className="truncate text-base font-semibold">Team Manager</span>
+            <span className="truncate text-base font-semibold">
+              Team Manager
+            </span>
           </Link>
           {currentUser ? (
             <span className="truncate rounded-md border border-[#c8d4e6] bg-white px-3 py-2 text-sm font-semibold text-[#3d5b86]">
@@ -144,7 +151,11 @@ export default function NewMatchPage() {
 
       <div className="mx-auto flex w-full max-w-4xl flex-col gap-6 px-5 py-7 sm:px-6 sm:py-8 lg:px-8">
         <Link
-          href={Number.isInteger(teamId) && teamId > 0 ? `/teams/${teamId}` : "/teams"}
+          href={
+            Number.isInteger(teamId) && teamId > 0
+              ? `/teams/${teamId}`
+              : "/teams"
+          }
           className="inline-flex w-fit text-sm font-semibold text-[#3d5b86] transition-colors hover:text-[#283f62]"
         >
           팀 상세로 돌아가기
@@ -152,12 +163,18 @@ export default function NewMatchPage() {
 
         {isLoading ? (
           <section className="flex min-h-72 items-center justify-center rounded-lg border border-[#dbe4f0] bg-white">
-            <p className="text-sm font-semibold text-[#64748b]">팀 정보를 불러오는 중입니다.</p>
+            <p className="text-sm font-semibold text-[#64748b]">
+              팀 정보를 불러오는 중입니다.
+            </p>
           </section>
         ) : errorMessage && !teamDetail ? (
           <section className="rounded-lg border border-[#fecaca] bg-white px-5 py-12 text-center">
-            <h1 className="text-xl font-bold text-[#0f172a]">매치 생성 화면을 열 수 없습니다.</h1>
-            <p className="mt-3 text-sm leading-6 text-[#b91c1c]">{errorMessage}</p>
+            <h1 className="text-xl font-bold text-[#0f172a]">
+              매치 생성 화면을 열 수 없습니다.
+            </h1>
+            <p className="mt-3 text-sm leading-6 text-[#b91c1c]">
+              {errorMessage}
+            </p>
             <button
               type="button"
               onClick={() => void loadTeam()}
@@ -168,8 +185,12 @@ export default function NewMatchPage() {
           </section>
         ) : !currentUser ? (
           <section className="rounded-lg border border-[#dbe4f0] bg-white px-5 py-12 text-center">
-            <h1 className="text-xl font-bold text-[#0f172a]">로그인이 필요합니다.</h1>
-            <p className="mt-3 text-sm leading-6 text-[#64748b]">매치 생성은 팀 운영진만 할 수 있습니다.</p>
+            <h1 className="text-xl font-bold text-[#0f172a]">
+              로그인이 필요합니다.
+            </h1>
+            <p className="mt-3 text-sm leading-6 text-[#64748b]">
+              매치 생성은 팀 운영진만 할 수 있습니다.
+            </p>
             <Link
               href="/login"
               className="mt-6 inline-flex h-11 items-center justify-center rounded-md bg-[#4f6f9f] px-5 text-sm font-semibold text-white transition-colors hover:bg-[#435f88]"
@@ -179,18 +200,30 @@ export default function NewMatchPage() {
           </section>
         ) : !canCreateMatch ? (
           <section className="rounded-lg border border-[#dbe4f0] bg-white px-5 py-12 text-center">
-            <h1 className="text-xl font-bold text-[#0f172a]">매치 생성 권한이 없습니다.</h1>
-            <p className="mt-3 text-sm leading-6 text-[#64748b]">팀장과 부관리자만 매치를 등록할 수 있습니다.</p>
+            <h1 className="text-xl font-bold text-[#0f172a]">
+              매치 생성 권한이 없습니다.
+            </h1>
+            <p className="mt-3 text-sm leading-6 text-[#64748b]">
+              팀장과 부관리자만 매치를 등록할 수 있습니다.
+            </p>
           </section>
         ) : teamDetail ? (
           <section className="rounded-lg border border-[#dbe4f0] bg-white shadow-[0_20px_60px_rgba(15,23,42,0.08)]">
             <div className="border-b border-[#e5eaf3] bg-[#f8fafc] px-5 py-5 sm:px-7">
-              <p className="text-sm font-semibold text-[#4f6f9f]">경기 일정 등록</p>
-              <h1 className="mt-2 text-2xl font-bold text-[#0f172a] sm:text-3xl">매치 생성</h1>
+              <p className="text-sm font-semibold text-[#4f6f9f]">
+                경기 일정 등록
+              </p>
+              <h1 className="mt-2 text-2xl font-bold text-[#0f172a] sm:text-3xl">
+                매치 생성
+              </h1>
               <div className="mt-5 flex flex-wrap items-center gap-3 text-sm">
                 <span className="font-semibold text-[#64748b]">우리 팀</span>
-                <strong className="text-base text-[#1f2937]">{teamDetail.team.name}</strong>
-                <span className="rounded-md border border-[#b9c9df] bg-white px-2.5 py-1 text-xs font-semibold text-[#3d5b86]">HOME</span>
+                <strong className="text-base text-[#1f2937]">
+                  {teamDetail.team.name}
+                </strong>
+                <span className="rounded-md border border-[#b9c9df] bg-white px-2.5 py-1 text-xs font-semibold text-[#3d5b86]">
+                  HOME
+                </span>
               </div>
             </div>
 
@@ -220,7 +253,9 @@ export default function NewMatchPage() {
                   상대 팀명
                   <input
                     value={opponentTeamName}
-                    onChange={(event) => setOpponentTeamName(event.target.value)}
+                    onChange={(event) =>
+                      setOpponentTeamName(event.target.value)
+                    }
                     className="h-12 rounded-md border border-[#cbd5e1] bg-white px-4 text-base font-normal outline-none transition-colors placeholder:text-[#94a3b8] focus:border-[#4f6f9f] focus:ring-4 focus:ring-[#e3eaf5]"
                     placeholder="강남 FC"
                     maxLength={100}
@@ -241,6 +276,7 @@ export default function NewMatchPage() {
                     onChange={(event) => setMatchAt(event.target.value)}
                     className="h-12 rounded-md border border-[#cbd5e1] bg-white px-4 text-base font-normal outline-none transition-colors focus:border-[#4f6f9f] focus:ring-4 focus:ring-[#e3eaf5]"
                     type="datetime-local"
+                    step={600}
                     required
                   />
                 </label>
@@ -272,7 +308,11 @@ export default function NewMatchPage() {
               <button
                 className="inline-flex h-12 items-center justify-center rounded-md bg-[#4f6f9f] px-5 text-base font-semibold text-white transition-colors hover:bg-[#435f88] disabled:cursor-not-allowed disabled:bg-[#a9b9d3]"
                 type="submit"
-                disabled={isSubmitting || !matchAt || (matchType === "EXTERNAL" && !opponentTeamName.trim())}
+                disabled={
+                  isSubmitting ||
+                  !matchAt ||
+                  (matchType === "EXTERNAL" && !opponentTeamName.trim())
+                }
               >
                 {isSubmitting ? "등록 중..." : "매치 등록"}
               </button>

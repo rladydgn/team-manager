@@ -3,6 +3,8 @@ package com.yonghoo.team_manager.match.controller
 import com.yonghoo.team_manager.common.dto.CommonResponse
 import com.yonghoo.team_manager.exception.exception.ApiException
 import com.yonghoo.team_manager.match.dto.MatchCreateRequest
+import com.yonghoo.team_manager.match.dto.MatchParticipantResponse
+import com.yonghoo.team_manager.match.dto.MatchParticipationUpdateRequest
 import com.yonghoo.team_manager.match.dto.MatchResponse
 import com.yonghoo.team_manager.match.service.MatchService
 import com.yonghoo.team_manager.user.auth.AUTHENTICATED_USER_ID_ATTRIBUTE
@@ -13,6 +15,7 @@ import org.springframework.http.ResponseEntity
 import org.springframework.web.bind.annotation.GetMapping
 import org.springframework.web.bind.annotation.PathVariable
 import org.springframework.web.bind.annotation.PostMapping
+import org.springframework.web.bind.annotation.PutMapping
 import org.springframework.web.bind.annotation.RequestAttribute
 import org.springframework.web.bind.annotation.RequestBody
 import org.springframework.web.bind.annotation.RequestMapping
@@ -41,6 +44,35 @@ class MatchController(
         @RequestAttribute(name = AUTHENTICATED_USER_ID_ATTRIBUTE, required = false) userId: Long?,
     ): ResponseEntity<CommonResponse<MatchResponse>> {
         return ResponseEntity.ok(CommonResponse(data = matchService.getMatch(matchId, requireAuthenticatedUserId(userId))))
+    }
+
+    @Operation(summary = "매치 참여 현황 조회")
+    @GetMapping("/{matchId}/participants")
+    fun getMatchParticipants(
+        @PathVariable matchId: Long,
+        @RequestAttribute(name = AUTHENTICATED_USER_ID_ATTRIBUTE, required = false) userId: Long?,
+    ): ResponseEntity<CommonResponse<List<MatchParticipantResponse>>> {
+        return ResponseEntity.ok(
+            CommonResponse(data = matchService.getMatchParticipants(matchId, requireAuthenticatedUserId(userId))),
+        )
+    }
+
+    @Operation(summary = "매치 참여 여부 변경")
+    @PutMapping("/{matchId}/participation")
+    fun updateMatchParticipation(
+        @PathVariable matchId: Long,
+        @RequestAttribute(name = AUTHENTICATED_USER_ID_ATTRIBUTE, required = false) userId: Long?,
+        @RequestBody request: MatchParticipationUpdateRequest,
+    ): ResponseEntity<CommonResponse<MatchParticipantResponse>> {
+        return ResponseEntity.ok(
+            CommonResponse(
+                data = matchService.updateMatchParticipation(
+                    matchId = matchId,
+                    userId = requireAuthenticatedUserId(userId),
+                    request = request,
+                ),
+            ),
+        )
     }
 
     private fun requireAuthenticatedUserId(userId: Long?): Long {

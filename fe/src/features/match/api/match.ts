@@ -1,6 +1,11 @@
-import { getJson, postJson } from "@/shared/api/http";
+import { getJson, postJson, putJson } from "@/shared/api/http";
 
 export type MatchType = "EXTERNAL" | "INTERNAL";
+export type MatchParticipationStatus =
+  | "INVITED"
+  | "AVAILABLE"
+  | "UNAVAILABLE"
+  | "PENDING";
 
 export type MatchCreateRequest = {
   teamId: number;
@@ -21,6 +26,15 @@ export type Match = {
   location: string | null;
   status: "SCHEDULED" | "COMPLETED" | "CANCELED";
   createdAt: string;
+  availableParticipantCount: number;
+  myParticipationStatus: MatchParticipationStatus;
+};
+
+export type MatchParticipant = {
+  teamMemberId: number;
+  status: MatchParticipationStatus;
+  memo: string | null;
+  respondedAt: string | null;
 };
 
 export function createMatch(request: MatchCreateRequest) {
@@ -33,4 +47,19 @@ export function getMatch(matchId: number) {
 
 export function getTeamMatches(teamId: number) {
   return getJson<Match[]>(`/teams/${teamId}/matches`);
+}
+
+export function getMatchParticipants(matchId: number) {
+  return getJson<MatchParticipant[]>(`/matches/${matchId}/participants`);
+}
+
+export function updateMatchParticipation(
+  matchId: number,
+  status: Extract<MatchParticipationStatus, "AVAILABLE" | "UNAVAILABLE">,
+  memo?: string
+) {
+  return putJson<MatchParticipant, { status: typeof status; memo?: string }>(
+    `/matches/${matchId}/participation`,
+    { status, ...(memo === undefined ? {} : { memo }) }
+  );
 }

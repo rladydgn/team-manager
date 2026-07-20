@@ -1,6 +1,7 @@
 package com.yonghoo.team_manager.match.dto
 
 import com.yonghoo.team_manager.match.domain.MatchRecord
+import com.yonghoo.team_manager.match.domain.MatchParticipantStatus
 import com.yonghoo.team_manager.match.domain.MatchStatus
 import com.yonghoo.team_manager.match.domain.MatchType
 import java.time.LocalDateTime
@@ -16,9 +17,15 @@ data class MatchResponse(
     val location: String?,
     val status: MatchStatus,
     val createdAt: LocalDateTime,
+    val availableParticipantCount: Int,
+    val myParticipationStatus: MatchParticipantStatus,
 ) {
     companion object {
-        fun from(match: MatchRecord): MatchResponse {
+        fun from(
+            match: MatchRecord,
+            availableParticipantCount: Int = 0,
+            myParticipationStatus: MatchParticipantStatus = MatchParticipantStatus.PENDING,
+        ): MatchResponse {
             return MatchResponse(
                 id = match.id,
                 teamId = match.teamId,
@@ -30,6 +37,8 @@ data class MatchResponse(
                 location = match.location,
                 status = match.status,
                 createdAt = match.createdAt,
+                availableParticipantCount = availableParticipantCount,
+                myParticipationStatus = myParticipationStatus,
             )
         }
     }

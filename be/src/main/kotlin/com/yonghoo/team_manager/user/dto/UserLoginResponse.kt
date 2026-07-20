@@ -7,19 +7,14 @@ data class UserLoginResponse(
     val username: String,
     val name: String,
     val email: String,
-    val accessToken: String,
 ) {
     companion object {
-        fun from(
-            user: UserRecord,
-            accessToken: String,
-        ): UserLoginResponse {
+        fun from(user: UserRecord): UserLoginResponse {
             return UserLoginResponse(
                 id = user.id,
                 username = user.username,
                 name = user.name,
                 email = user.email,
-                accessToken = accessToken,
             )
         }
     }

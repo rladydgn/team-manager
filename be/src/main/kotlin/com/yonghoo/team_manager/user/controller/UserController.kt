@@ -2,7 +2,10 @@ package com.yonghoo.team_manager.user.controller
 
 import com.yonghoo.team_manager.common.dto.CommonResponse
 import com.yonghoo.team_manager.exception.exception.ApiException
+import com.yonghoo.team_manager.user.auth.ACCESS_TOKEN_COOKIE_NAME
+import com.yonghoo.team_manager.user.auth.AUTHENTICATED_USER_ID_ATTRIBUTE
 import com.yonghoo.team_manager.user.auth.JwtProperties
+import com.yonghoo.team_manager.user.auth.REFRESH_TOKEN_COOKIE_NAME
 import com.yonghoo.team_manager.user.dto.UserLoginRequest
 import com.yonghoo.team_manager.user.dto.UserLoginResponse
 import com.yonghoo.team_manager.user.dto.UserRegisterRequest
@@ -18,6 +21,7 @@ import org.springframework.web.bind.annotation.GetMapping
 import org.springframework.web.bind.annotation.PostMapping
 import org.springframework.web.bind.annotation.RequestBody
 import org.springframework.web.bind.annotation.RequestMapping
+import org.springframework.web.bind.annotation.RequestAttribute
 import org.springframework.web.bind.annotation.RequestParam
 import org.springframework.web.bind.annotation.RestController
 
@@ -57,9 +61,18 @@ class UserController(
         return ResponseEntity.ok(CommonResponse(data = userService.isValidEmail(email)))
     }
 
+    @Operation(summary = "현재 로그인 유저 조회")
+    @GetMapping("/me")
+    fun getCurrentUser(
+        @RequestAttribute(name = AUTHENTICATED_USER_ID_ATTRIBUTE, required = false) userId: Long?,
+    ): ResponseEntity<CommonResponse<UserLoginResponse>> {
+        val authenticatedUserId = userId ?: throw ApiException(UserErrorCode.UNAUTHORIZED_ACCESS)
+        return ResponseEntity.ok(CommonResponse(data = userService.getCurrentUser(authenticatedUserId)))
+    }
+
     @Operation(
         summary = "로그인",
-        description = "아이디와 비밀번호를 검증하고 액세스 토큰을 반환하며 리프레시 토큰을 HttpOnly 쿠키로 설정합니다.",
+        description = "아이디와 비밀번호를 검증하고 액세스·리프레시 토큰을 HttpOnly 쿠키로 설정합니다.",
     )
     @PostMapping("/sign-in")
     fun signIn(
@@ -68,6 +81,7 @@ class UserController(
         val result = userService.signIn(request)
 
         return ResponseEntity.ok()
+            .header(HttpHeaders.SET_COOKIE, createAccessCookie(result.accessToken).toString())
             .header(HttpHeaders.SET_COOKIE, createRefreshCookie(result.refreshToken).toString())
             .body(CommonResponse(data = result.response))
     }
@@ -75,13 +89,14 @@ class UserController(
     @PostMapping("/sign-out")
     fun signOut(): ResponseEntity<CommonResponse<Nothing>> {
         return ResponseEntity.ok()
+            .header(HttpHeaders.SET_COOKIE, clearAccessCookie().toString())
             .header(HttpHeaders.SET_COOKIE, clearRefreshCookie().toString())
             .body(CommonResponse())
     }
 
     @Operation(
         summary = "액세스 토큰 재발급",
-        description = "HttpOnly 리프레시 쿠키를 검증해 새 액세스 토큰을 발급합니다.",
+        description = "HttpOnly 리프레시 쿠키를 검증해 새 액세스 토큰 쿠키를 발급합니다.",
     )
     @PostMapping("/token/refresh")
     fun refreshAccessToken(
@@ -91,16 +106,28 @@ class UserController(
             throw ApiException(UserErrorCode.INVALID_REFRESH_TOKEN)
         }
 
-        return ResponseEntity.ok(
-            CommonResponse(data = userService.refreshAccessToken(refreshToken)),
-        )
+        val result = userService.refreshAccessToken(refreshToken)
+
+        return ResponseEntity.ok()
+            .header(HttpHeaders.SET_COOKIE, createAccessCookie(result.accessToken).toString())
+            .body(CommonResponse(data = result.response))
+    }
+
+    private fun createAccessCookie(accessToken: String): ResponseCookie {
+        return ResponseCookie.from(ACCESS_TOKEN_COOKIE_NAME, accessToken)
+            .httpOnly(true)
+            .secure(jwtProperties.refreshCookieSecure)
+            .sameSite(jwtProperties.cookieSameSite)
+            .path("/")
+            .maxAge(jwtProperties.accessTokenExpiration)
+            .build()
     }
 
     private fun createRefreshCookie(refreshToken: String): ResponseCookie {
         return ResponseCookie.from(REFRESH_TOKEN_COOKIE_NAME, refreshToken)
             .httpOnly(true)
             .secure(jwtProperties.refreshCookieSecure)
-            .sameSite("Lax")
+            .sameSite(jwtProperties.cookieSameSite)
             .path("/")
             .maxAge(jwtProperties.refreshTokenExpiration)
             .build()
@@ -110,13 +137,19 @@ class UserController(
         return ResponseCookie.from(REFRESH_TOKEN_COOKIE_NAME, "")
             .httpOnly(true)
             .secure(jwtProperties.refreshCookieSecure)
-            .sameSite("Lax")
+            .sameSite(jwtProperties.cookieSameSite)
             .path("/")
             .maxAge(0)
             .build()
     }
 
-    companion object {
-        private const val REFRESH_TOKEN_COOKIE_NAME = "team_manager_refresh_token"
+    private fun clearAccessCookie(): ResponseCookie {
+        return ResponseCookie.from(ACCESS_TOKEN_COOKIE_NAME, "")
+            .httpOnly(true)
+            .secure(jwtProperties.refreshCookieSecure)
+            .sameSite(jwtProperties.cookieSameSite)
+            .path("/")
+            .maxAge(0)
+            .build()
     }
 }

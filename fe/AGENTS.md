@@ -20,7 +20,7 @@ Use the local SDD files under `specs/` before implementing changes:
 - `specs/workflow.md` defines the project workflow: constitution, feature spec, implementation, validation, replanning, legacy support, and workflow improvement.
 - `specs/features/_template/` contains the feature-spec document set to copy for new frontend features.
 
-For feature work, create or update the feature spec first, then produce the plan, implementation notes, validation notes, replanning notes when needed, and legacy-support notes for existing behavior changes.
+Create or update SDD documents only when the user explicitly requests them.
 
 The frontend should help team owners and sub-managers quickly understand what needs attention: upcoming matches, member attendance, match records, and fee status. The default experience should feel like a practical team operations tool, not a marketing page.
 
@@ -41,9 +41,12 @@ This frontend must be built as a responsive application.
 - Use Tailwind CSS utility classes for most styling.
 - Keep shared API/config code under `src/shared`.
 - Keep domain-specific frontend logic under `src/features` or route-local files when small.
-- Keep JWT access tokens in memory only and send them through the `Authorization` header. Do not store tokens in `localStorage` or `sessionStorage`.
-- Store refresh tokens only in HttpOnly cookies and restore the in-memory access token through the refresh endpoint after a full page reload.
-- Use the auth context for UI state only; backend authorization must rely on the validated JWT.
+- Store access and refresh JWTs only in HttpOnly cookies. Do not store tokens in `localStorage`, `sessionStorage`, or React state.
+- Access tokens expire after 15 minutes and refresh tokens expire after 7 days. API requests use cookies and refresh the access cookie once after a `401` response.
+- Use `Secure` in HTTPS environments and `SameSite=Lax` by default for both authentication cookies.
+- Root-layout SSR reads the access-token cookie and calls `GET /users/me` through `BACKEND_API_URL` to render the initial authenticated UI. Keep `BACKEND_API_URL` server-only.
+- The `/teams` route fetches its initial public team list on the server through `BACKEND_API_URL`; keep client-side refreshes for mutations and retry states.
+- Use the auth context for UI state only; backend authorization must rely on the validated access-token cookie.
 
 # Visual Direction
 

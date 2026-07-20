@@ -1,5 +1,4 @@
 import { API_BASE_URL } from "@/shared/config/api";
-import { getAccessToken } from "@/shared/auth/access-token";
 
 type ApiResponse<T> = {
   success: boolean;
@@ -46,24 +45,51 @@ async function resolveResponse<TResponse>(
 }
 
 function createHeaders(includeJsonContentType = false) {
-  const accessToken = getAccessToken();
   const headers: Record<string, string> = {};
 
   if (includeJsonContentType) {
     headers["Content-Type"] = "application/json";
   }
 
-  if (accessToken) {
-    headers.Authorization = `Bearer ${accessToken}`;
+  return headers;
+}
+
+async function requestWithAccessRefresh(
+  path: string,
+  init: RequestInit
+): Promise<Response> {
+  let response = await fetch(`${API_BASE_URL}${path}`, init);
+
+  if (response.status !== 401 || !shouldRefreshAccessCookie(path)) {
+    return response;
   }
 
-  return headers;
+  const refreshResponse = await fetch(`${API_BASE_URL}/users/token/refresh`, {
+    method: "POST",
+    credentials: "include",
+  });
+
+  if (!refreshResponse.ok) {
+    return response;
+  }
+
+  response = await fetch(`${API_BASE_URL}${path}`, init);
+  return response;
+}
+
+function shouldRefreshAccessCookie(path: string) {
+  return ![
+    "/users/sign-in",
+    "/users/sign-up",
+    "/users/sign-out",
+    "/users/token/refresh",
+  ].includes(path);
 }
 
 export async function getJson<TResponse>(
   path: string
 ): Promise<ApiResponse<TResponse>> {
-  const response = await fetch(`${API_BASE_URL}${path}`, {
+  const response = await requestWithAccessRefresh(path, {
     headers: createHeaders(),
     credentials: "include",
   });
@@ -75,7 +101,7 @@ export async function postJson<TResponse, TBody = undefined>(
   path: string,
   body?: TBody
 ): Promise<ApiResponse<TResponse>> {
-  const response = await fetch(`${API_BASE_URL}${path}`, {
+  const response = await requestWithAccessRefresh(path, {
     method: "POST",
     headers: createHeaders(body !== undefined),
     body: body === undefined ? undefined : JSON.stringify(body),
@@ -89,7 +115,7 @@ export async function putJson<TResponse, TBody>(
   path: string,
   body: TBody
 ): Promise<ApiResponse<TResponse>> {
-  const response = await fetch(`${API_BASE_URL}${path}`, {
+  const response = await requestWithAccessRefresh(path, {
     method: "PUT",
     headers: createHeaders(true),
     body: JSON.stringify(body),
@@ -102,7 +128,7 @@ export async function putJson<TResponse, TBody>(
 export async function deleteJson<TResponse>(
   path: string
 ): Promise<ApiResponse<TResponse>> {
-  const response = await fetch(`${API_BASE_URL}${path}`, {
+  const response = await requestWithAccessRefresh(path, {
     method: "DELETE",
     headers: createHeaders(),
     credentials: "include",

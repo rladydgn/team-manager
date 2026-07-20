@@ -22,6 +22,18 @@ enum class MatchErrorCode(
     MATCH_VIEW_FORBIDDEN(
         status = HttpStatus.FORBIDDEN,
         message = "팀에 가입한 회원만 경기 일정을 조회할 수 있습니다.",
+    ),
+    INVALID_MATCH_PARTICIPATION_REQUEST(
+        status = HttpStatus.BAD_REQUEST,
+        message = "매치 참여 상태 값이 올바르지 않습니다.",
+    ),
+    MATCH_PARTICIPATION_MEMO_TOO_LONG(
+        status = HttpStatus.BAD_REQUEST,
+        message = "매치 참여 메모는 500자 이내로 입력해 주세요.",
+    ),
+    MATCH_PARTICIPATION_CLOSED(
+        status = HttpStatus.CONFLICT,
+        message = "매치 시작 24시간 전까지만 참여 여부를 변경할 수 있습니다.",
     );
 
     override val code: String

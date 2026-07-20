@@ -10,4 +10,5 @@ data class JwtProperties(
     val accessTokenExpiration: Duration,
     val refreshTokenExpiration: Duration,
     val refreshCookieSecure: Boolean,
+    val cookieSameSite: String,
 )

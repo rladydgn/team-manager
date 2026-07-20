@@ -6,6 +6,7 @@ import com.yonghoo.team_manager.user.auth.PasswordHasher
 import com.yonghoo.team_manager.user.domain.UserRecord
 import com.yonghoo.team_manager.user.dto.UserLoginRequest
 import com.yonghoo.team_manager.user.dto.UserLoginResponse
+import com.yonghoo.team_manager.user.dto.UserAccessTokenResult
 import com.yonghoo.team_manager.user.dto.UserRegisterRequest
 import com.yonghoo.team_manager.user.dto.UserSignInResult
 import com.yonghoo.team_manager.user.exception.UserErrorCode
@@ -52,11 +53,12 @@ class UserService(
         val loggedInUser = userRepository.updateLastLoginAt(user.id, LocalDateTime.now())
         return UserSignInResult(
             response = createLoginResponse(loggedInUser),
+            accessToken = jwtTokenProvider.createAccessToken(loggedInUser),
             refreshToken = jwtTokenProvider.createRefreshToken(loggedInUser),
         )
     }
 
-    fun refreshAccessToken(refreshToken: String): UserLoginResponse {
+    fun refreshAccessToken(refreshToken: String): UserAccessTokenResult {
         val userId = try {
             jwtTokenProvider.getRefreshTokenUserId(refreshToken)
         } catch (exception: RuntimeException) {
@@ -64,6 +66,17 @@ class UserService(
         }
         val user = userRepository.selectUserById(userId)
             ?: throw ApiException(UserErrorCode.INVALID_REFRESH_TOKEN)
+
+        return UserAccessTokenResult(
+            response = createLoginResponse(user),
+            accessToken = jwtTokenProvider.createAccessToken(user),
+        )
+    }
+
+    @Transactional(readOnly = true)
+    fun getCurrentUser(userId: Long): UserLoginResponse {
+        val user = userRepository.selectUserById(userId)
+            ?: throw ApiException(UserErrorCode.UNAUTHORIZED_ACCESS)
 
         return createLoginResponse(user)
     }
@@ -96,10 +109,7 @@ class UserService(
     }
 
     private fun createLoginResponse(user: UserRecord): UserLoginResponse {
-        return UserLoginResponse.from(
-            user = user,
-            accessToken = jwtTokenProvider.createAccessToken(user),
-        )
+        return UserLoginResponse.from(user)
     }
 
     companion object {

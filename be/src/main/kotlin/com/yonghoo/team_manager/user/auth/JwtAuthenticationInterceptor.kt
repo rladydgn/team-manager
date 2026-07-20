@@ -6,7 +6,6 @@ import com.yonghoo.team_manager.user.exception.UserErrorCode
 import io.jsonwebtoken.JwtException
 import jakarta.servlet.http.HttpServletRequest
 import jakarta.servlet.http.HttpServletResponse
-import org.springframework.http.HttpHeaders
 import org.springframework.http.MediaType
 import org.springframework.stereotype.Component
 import org.springframework.web.servlet.HandlerInterceptor
@@ -55,11 +54,9 @@ class JwtAuthenticationInterceptor(
     }
 
     private fun resolveAccessToken(request: HttpServletRequest): String? {
-        val authorization = request.getHeader(HttpHeaders.AUTHORIZATION) ?: return null
-
-        return authorization
-            .takeIf { it.startsWith(BEARER_PREFIX) }
-            ?.removePrefix(BEARER_PREFIX)
+        return request.cookies
+            ?.firstOrNull { it.name == ACCESS_TOKEN_COOKIE_NAME }
+            ?.value
             ?.takeIf(String::isNotBlank)
     }
 
@@ -75,7 +72,6 @@ class JwtAuthenticationInterceptor(
     }
 
     companion object {
-        private const val BEARER_PREFIX = "Bearer "
         private val TEAM_DETAIL_PATH = Regex("^/teams/\\d+$")
         private val PUBLIC_PATHS = setOf(
             "/users/sign-in",

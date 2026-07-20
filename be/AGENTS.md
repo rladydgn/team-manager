@@ -14,7 +14,7 @@ Use the local SDD files under `specs/` before implementing changes:
 - `specs/workflow.md` defines the project workflow: constitution, feature spec, implementation, validation, replanning, legacy support, and workflow improvement.
 - `specs/features/_template/` contains the feature-spec document set to copy for new backend features.
 
-For feature work, create or update the feature spec first, then produce the plan, implementation notes, validation notes, replanning notes when needed, and legacy-support notes for existing behavior changes.
+Create or update SDD documents only when the user explicitly requests them.
 
 The backend should model football team operations clearly:
 
@@ -43,9 +43,9 @@ The backend should model football team operations clearly:
 - Use `CommonResponse` for successful responses unless the project standard changes.
 - Use `ApiException` with domain-specific `ErrorCode` enums for expected failures.
 - For Springdoc, keep controller annotations minimal; prefer `@Operation` only unless more detail is explicitly requested.
-- Authentication uses a JWT access token. Validate it in a Spring MVC interceptor and derive the acting user ID from the request attribute, never from a client-supplied user ID.
+- Authentication uses an HttpOnly JWT access-token cookie. Validate it in a Spring MVC interceptor and derive the acting user ID from the request attribute, never from a client-supplied user ID.
 - Read the JWT signing secret from the `JWT_SECRET` environment variable; never commit a secret to source control.
-- Keep refresh tokens in HttpOnly cookies only. Access tokens expire after 24 hours, while refresh tokens expire after 7 days.
+- Keep access and refresh tokens in HttpOnly cookies only. Access tokens expire after 15 minutes, while refresh tokens expire after 7 days. Set both cookies to `SameSite=Lax` by default and use `Secure` in HTTPS environments.
 
 # Schema Rules
 
@@ -59,3 +59,4 @@ The backend should model football team operations clearly:
 - Allow `team_members.user_id` to be nullable so non-registered players and guest players can be managed.
 - Validate match type and opponent information in application logic: external matches use an opponent team ID or name, while internal matches do not.
 - Keep schema changes conservative and aligned with current MySQL-style SQL unless the database choice changes.
+- Append existing-database schema change DDL to `src/main/resources/change_schema.sql`; do not create separate migration files unless the user requests one.

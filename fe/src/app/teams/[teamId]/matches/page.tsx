@@ -3,9 +3,16 @@
 import Link from "next/link";
 import { useParams } from "next/navigation";
 import { useCallback, useEffect, useMemo, useState } from "react";
-import { getTeamMatches, Match } from "@/features/match/api/match";
+import {
+  getTeamMatches,
+  Match,
+  updateMatchParticipation,
+} from "@/features/match/api/match";
+import { canUpdateMatchParticipation } from "@/features/match/model/participation";
+import { MatchParticipationButton } from "@/features/match/ui/MatchParticipationButton";
 import { useAuthSession } from "@/features/auth/model/auth-session";
 import { getTeam, TeamDetail } from "@/features/team/api/team";
+import { TeamDetailTabs } from "@/features/team/ui/TeamDetailTabs";
 
 function formatMatchAt(value: string) {
   return new Intl.DateTimeFormat("ko-KR", {
@@ -35,14 +42,14 @@ function getMatchProgress(match: Match) {
 
   if (new Date(match.matchAt).getTime() > Date.now()) {
     return {
-      label: "경기 전",
-      className: "border-[#c8d4e6] bg-[#f0f4fa] text-[#3d5b86]",
+      label: "매치 전",
+      className: "border-[#cfe5d5] bg-[#f1f8f2] text-[#36734a]",
     };
   }
 
   return {
-    label: "경기 후",
-    className: "border-[#dbe4f0] bg-[#f8fafc] text-[#64748b]",
+    label: "매치 종료",
+    className: "border-[#f3cfcc] bg-[#fff4f3] text-[#a85450]",
   };
 }
 
@@ -53,7 +60,10 @@ export default function TeamMatchesPage() {
   const [teamDetail, setTeamDetail] = useState<TeamDetail | null>(null);
   const [matches, setMatches] = useState<Match[]>([]);
   const [isLoading, setIsLoading] = useState(true);
+  const [updatingMatchId, setUpdatingMatchId] = useState<number | null>(null);
   const [errorMessage, setErrorMessage] = useState("");
+  const [participationErrorMessage, setParticipationErrorMessage] = useState("");
+  const [noticeMessage, setNoticeMessage] = useState("");
 
   const loadMatches = useCallback(async () => {
     if (!isSessionReady) {
@@ -111,6 +121,29 @@ export default function TeamMatchesPage() {
     return role === "OWNER" || role === "SUB_MANAGER";
   }, [currentUser?.id, teamDetail?.members]);
 
+  async function handleParticipation(match: Match) {
+    setParticipationErrorMessage("");
+    setNoticeMessage("");
+    setUpdatingMatchId(match.id);
+
+    const isParticipating = match.myParticipationStatus === "AVAILABLE";
+    const nextStatus = isParticipating ? "UNAVAILABLE" : "AVAILABLE";
+
+    try {
+      await updateMatchParticipation(match.id, nextStatus);
+      setNoticeMessage(
+        isParticipating ? "매치 참여를 취소했습니다." : "매치 참여로 등록했습니다."
+      );
+      await loadMatches();
+    } catch (error) {
+      setParticipationErrorMessage(
+        error instanceof Error ? error.message : "매치 참여 상태를 변경하지 못했습니다."
+      );
+    } finally {
+      setUpdatingMatchId(null);
+    }
+  }
+
   return (
     <main className="min-h-screen bg-[#f5f7fb] text-[#111827]">
       <header data-legacy-page-header className="border-b border-[#dbe4f0] bg-white/90">
@@ -128,9 +161,9 @@ export default function TeamMatchesPage() {
       </header>
 
       <div className="mx-auto flex w-full max-w-5xl flex-col gap-6 px-5 py-7 sm:px-6 sm:py-8 lg:px-8">
-        <Link href={Number.isInteger(teamId) && teamId > 0 ? `/teams/${teamId}` : "/teams"} className="inline-flex w-fit text-sm font-semibold text-[#3d5b86] transition-colors hover:text-[#283f62]">
-          팀 상세로 돌아가기
-        </Link>
+        {Number.isInteger(teamId) && teamId > 0 ? (
+          <TeamDetailTabs teamId={teamId} activeTab="matches" />
+        ) : null}
 
         {isLoading ? (
           <section className="flex min-h-72 items-center justify-center rounded-lg border border-[#dbe4f0] bg-white">
@@ -157,6 +190,18 @@ export default function TeamMatchesPage() {
               ) : null}
             </section>
 
+            {noticeMessage ? (
+              <p className="rounded-md border border-[#c8d4e6] bg-[#f0f4fa] px-4 py-3 text-sm font-medium text-[#3d5b86]">
+                {noticeMessage}
+              </p>
+            ) : null}
+
+            {participationErrorMessage ? (
+              <p className="rounded-md border border-[#fecaca] bg-[#fef2f2] px-4 py-3 text-sm font-medium text-[#b91c1c]">
+                {participationErrorMessage}
+              </p>
+            ) : null}
+
             {matches.length === 0 ? (
               <section className="flex min-h-64 items-center justify-center rounded-lg border border-dashed border-[#c8d4e6] bg-white px-5 py-12 text-center">
                 <div>
@@ -166,19 +211,42 @@ export default function TeamMatchesPage() {
               </section>
             ) : (
               <section className="divide-y divide-[#e2e8f0] overflow-hidden rounded-lg border border-[#dbe4f0] bg-white">
-                {matches.map((match) => (
-                  <Link key={match.id} href={`/matches/${match.id}`} className="flex flex-col gap-3 px-5 py-5 transition-colors hover:bg-[#f8fafc] sm:flex-row sm:items-center sm:justify-between sm:px-6">
-                    <div className="min-w-0">
-                      <p className="text-sm font-semibold text-[#4f6f9f]">{formatMatchAt(match.matchAt)}</p>
-                      <h2 className="mt-1 truncate text-lg font-bold text-[#1f2937]">{teamDetail.team.name} <span className="mx-1 text-[#94a3b8]">vs</span> {getOpponentLabel(match)}</h2>
-                      <p className="mt-1 text-sm text-[#64748b]">{match.location || "장소 미정"}</p>
-                    </div>
-                    <div className="flex w-fit shrink-0 items-center gap-2">
-                      <span className={`rounded-md border px-2.5 py-1 text-xs font-semibold ${getMatchProgress(match).className}`}>{getMatchProgress(match).label}</span>
-                      <span className="rounded-md border border-[#dbe4f0] bg-[#f8fafc] px-2.5 py-1 text-xs font-semibold text-[#3d5b86]">{match.matchType === "INTERNAL" ? "자체전" : "외부전"}</span>
-                    </div>
-                  </Link>
-                ))}
+                {matches.map((match) => {
+                  const isUpdating = updatingMatchId === match.id;
+
+                  return (
+                    <article
+                      key={match.id}
+                      className="flex flex-col gap-4 px-5 py-5 sm:px-6 lg:flex-row lg:items-center lg:justify-between"
+                    >
+                      <Link
+                        href={`/matches/${match.id}`}
+                        className="min-w-0 flex-1 transition-colors hover:text-[#3d5b86]"
+                      >
+                        <p className="text-sm font-semibold text-[#4f6f9f]">{formatMatchAt(match.matchAt)}</p>
+                        <h2 className="mt-1 truncate text-lg font-bold text-[#1f2937]">
+                          {teamDetail.team.name} <span className="mx-1 text-[#94a3b8]">vs</span> {getOpponentLabel(match)}
+                        </h2>
+                        <div className="mt-1 flex flex-wrap items-center gap-x-2 text-sm text-[#64748b]">
+                          <span>{match.location || "장소 미정"}</span>
+                          <span aria-hidden="true" className="text-[#cbd5e1]">|</span>
+                          <span className="font-medium text-[#52627b]">{match.availableParticipantCount}명 참여</span>
+                        </div>
+                      </Link>
+                      <div className="flex flex-wrap items-center gap-2 lg:justify-end">
+                        <span className={`rounded-md border px-2.5 py-1 text-xs font-semibold ${getMatchProgress(match).className}`}>{getMatchProgress(match).label}</span>
+                        <span className="rounded-md border border-[#dbe4f0] bg-[#f8fafc] px-2.5 py-1 text-xs font-semibold text-[#3d5b86]">{match.matchType === "INTERNAL" ? "자체전" : "외부전"}</span>
+                        {canUpdateMatchParticipation(match) ? (
+                          <MatchParticipationButton
+                            status={match.myParticipationStatus}
+                            isUpdating={isUpdating}
+                            onClick={() => void handleParticipation(match)}
+                          />
+                        ) : null}
+                      </div>
+                    </article>
+                  );
+                })}
               </section>
             )}
           </>
