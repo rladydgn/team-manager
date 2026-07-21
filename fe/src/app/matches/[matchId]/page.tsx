@@ -2,7 +2,7 @@
 
 import Link from "next/link";
 import { useParams } from "next/navigation";
-import { useCallback, useEffect, useRef, useState } from "react";
+import { useCallback, useEffect, useState } from "react";
 import {
   getMatch,
   getMatchParticipants,
@@ -69,7 +69,7 @@ export default function MatchDetailPage() {
   const [participationErrorMessage, setParticipationErrorMessage] =
     useState("");
   const [noticeMessage, setNoticeMessage] = useState("");
-  const memoInputRef = useRef<HTMLInputElement>(null);
+  const [memoDraft, setMemoDraft] = useState("");
 
   const loadMatch = useCallback(async () => {
     if (!isSessionReady) {
@@ -105,7 +105,16 @@ export default function MatchDetailPage() {
       setMatch(matchResponse.data);
       setTeam(teamResponse.data?.team ?? null);
       setTeamMembers(teamResponse.data?.members ?? []);
-      setParticipants(participantsResponse.data ?? []);
+      const loadedParticipants = participantsResponse.data ?? [];
+      setParticipants(loadedParticipants);
+      const currentMember = teamResponse.data?.members.find(
+        (member) => member.userId === currentUser.id,
+      );
+      setMemoDraft(
+        loadedParticipants.find(
+          (participant) => participant.teamMemberId === currentMember?.id,
+        )?.memo ?? "",
+      );
     } catch (error) {
       setErrorMessage(
         error instanceof Error
@@ -149,13 +158,11 @@ export default function MatchDetailPage() {
           )
         : [...currentParticipants, updatedParticipant];
     });
-    if (memoInputRef.current) {
-      memoInputRef.current.value = updatedParticipant.memo ?? "";
-    }
+    setMemoDraft(updatedParticipant.memo ?? "");
   }
 
   function getMemoDraft() {
-    return memoInputRef.current?.value ?? "";
+    return memoDraft;
   }
 
   async function handleParticipation() {
@@ -281,7 +288,7 @@ export default function MatchDetailPage() {
         </div>
       </header>
 
-      <div className="mx-auto flex w-full max-w-4xl flex-col gap-6 px-5 py-7 sm:px-6 sm:py-8 lg:px-8">
+      <div className="mx-auto flex w-full max-w-6xl flex-col gap-6 px-5 py-7 sm:px-6 sm:py-10 lg:px-8">
         {team ? (
           <Link
             href={`/teams/${team.id}/matches`}
@@ -315,7 +322,8 @@ export default function MatchDetailPage() {
           </section>
         ) : match && team ? (
           <>
-            <section className="rounded-lg border border-[#cdd9ea] bg-[#eaf0f8] px-5 py-7 text-center sm:px-8 sm:py-10">
+            <section className="overflow-hidden rounded-2xl border border-[#c8d4e6] bg-white shadow-[0_14px_32px_rgba(37,55,84,0.08)]">
+              <div className="border-b border-[#d6e0ee] bg-[linear-gradient(135deg,#edf3fa_0%,#e3edf8_100%)] px-5 py-7 text-center sm:px-8 sm:py-10">
               <span className="rounded-md border border-[#b9c9df] bg-white/80 px-2.5 py-1 text-xs font-semibold text-[#3d5b86]">
                 {match.matchType === "INTERNAL" ? "자체전" : "외부전"}
               </span>
@@ -333,7 +341,8 @@ export default function MatchDetailPage() {
                   {opponentLabel}
                 </strong>
               </div>
-              <div className="mt-6 flex flex-wrap items-center justify-center gap-2">
+              </div>
+              <div className="flex flex-col items-center justify-center gap-3 px-5 py-5 sm:flex-row sm:px-8">
                 <span className="rounded-md border border-[#c8d4e6] bg-white/80 px-2.5 py-1 text-xs font-semibold text-[#3d5b86]">
                   {match.availableParticipantCount}명 참여
                 </span>
@@ -359,7 +368,7 @@ export default function MatchDetailPage() {
               </p>
             ) : null}
 
-            <section className="grid gap-5 rounded-lg border border-[#dbe4f0] bg-white p-5 sm:grid-cols-2 sm:p-7">
+            <section className="grid divide-y divide-[#e2e8f0] overflow-hidden rounded-2xl border border-[#dbe4f0] bg-white shadow-[0_8px_24px_rgba(37,55,84,0.04)] [&>div]:p-5 sm:grid-cols-2 sm:divide-y-0 sm:[&>div:nth-child(odd)]:border-r sm:[&>div]:p-6 lg:grid-cols-4 lg:[&>div]:border-r lg:[&>div:nth-child(odd)]:border-r lg:[&>div:last-child]:border-r-0 lg:[&>div]:p-7">
               <div>
                 <p className="text-sm font-semibold text-[#64748b]">우리 팀</p>
                 <p className="mt-2 text-lg font-bold text-[#1f2937]">
@@ -392,8 +401,8 @@ export default function MatchDetailPage() {
               </div>
             </section>
 
-            <section className="overflow-hidden rounded-lg border border-[#dbe4f0] bg-white">
-              <div className="flex flex-col gap-2 border-b border-[#e2e8f0] px-5 py-4 sm:flex-row sm:items-center sm:justify-between sm:px-6">
+            <section className="overflow-hidden rounded-2xl border border-[#dbe4f0] bg-white shadow-[0_8px_24px_rgba(37,55,84,0.04)]">
+              <div className="flex flex-col gap-3 border-b border-[#e2e8f0] bg-[#fbfcfe] px-5 py-5 sm:flex-row sm:items-center sm:justify-between sm:px-6">
                 <div>
                   <h2 className="text-lg font-bold text-[#0f172a]">
                     팀원 참여 현황
@@ -407,7 +416,95 @@ export default function MatchDetailPage() {
                 </span>
               </div>
 
-              <div className="overflow-x-auto">
+              <div className="divide-y divide-[#e2e8f0] md:hidden">
+                {teamMembers.map((member) => {
+                  const participant = participants.find(
+                    (item) => item.teamMemberId === member.id,
+                  );
+                  const participationStatus = participant?.status ?? "PENDING";
+                  const isCurrentUser = member.userId === currentUser?.id;
+                  const canSaveMemo =
+                    canUpdateMatchParticipation(match) &&
+                    (participationStatus === "AVAILABLE" ||
+                      participationStatus === "UNAVAILABLE");
+
+                  return (
+                    <article key={member.id} className="px-5 py-4">
+                      <div className="flex items-start justify-between gap-3">
+                        <div className="min-w-0">
+                          <div className="flex flex-wrap items-center gap-2">
+                            <h3 className="truncate font-bold text-[#1f2937]">
+                              {member.name ??
+                                (member.userId ? "가입 팀원" : "미가입 팀원")}
+                            </h3>
+                            {isCurrentUser ? (
+                              <span className="rounded border border-[#c8d4e6] bg-[#f0f4fa] px-1.5 py-0.5 text-[11px] font-bold text-[#3d5b86]">
+                                나
+                              </span>
+                            ) : null}
+                          </div>
+                          <p className="mt-1 text-xs text-[#64748b]">
+                            {member.role === "OWNER"
+                              ? "팀장"
+                              : member.role === "SUB_MANAGER"
+                                ? "부관리자"
+                                : member.role === "GUEST"
+                                  ? "게스트"
+                                  : "팀원"}
+                          </p>
+                        </div>
+                        <span
+                          className={`shrink-0 rounded-md border px-2.5 py-1 text-xs font-semibold ${participationStatusClassNames[participationStatus]}`}
+                        >
+                          {participationStatusLabels[participationStatus]}
+                        </span>
+                      </div>
+
+                      <dl className="mt-4 grid grid-cols-2 gap-3 rounded-lg bg-[#f8fafc] p-3 text-xs">
+                        <div>
+                          <dt className="font-medium text-[#94a3b8]">응답 시간</dt>
+                          <dd className="mt-1 leading-5 text-[#52627b]">
+                            {formatParticipationRespondedAt(
+                              participant?.respondedAt ?? null,
+                            )}
+                          </dd>
+                        </div>
+                        <div>
+                          <dt className="font-medium text-[#94a3b8]">메모</dt>
+                          <dd className="mt-1 break-words leading-5 text-[#52627b]">
+                            {isCurrentUser ? memoDraft || "메모 없음" : participant?.memo || "메모 없음"}
+                          </dd>
+                        </div>
+                      </dl>
+
+                      {isCurrentUser ? (
+                        <div className="mt-3 flex items-center gap-2">
+                          <input
+                            type="text"
+                            value={memoDraft}
+                            onChange={(event) => setMemoDraft(event.target.value)}
+                            maxLength={500}
+                            disabled={!canUpdateMatchParticipation(match) || isMemoSaving}
+                            placeholder="불참 사유 등 메모를 남겨주세요"
+                            aria-label="매치 참여 메모"
+                            className="h-10 min-w-0 flex-1 rounded-md border border-[#c8d4e6] bg-white px-3 text-sm text-[#1f2937] outline-none placeholder:text-[#94a3b8] focus:border-[#4f6f9f] disabled:cursor-not-allowed disabled:bg-[#f8fafc]"
+                          />
+                          <button
+                            type="button"
+                            onClick={() => void handleMemoSave()}
+                            disabled={!canSaveMemo || isMemoSaving}
+                            className="inline-flex h-10 shrink-0 items-center justify-center rounded-md border border-[#c8d4e6] bg-[#f0f4fa] px-3 text-xs font-semibold text-[#3d5b86] transition-colors hover:bg-[#e3ecf7] disabled:cursor-not-allowed disabled:border-[#dbe4f0] disabled:bg-[#f8fafc] disabled:text-[#94a3b8]"
+                          >
+                            {isMemoSaving ? "저장 중" : "저장"}
+                          </button>
+                        </div>
+                      ) : null}
+                    </article>
+                  );
+                })}
+              </div>
+
+              <div className="hidden overflow-x-auto md:block">
                 <table className="w-full min-w-[52rem] text-left text-sm">
                   <thead className="bg-[#f8fafc] text-xs font-semibold text-[#64748b]">
                     <tr>
@@ -428,7 +525,7 @@ export default function MatchDetailPage() {
                       </th>
                     </tr>
                   </thead>
-                  <tbody className="divide-y divide-[#e2e8f0]">
+                  <tbody className="divide-y divide-[#e2e8f0] [&>tr]:transition-colors [&>tr:hover]:bg-[#fbfcfe]">
                     {teamMembers.map((member) => {
                       const participant = participants.find(
                         (participant) => participant.teamMemberId === member.id,
@@ -466,8 +563,8 @@ export default function MatchDetailPage() {
                               <div className="flex min-w-64 items-center gap-2">
                                 <input
                                   type="text"
-                                  ref={memoInputRef}
-                                  defaultValue={participant?.memo ?? ""}
+                                  value={memoDraft}
+                                  onChange={(event) => setMemoDraft(event.target.value)}
                                   maxLength={500}
                                   disabled={
                                     !canUpdateMatchParticipation(match) ||

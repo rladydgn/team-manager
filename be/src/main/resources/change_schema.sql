@@ -5,7 +5,3 @@
 ALTER TABLE match_participants
     ADD COLUMN responded_at DATETIME NULL AFTER memo;
 
--- Existing participant rows were created by a participation response.
-UPDATE match_participants
-SET responded_at = created_at
-WHERE responded_at IS NULL;
