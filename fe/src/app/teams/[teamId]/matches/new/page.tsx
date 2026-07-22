@@ -125,7 +125,7 @@ export default function NewMatchPage() {
         data-legacy-page-header
         className="border-b border-[#dbe4f0] bg-white/90"
       >
-        <div className="mx-auto flex w-full max-w-4xl items-center justify-between gap-4 px-5 py-4 sm:px-6 lg:px-8">
+        <div className="mx-auto flex w-full max-w-6xl items-center justify-between gap-4 px-5 py-4 sm:px-6 lg:px-8">
           <Link href="/" className="flex min-w-0 items-center gap-3">
             <span className="grid size-9 shrink-0 place-items-center rounded-md bg-[#4f6f9f] text-sm font-bold text-white">
               TM
@@ -149,7 +149,7 @@ export default function NewMatchPage() {
         </div>
       </header>
 
-      <div className="mx-auto flex w-full max-w-4xl flex-col gap-6 px-5 py-7 sm:px-6 sm:py-8 lg:px-8">
+      <div className="mx-auto flex w-full max-w-6xl flex-col gap-6 px-5 py-7 sm:px-6 sm:py-8 lg:px-8">
         <Link
           href={
             Number.isInteger(teamId) && teamId > 0

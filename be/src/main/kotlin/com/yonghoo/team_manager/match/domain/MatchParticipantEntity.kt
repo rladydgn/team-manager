@@ -12,6 +12,9 @@ class MatchParticipantEntity(id: EntityID<Long>) : LongEntity(id) {
     var teamSide by MatchParticipantsTable.teamSide
     var status by MatchParticipantsTable.status
     var participated by MatchParticipantsTable.participated
+    var goalCount by MatchParticipantsTable.goalCount
+    var assistCount by MatchParticipantsTable.assistCount
+    var cleanSheetCount by MatchParticipantsTable.cleanSheetCount
     var memo by MatchParticipantsTable.memo
     var respondedAt by MatchParticipantsTable.respondedAt
     var createdAt by MatchParticipantsTable.createdAt

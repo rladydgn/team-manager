@@ -6,6 +6,9 @@ import java.time.LocalDateTime
 data class MatchParticipantResponse(
     val teamMemberId: Long,
     val status: MatchParticipantStatus,
+    val goalCount: Int,
+    val assistCount: Int,
+    val cleanSheetCount: Int,
     val memo: String?,
     val respondedAt: LocalDateTime?,
 )

@@ -19,6 +19,10 @@ enum class MatchErrorCode(
         status = HttpStatus.FORBIDDEN,
         message = "팀장 또는 부관리자만 매치를 생성할 수 있습니다.",
     ),
+    MATCH_RECORD_FORBIDDEN(
+        status = HttpStatus.FORBIDDEN,
+        message = "팀장 또는 부관리자만 경기 기록을 저장할 수 있습니다.",
+    ),
     MATCH_VIEW_FORBIDDEN(
         status = HttpStatus.FORBIDDEN,
         message = "팀에 가입한 회원만 경기 일정을 조회할 수 있습니다.",
@@ -26,6 +30,18 @@ enum class MatchErrorCode(
     INVALID_MATCH_PARTICIPATION_REQUEST(
         status = HttpStatus.BAD_REQUEST,
         message = "매치 참여 상태 값이 올바르지 않습니다.",
+    ),
+    INVALID_MATCH_RECORD_REQUEST(
+        status = HttpStatus.BAD_REQUEST,
+        message = "경기 기록 값이 올바르지 않습니다.",
+    ),
+    INVALID_MATCH_ASSIST_COUNT(
+        status = HttpStatus.BAD_REQUEST,
+        message = "어시스트 합계는 골 합계보다 클 수 없습니다.",
+    ),
+    MATCH_RECORD_UNAVAILABLE(
+        status = HttpStatus.CONFLICT,
+        message = "취소된 매치에는 경기 기록을 저장할 수 없습니다.",
     ),
     MATCH_PARTICIPATION_MEMO_TOO_LONG(
         status = HttpStatus.BAD_REQUEST,
@@ -38,6 +54,10 @@ enum class MatchErrorCode(
     MATCH_PARTICIPATION_CLOSED(
         status = HttpStatus.CONFLICT,
         message = "매치 시작 24시간 전까지만 참여 여부를 변경할 수 있습니다.",
+    ),
+    MATCH_PARTICIPATION_NOT_AVAILABLE(
+        status = HttpStatus.CONFLICT,
+        message = "매치 생성 이후 가입한 팀원은 해당 매치에 참여할 수 없습니다.",
     );
 
     override val code: String

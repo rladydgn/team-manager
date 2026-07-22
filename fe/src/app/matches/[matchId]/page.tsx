@@ -142,6 +142,29 @@ export default function MatchDetailPage() {
     match?.matchType === "INTERNAL"
       ? "자체전"
       : match?.opponentTeamName || "등록된 상대 팀";
+  const canManageMatchRecord =
+    teamMembers.find((member) => member.userId === currentUser?.id)?.role ===
+      "OWNER" ||
+    teamMembers.find((member) => member.userId === currentUser?.id)?.role ===
+      "SUB_MANAGER";
+  const hasMatchRecord =
+    match?.teamScore != null && match?.opponentScore != null;
+  const matchTeamMembers = teamMembers.filter((member) =>
+    participants.some((participant) => participant.teamMemberId === member.id),
+  );
+  const playerRecords = matchTeamMembers
+    .map((member) => ({
+      member,
+      participant: participants.find(
+        (participant) => participant.teamMemberId === member.id,
+      ),
+    }))
+    .filter(
+      ({ participant }) =>
+        (participant?.goalCount ?? 0) > 0 ||
+        (participant?.assistCount ?? 0) > 0 ||
+        (participant?.cleanSheetCount ?? 0) > 0,
+    );
 
   function applyParticipantUpdate(updatedParticipant: MatchParticipant) {
     setParticipants((currentParticipants) => {
@@ -264,7 +287,7 @@ export default function MatchDetailPage() {
         data-legacy-page-header
         className="border-b border-[#dbe4f0] bg-white/90"
       >
-        <div className="mx-auto flex w-full max-w-4xl items-center justify-between gap-4 px-5 py-4 sm:px-6 lg:px-8">
+        <div className="mx-auto flex w-full max-w-6xl items-center justify-between gap-4 px-5 py-4 sm:px-6 lg:px-8">
           <Link href="/" className="flex min-w-0 items-center gap-3">
             <span className="grid size-9 shrink-0 place-items-center rounded-md bg-[#4f6f9f] text-sm font-bold text-white">
               TM
@@ -335,7 +358,9 @@ export default function MatchDetailPage() {
                   {team.name}
                 </strong>
                 <span className="text-sm font-bold text-[#64748b] sm:text-base">
-                  VS
+                  {hasMatchRecord
+                    ? `${match.teamScore} : ${match.opponentScore}`
+                    : "VS"}
                 </span>
                 <strong className="break-words text-xl text-[#0f172a] sm:text-3xl">
                   {opponentLabel}
@@ -352,6 +377,14 @@ export default function MatchDetailPage() {
                     isUpdating={isParticipationUpdating}
                     onClick={() => void handleParticipation()}
                   />
+                ) : null}
+                {canManageMatchRecord ? (
+                  <Link
+                    href={`/matches/${match.id}/record`}
+                    className="inline-flex h-10 items-center justify-center rounded-md border border-[#c8d4e6] bg-white px-4 text-sm font-semibold text-[#3d5b86] transition-colors hover:bg-[#f0f4fa]"
+                  >
+                    경기 기록 관리
+                  </Link>
                 ) : null}
               </div>
             </section>
@@ -401,6 +434,39 @@ export default function MatchDetailPage() {
               </div>
             </section>
 
+            {hasMatchRecord ? (
+              <section className="overflow-hidden rounded-2xl border border-[#dbe4f0] bg-white shadow-[0_8px_24px_rgba(37,55,84,0.04)]">
+                <div className="flex flex-col gap-3 border-b border-[#e2e8f0] bg-[#fbfcfe] px-5 py-5 sm:flex-row sm:items-center sm:justify-between sm:px-6">
+                  <div>
+                    <h2 className="text-lg font-bold text-[#0f172a]">경기 기록</h2>
+                    <p className="mt-1 text-sm text-[#64748b]">선수별 공격 포인트와 클린시트 기록입니다.</p>
+                  </div>
+                  <p className="text-xl font-bold text-[#3d5b86]">
+                    {match.teamScore} : {match.opponentScore}
+                  </p>
+                </div>
+
+                {playerRecords.length > 0 ? (
+                  <div className="divide-y divide-[#e2e8f0]">
+                    {playerRecords.map(({ member, participant }) => (
+                      <div key={member.id} className="flex items-center justify-between gap-4 px-5 py-4 sm:px-6">
+                        <p className="min-w-0 truncate font-semibold text-[#1f2937]">
+                          {member.name ?? (member.userId ? "가입 팀원" : "미가입 팀원")}
+                        </p>
+                        <div className="flex shrink-0 items-center gap-2 text-xs font-semibold sm:text-sm">
+                          {(participant?.goalCount ?? 0) > 0 ? <span className="rounded-md border border-[#c8d4e6] bg-[#f0f4fa] px-2.5 py-1 text-[#3d5b86]">골 {participant?.goalCount}</span> : null}
+                          {(participant?.assistCount ?? 0) > 0 ? <span className="rounded-md border border-[#d8d4e9] bg-[#f6f5fb] px-2.5 py-1 text-[#695c91]">도움 {participant?.assistCount}</span> : null}
+                          {(participant?.cleanSheetCount ?? 0) > 0 ? <span className="rounded-md border border-[#b8d7c1] bg-[#f1f8f2] px-2.5 py-1 text-[#36734a]">클린시트</span> : null}
+                        </div>
+                      </div>
+                    ))}
+                  </div>
+                ) : (
+                  <p className="px-5 py-6 text-sm text-[#64748b] sm:px-6">등록된 선수 기록이 없습니다.</p>
+                )}
+              </section>
+            ) : null}
+
             <section className="overflow-hidden rounded-2xl border border-[#dbe4f0] bg-white shadow-[0_8px_24px_rgba(37,55,84,0.04)]">
               <div className="flex flex-col gap-3 border-b border-[#e2e8f0] bg-[#fbfcfe] px-5 py-5 sm:flex-row sm:items-center sm:justify-between sm:px-6">
                 <div>
@@ -417,7 +483,7 @@ export default function MatchDetailPage() {
               </div>
 
               <div className="divide-y divide-[#e2e8f0] md:hidden">
-                {teamMembers.map((member) => {
+                {matchTeamMembers.map((member) => {
                   const participant = participants.find(
                     (item) => item.teamMemberId === member.id,
                   );
@@ -526,7 +592,7 @@ export default function MatchDetailPage() {
                     </tr>
                   </thead>
                   <tbody className="divide-y divide-[#e2e8f0] [&>tr]:transition-colors [&>tr:hover]:bg-[#fbfcfe]">
-                    {teamMembers.map((member) => {
+                    {matchTeamMembers.map((member) => {
                       const participant = participants.find(
                         (participant) => participant.teamMemberId === member.id,
                       );

@@ -217,7 +217,7 @@ export default function TeamFeePaymentsPage() {
   return (
     <main className="min-h-screen bg-[#f5f7fb] text-[#111827]">
       <header data-legacy-page-header className="border-b border-[#dbe4f0] bg-white/90">
-        <div className="mx-auto flex w-full max-w-[90rem] items-center justify-between gap-4 px-5 py-4 sm:px-6 lg:px-8">
+        <div className="mx-auto flex w-full max-w-6xl items-center justify-between gap-4 px-5 py-4 sm:px-6 lg:px-8">
           <Link href="/" className="flex min-w-0 items-center gap-3">
             <span className="grid size-9 shrink-0 place-items-center rounded-md bg-[#4f6f9f] text-sm font-bold text-white">TM</span>
             <span className="truncate text-base font-semibold">Team Manager</span>
@@ -230,7 +230,7 @@ export default function TeamFeePaymentsPage() {
         </div>
       </header>
 
-      <div className="mx-auto flex w-full max-w-[90rem] flex-col gap-6 px-5 py-7 sm:px-6 sm:py-8 lg:px-8">
+      <div className="mx-auto flex w-full max-w-6xl flex-col gap-6 px-5 py-7 sm:px-6 sm:py-8 lg:px-8">
         {Number.isInteger(teamId) && teamId > 0 ? (
           <TeamDetailTabs teamId={teamId} activeTab="feePayments" canManageFees={canManageFees} />
         ) : null}
@@ -272,33 +272,37 @@ export default function TeamFeePaymentsPage() {
                 <span className="shrink-0 text-sm font-semibold text-[#3d5b86]">총 {feePayments.members.length}명</span>
               </div>
 
-              <div className="overflow-x-auto">
-                <table className="w-full min-w-[74rem] border-collapse text-left text-sm">
+              <div className="hidden lg:block">
+                <table className="w-full table-fixed border-collapse text-left text-xs">
+                  <colgroup>
+                    <col className="w-32" />
+                    <col span={12} />
+                  </colgroup>
                   <thead className="bg-[#f8fafc] text-xs font-semibold text-[#64748b]">
                     <tr>
-                      <th scope="col" className="sticky left-0 z-10 min-w-36 bg-[#f8fafc] px-5 py-3 sm:px-6">팀원</th>
-                      {months.map((month) => <th key={month} scope="col" className="min-w-28 px-2 py-3 text-center">{month}월</th>)}
+                      <th scope="col" className="bg-[#f8fafc] px-4 py-2.5">팀원</th>
+                      {months.map((month) => <th key={month} scope="col" className="px-1 py-2.5 text-center">{month}월</th>)}
                     </tr>
                   </thead>
                   <tbody className="divide-y divide-[#e2e8f0]">
                     {feePayments.members.map((member) => (
                       <tr key={member.teamMemberId}>
-                        <td className="sticky left-0 z-10 bg-white px-5 py-4 sm:px-6">
+                        <td className="bg-white px-4 py-3">
                           <p className="font-semibold text-[#1f2937]">{member.name}</p>
-                          <p className="mt-1 text-xs text-[#64748b]">{member.role === "OWNER" ? "팀장" : member.role === "SUB_MANAGER" ? "부관리자" : member.role === "GUEST" ? "용병" : "팀원"}</p>
+                          <p className="mt-0.5 text-[11px] text-[#64748b]">{member.role === "OWNER" ? "팀장" : member.role === "SUB_MANAGER" ? "부관리자" : member.role === "GUEST" ? "용병" : "팀원"}</p>
                         </td>
                         {member.payments.map((payment) => {
                           const paymentKey = `${member.teamMemberId}-${payment.paymentMonth}`;
                           const isUpdating = updatingPaymentKey === paymentKey;
 
                           return (
-                            <td key={payment.paymentMonth} className="px-2 py-3 align-top">
-                              <div className="grid gap-1.5">
+                            <td key={payment.paymentMonth} className="px-1 py-2 align-top">
+                              <div className="grid gap-1">
                                 <select
                                   value={payment.status}
                                   disabled={isUpdating}
                                   onChange={(event) => void savePayment(member, payment.paymentMonth, event.target.value as FeePaymentStatus, payment.memo ?? "")}
-                                  className={`h-8 rounded-md border px-2 text-xs font-semibold outline-none disabled:cursor-not-allowed ${statusClassNames[payment.status]}`}
+                                  className={`h-7 w-full rounded-md border px-1 text-[11px] font-semibold outline-none disabled:cursor-not-allowed ${statusClassNames[payment.status]}`}
                                   aria-label={`${member.name} ${payment.paymentMonth}월 회비 상태`}
                                 >
                                   {(Object.keys(statusLabels) as FeePaymentStatus[]).map((status) => <option key={status} value={status}>{statusLabels[status]}</option>)}
@@ -306,9 +310,11 @@ export default function TeamFeePaymentsPage() {
                                 <button
                                   type="button"
                                   onClick={() => setMemoEditor({ member, month: payment.paymentMonth, status: payment.status, memo: payment.memo ?? "" })}
-                                  className={`h-7 text-left text-xs font-semibold transition-colors ${payment.memo ? "text-[#3d5b86] hover:text-[#283f62]" : "text-[#94a3b8] hover:text-[#64748b]"}`}
+                                  title={payment.memo ?? "메모 작성"}
+                                  aria-label={`${member.name} ${payment.paymentMonth}월 메모 ${payment.memo ? "수정" : "작성"}`}
+                                  className={`h-6 w-full truncate text-left text-[11px] font-semibold transition-colors ${payment.memo ? "text-[#3d5b86] hover:text-[#283f62]" : "text-[#94a3b8] hover:text-[#64748b]"}`}
                                 >
-                                  {payment.memo ? "메모 있음" : "메모"}
+                                  {payment.memo || "메모"}
                                 </button>
                               </div>
                             </td>
@@ -318,6 +324,47 @@ export default function TeamFeePaymentsPage() {
                     ))}
                   </tbody>
                 </table>
+              </div>
+
+              <div className="divide-y divide-[#e2e8f0] lg:hidden">
+                {feePayments.members.map((member) => (
+                  <section key={member.teamMemberId} className="px-4 py-4 sm:px-5">
+                    <div className="mb-3 flex items-baseline justify-between gap-3">
+                      <p className="font-semibold text-[#1f2937]">{member.name}</p>
+                      <p className="text-xs text-[#64748b]">{member.role === "OWNER" ? "팀장" : member.role === "SUB_MANAGER" ? "부관리자" : member.role === "GUEST" ? "용병" : "팀원"}</p>
+                    </div>
+                    <div className="grid grid-cols-3 gap-x-2 gap-y-3 sm:grid-cols-4">
+                      {member.payments.map((payment) => {
+                        const paymentKey = `${member.teamMemberId}-${payment.paymentMonth}`;
+                        const isUpdating = updatingPaymentKey === paymentKey;
+
+                        return (
+                          <div key={payment.paymentMonth} className="min-w-0">
+                            <p className="mb-1 text-[11px] font-semibold text-[#64748b]">{payment.paymentMonth}월</p>
+                            <select
+                              value={payment.status}
+                              disabled={isUpdating}
+                              onChange={(event) => void savePayment(member, payment.paymentMonth, event.target.value as FeePaymentStatus, payment.memo ?? "")}
+                              className={`h-8 w-full rounded-md border px-1.5 text-xs font-semibold outline-none disabled:cursor-not-allowed ${statusClassNames[payment.status]}`}
+                              aria-label={`${member.name} ${payment.paymentMonth}월 회비 상태`}
+                            >
+                              {(Object.keys(statusLabels) as FeePaymentStatus[]).map((status) => <option key={status} value={status}>{statusLabels[status]}</option>)}
+                            </select>
+                            <button
+                              type="button"
+                              onClick={() => setMemoEditor({ member, month: payment.paymentMonth, status: payment.status, memo: payment.memo ?? "" })}
+                              title={payment.memo ?? "메모 작성"}
+                              aria-label={`${member.name} ${payment.paymentMonth}월 메모 ${payment.memo ? "수정" : "작성"}`}
+                              className={`mt-1 h-6 w-full truncate text-left text-xs font-semibold transition-colors ${payment.memo ? "text-[#3d5b86] hover:text-[#283f62]" : "text-[#94a3b8] hover:text-[#64748b]"}`}
+                            >
+                              {payment.memo || "메모"}
+                            </button>
+                          </div>
+                        );
+                      })}
+                    </div>
+                  </section>
+                ))}
               </div>
             </section>
           </>

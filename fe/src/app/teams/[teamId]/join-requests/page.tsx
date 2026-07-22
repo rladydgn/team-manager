@@ -129,7 +129,7 @@ export default function TeamJoinRequestsPage() {
 
   return (
     <main className="min-h-screen bg-[#f5f7fb] text-[#111827]">
-      <div className="mx-auto flex w-full max-w-5xl flex-col gap-6 px-5 py-7 sm:px-6 sm:py-8 lg:px-8">
+      <div className="mx-auto flex w-full max-w-6xl flex-col gap-6 px-5 py-7 sm:px-6 sm:py-8 lg:px-8">
         <Link
           href={Number.isInteger(teamId) && teamId > 0 ? `/teams/${teamId}` : "/teams"}
           className="inline-flex w-fit text-sm font-semibold text-[#3d5b86] transition-colors hover:text-[#283f62]"

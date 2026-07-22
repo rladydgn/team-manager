@@ -15,15 +15,19 @@ data class MatchResponse(
     val createdByUserId: Long,
     val matchAt: LocalDateTime,
     val location: String?,
+    val teamScore: Int?,
+    val opponentScore: Int?,
     val status: MatchStatus,
     val createdAt: LocalDateTime,
     val availableParticipantCount: Int,
+    val isMatchParticipant: Boolean,
     val myParticipationStatus: MatchParticipantStatus,
 ) {
     companion object {
         fun from(
             match: MatchRecord,
             availableParticipantCount: Int = 0,
+            isMatchParticipant: Boolean = false,
             myParticipationStatus: MatchParticipantStatus = MatchParticipantStatus.PENDING,
         ): MatchResponse {
             return MatchResponse(
@@ -35,9 +39,12 @@ data class MatchResponse(
                 createdByUserId = match.createdByUserId,
                 matchAt = match.matchAt,
                 location = match.location,
+                teamScore = match.teamScore,
+                opponentScore = match.opponentScore,
                 status = match.status,
                 createdAt = match.createdAt,
                 availableParticipantCount = availableParticipantCount,
+                isMatchParticipant = isMatchParticipant,
                 myParticipationStatus = myParticipationStatus,
             )
         }

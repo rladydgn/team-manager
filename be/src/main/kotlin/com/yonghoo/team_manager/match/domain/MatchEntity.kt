@@ -14,6 +14,8 @@ class MatchEntity(id: EntityID<Long>) : LongEntity(id) {
     var createdByUserId by MatchesTable.createdByUserId
     var matchAt by MatchesTable.matchAt
     var location by MatchesTable.location
+    var teamScore by MatchesTable.teamScore
+    var opponentScore by MatchesTable.opponentScore
     var status by MatchesTable.status
     var createdAt by MatchesTable.createdAt
     var updatedAt by MatchesTable.updatedAt

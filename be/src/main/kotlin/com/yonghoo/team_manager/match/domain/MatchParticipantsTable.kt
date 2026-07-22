@@ -10,6 +10,9 @@ object MatchParticipantsTable : LongIdTable("match_participants") {
     val teamSide = enumerationByName("team_side", 10, MatchTeamSide::class).clientDefault { MatchTeamSide.HOME }
     val status = enumerationByName("status", 20, MatchParticipantStatus::class).clientDefault { MatchParticipantStatus.PENDING }
     val participated = bool("participated").clientDefault { false }
+    val goalCount = integer("goal_count").clientDefault { 0 }
+    val assistCount = integer("assist_count").clientDefault { 0 }
+    val cleanSheetCount = integer("clean_sheet_count").clientDefault { 0 }
     val memo = varchar("memo", 500).nullable()
     val respondedAt = datetime("responded_at").nullable()
     val createdAt = datetime("created_at").clientDefault { LocalDateTime.now() }

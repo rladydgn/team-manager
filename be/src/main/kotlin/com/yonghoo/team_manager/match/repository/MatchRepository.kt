@@ -27,10 +27,26 @@ class MatchRepository {
             this.createdByUserId = createdByUserId
             matchAt = request.matchAt
             location = request.location?.trim()?.takeIf(String::isNotBlank)
+            teamScore = null
+            opponentScore = null
             status = MatchStatus.SCHEDULED
             createdAt = now
             updatedAt = now
         }
+
+        return MatchRecord.from(match)
+    }
+
+    fun updateMatchRecord(
+        matchId: Long,
+        teamScore: Int,
+        opponentScore: Int,
+    ): MatchRecord {
+        val match = MatchEntity[matchId]
+
+        match.teamScore = teamScore
+        match.opponentScore = opponentScore
+        match.updatedAt = LocalDateTime.now()
 
         return MatchRecord.from(match)
     }

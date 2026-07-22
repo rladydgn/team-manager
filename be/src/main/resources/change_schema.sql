@@ -32,3 +32,13 @@ ALTER TABLE teams
     RENAME INDEX idx_soccer_teams_created_by_user_id TO idx_teams_created_by_user_id,
     RENAME INDEX idx_soccer_teams_name TO idx_teams_name;
 
+-- Store final scores on the match and player statistics on each match participant.
+ALTER TABLE matches
+    ADD COLUMN team_score INT UNSIGNED NULL AFTER location,
+    ADD COLUMN opponent_score INT UNSIGNED NULL AFTER team_score;
+
+ALTER TABLE match_participants
+    ADD COLUMN goal_count INT UNSIGNED NOT NULL DEFAULT 0 AFTER participated,
+    ADD COLUMN assist_count INT UNSIGNED NOT NULL DEFAULT 0 AFTER goal_count,
+    ADD COLUMN clean_sheet_count TINYINT UNSIGNED NOT NULL DEFAULT 0 AFTER assist_count;
+
