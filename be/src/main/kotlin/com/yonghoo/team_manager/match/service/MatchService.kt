@@ -6,6 +6,8 @@ import com.yonghoo.team_manager.match.dto.MatchCreateRequest
 import com.yonghoo.team_manager.match.dto.MatchParticipantResponse
 import com.yonghoo.team_manager.match.dto.MatchParticipationUpdateRequest
 import com.yonghoo.team_manager.match.dto.MatchResponse
+import com.yonghoo.team_manager.match.dto.TeamAttendanceMemberResponse
+import com.yonghoo.team_manager.match.dto.TeamAttendanceStatisticsResponse
 import com.yonghoo.team_manager.match.exception.MatchErrorCode
 import com.yonghoo.team_manager.match.domain.MatchParticipantStatus
 import com.yonghoo.team_manager.match.domain.MatchRecord
@@ -14,8 +16,12 @@ import com.yonghoo.team_manager.match.repository.MatchRepository
 import com.yonghoo.team_manager.team.domain.TeamMemberRole
 import com.yonghoo.team_manager.team.exception.TeamErrorCode
 import com.yonghoo.team_manager.team.repository.TeamRepository
+import com.yonghoo.team_manager.user.repository.UserRepository
 import org.springframework.stereotype.Service
 import org.springframework.transaction.annotation.Transactional
+import java.time.LocalDate
+import java.time.LocalDateTime
+import kotlin.math.round
 
 @Transactional
 @Service
@@ -23,6 +29,7 @@ class MatchService(
     private val matchParticipantRepository: MatchParticipantRepository,
     private val matchRepository: MatchRepository,
     private val teamRepository: TeamRepository,
+    private val userRepository: UserRepository,
 ) {
     fun createMatch(
         createdByUserId: Long,
@@ -90,6 +97,74 @@ class MatchService(
                 respondedAt = participant?.respondedAt,
             )
         }
+    }
+
+    @Transactional(readOnly = true)
+    fun getAttendanceStatistics(
+        teamId: Long,
+        userId: Long,
+        startDate: LocalDate,
+        endDate: LocalDate,
+        page: Int,
+    ): TeamAttendanceStatisticsResponse {
+        if (startDate.isAfter(endDate) || page < 0) {
+            throw ApiException(MatchErrorCode.INVALID_MATCH_STATISTICS_REQUEST)
+        }
+
+        validateTeamExists(teamId)
+        requireActiveTeamMember(teamId, userId)
+
+        val now = LocalDateTime.now()
+        val startAt = startDate.atStartOfDay()
+        val endAtExclusive = endDate.plusDays(1).atStartOfDay()
+        val matches = matchRepository.selectMatchesByTeamId(teamId).filter { match ->
+            match.status != com.yonghoo.team_manager.match.domain.MatchStatus.CANCELED &&
+                !match.matchAt.isBefore(startAt) &&
+                match.matchAt.isBefore(endAtExclusive) &&
+                !match.matchAt.isAfter(now)
+        }
+        val attendanceCountByMemberId = matchParticipantRepository
+            .selectParticipantsByMatchIds(matches.map(MatchRecord::id))
+            .asSequence()
+            .filter { it.status == MatchParticipantStatus.AVAILABLE }
+            .groupingBy { it.teamMemberId }
+            .eachCount()
+        val members = teamRepository.selectMembersByTeamId(teamId)
+        val namesByUserId = userRepository
+            .selectUsersByIds(members.mapNotNull { it.userId })
+            .associateBy({ it.id }, { it.name })
+        val memberStatistics = members
+            .map { member ->
+                val attendanceCount = attendanceCountByMemberId[member.id] ?: 0
+
+                TeamAttendanceMemberResponse(
+                    teamMemberId = member.id,
+                    name = member.userId?.let(namesByUserId::get) ?: "미가입 팀원",
+                    attendanceCount = attendanceCount,
+                    attendanceRate = calculateAttendanceRate(attendanceCount, matches.size),
+                )
+            }
+            .sortedWith(
+                compareByDescending<TeamAttendanceMemberResponse> { it.attendanceRate }
+                    .thenByDescending { it.attendanceCount }
+                    .thenBy { it.name },
+            )
+        val fromIndex = (page.toLong() * ATTENDANCE_STATISTICS_PAGE_SIZE)
+            .coerceAtMost(memberStatistics.size.toLong())
+            .toInt()
+        val toIndex = (fromIndex + ATTENDANCE_STATISTICS_PAGE_SIZE).coerceAtMost(memberStatistics.size)
+
+        return TeamAttendanceStatisticsResponse(
+            startDate = startDate,
+            endDate = endDate,
+            totalMatchCount = matches.size,
+            page = page,
+            pageSize = ATTENDANCE_STATISTICS_PAGE_SIZE,
+            totalElements = memberStatistics.size,
+            totalPages = (memberStatistics.size + ATTENDANCE_STATISTICS_PAGE_SIZE - 1) /
+                ATTENDANCE_STATISTICS_PAGE_SIZE,
+            members = memberStatistics.subList(fromIndex, toIndex),
+        )
     }
 
     fun updateMatchParticipation(
@@ -181,6 +256,17 @@ class MatchService(
         return normalizedMemo
     }
 
+    private fun calculateAttendanceRate(
+        attendanceCount: Int,
+        totalMatchCount: Int,
+    ): Double {
+        if (totalMatchCount == 0) {
+            return 0.0
+        }
+
+        return round(attendanceCount * 1000.0 / totalMatchCount) / 10.0
+    }
+
     private fun toMatchResponse(
         match: MatchRecord,
         teamMemberId: Long,
@@ -232,5 +318,6 @@ class MatchService(
         private const val LOCATION_MAX_LENGTH = 255
         private const val PARTICIPATION_CUTOFF_HOURS = 24L
         private const val PARTICIPATION_MEMO_MAX_LENGTH = 500
+        private const val ATTENDANCE_STATISTICS_PAGE_SIZE = 20
     }
 }

@@ -1,6 +1,7 @@
 package com.yonghoo.team_manager.team.dto
 
 import com.yonghoo.team_manager.team.domain.TeamRecord
+import com.yonghoo.team_manager.team.domain.TeamCategory
 import com.yonghoo.team_manager.team.domain.TeamStatus
 import java.time.LocalDate
 import java.time.LocalDateTime
@@ -8,6 +9,7 @@ import java.time.LocalDateTime
 data class TeamResponse(
     val id: Long,
     val createdByUserId: Long,
+    val category: TeamCategory,
     val name: String,
     val shortName: String?,
     val logoUrl: String?,
@@ -25,6 +27,7 @@ data class TeamResponse(
             return TeamResponse(
                 id = team.id,
                 createdByUserId = team.createdByUserId,
+                category = team.category,
                 name = team.name,
                 shortName = team.shortName,
                 logoUrl = team.logoUrl,

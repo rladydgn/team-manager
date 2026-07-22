@@ -162,7 +162,7 @@ export default function TeamMatchesPage() {
 
       <div className="mx-auto flex w-full max-w-5xl flex-col gap-6 px-5 py-7 sm:px-6 sm:py-8 lg:px-8">
         {Number.isInteger(teamId) && teamId > 0 ? (
-          <TeamDetailTabs teamId={teamId} activeTab="matches" />
+          <TeamDetailTabs teamId={teamId} activeTab="matches" canManageFees={canCreateMatch} />
         ) : null}
 
         {isLoading ? (

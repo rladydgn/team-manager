@@ -78,6 +78,11 @@ export default function TeamMembersPage() {
       ),
     [teamDetail?.members]
   );
+  const canManageFees = teamDetail?.members.some(
+    (member) =>
+      member.userId === currentUser?.id &&
+      (member.role === "OWNER" || member.role === "SUB_MANAGER")
+  ) ?? false;
 
   return (
     <main className="min-h-screen bg-[#f5f7fb] text-[#111827]">
@@ -104,7 +109,7 @@ export default function TeamMembersPage() {
 
       <div className="mx-auto flex w-full max-w-5xl flex-col gap-6 px-5 py-7 sm:px-6 sm:py-8 lg:px-8">
         {Number.isInteger(teamId) && teamId > 0 ? (
-          <TeamDetailTabs teamId={teamId} activeTab="members" />
+          <TeamDetailTabs teamId={teamId} activeTab="members" canManageFees={canManageFees} />
         ) : null}
 
         {isLoading ? (

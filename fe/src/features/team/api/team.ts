@@ -3,6 +3,7 @@ import { deleteJson, getJson, postJson, putJson } from "@/shared/api/http";
 export type Team = {
   id: number;
   createdByUserId: number;
+  category: "SOCCER" | "BASKETBALL";
   name: string;
   shortName: string | null;
   logoUrl: string | null;
@@ -18,6 +19,7 @@ export type Team = {
 
 export type TeamCreateRequest = {
   name: string;
+  category?: "SOCCER" | "BASKETBALL";
   shortName?: string;
   description?: string;
   region?: string;
@@ -27,6 +29,7 @@ export type TeamCreateRequest = {
 
 export type TeamUpdateRequest = {
   name: string;
+  category?: "SOCCER" | "BASKETBALL";
   shortName?: string;
   logoUrl?: string;
   description?: string;

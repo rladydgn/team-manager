@@ -8,6 +8,7 @@ class TeamEntity(id: EntityID<Long>) : LongEntity(id) {
     companion object : LongEntityClass<TeamEntity>(TeamsTable)
 
     var createdByUserId by TeamsTable.createdByUserId
+    var category by TeamsTable.category
     var name by TeamsTable.name
     var shortName by TeamsTable.shortName
     var logoUrl by TeamsTable.logoUrl

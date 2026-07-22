@@ -17,9 +17,10 @@ CREATE TABLE users (
     UNIQUE KEY uk_users_email (email)
 );
 
-CREATE TABLE soccer_teams (
+CREATE TABLE teams (
     id BIGINT UNSIGNED NOT NULL AUTO_INCREMENT,
     created_by_user_id BIGINT UNSIGNED NOT NULL,
+    category VARCHAR(30) NOT NULL DEFAULT 'SOCCER',
     name VARCHAR(100) NOT NULL,
     short_name VARCHAR(30) NULL,
     logo_url VARCHAR(500) NULL,
@@ -33,8 +34,8 @@ CREATE TABLE soccer_teams (
     updated_at DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
     deleted_at DATETIME NULL,
     PRIMARY KEY (id),
-    KEY idx_soccer_teams_created_by_user_id (created_by_user_id),
-    KEY idx_soccer_teams_name (name)
+    KEY idx_teams_created_by_user_id (created_by_user_id),
+    KEY idx_teams_name (name)
 );
 
 CREATE TABLE team_histories (
@@ -66,6 +67,22 @@ CREATE TABLE team_members (
     KEY idx_team_members_user_id (user_id),
     KEY idx_team_members_team_role (team_id, role),
     KEY idx_team_members_team_status (team_id, status)
+);
+
+CREATE TABLE team_fee_payments (
+    id BIGINT UNSIGNED NOT NULL AUTO_INCREMENT,
+    team_id BIGINT UNSIGNED NOT NULL,
+    team_member_id BIGINT UNSIGNED NOT NULL,
+    payment_year SMALLINT UNSIGNED NOT NULL,
+    payment_month TINYINT UNSIGNED NOT NULL,
+    status ENUM('PAID', 'UNPAID', 'INJURED') NOT NULL DEFAULT 'UNPAID',
+    memo VARCHAR(500) NULL,
+    created_at DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP,
+    updated_at DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
+    deleted_at DATETIME NULL,
+    PRIMARY KEY (id),
+    KEY idx_team_fee_payments_team_year (team_id, payment_year),
+    KEY idx_team_fee_payments_member_year (team_member_id, payment_year)
 );
 
 CREATE TABLE matches (

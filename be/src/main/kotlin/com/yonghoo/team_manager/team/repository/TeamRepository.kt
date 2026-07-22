@@ -28,6 +28,7 @@ class TeamRepository {
         val now = LocalDateTime.now()
         val team = TeamEntity.new {
             this.createdByUserId = createdByUserId
+            category = request.category
             name = request.name
             shortName = request.shortName
             logoUrl = request.logoUrl
@@ -50,6 +51,7 @@ class TeamRepository {
         val team = TeamEntity[teamId]
 
         team.name = request.name.trim()
+        request.category?.let { team.category = it }
         team.shortName = request.shortName.cleanOptional()
         team.logoUrl = request.logoUrl.cleanOptional()
         team.description = request.description.cleanOptional()

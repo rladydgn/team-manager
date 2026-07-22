@@ -31,6 +31,10 @@ enum class MatchErrorCode(
         status = HttpStatus.BAD_REQUEST,
         message = "매치 참여 메모는 500자 이내로 입력해 주세요.",
     ),
+    INVALID_MATCH_STATISTICS_REQUEST(
+        status = HttpStatus.BAD_REQUEST,
+        message = "통계 조회 기간 또는 페이지 값이 올바르지 않습니다.",
+    ),
     MATCH_PARTICIPATION_CLOSED(
         status = HttpStatus.CONFLICT,
         message = "매치 시작 24시간 전까지만 참여 여부를 변경할 수 있습니다.",

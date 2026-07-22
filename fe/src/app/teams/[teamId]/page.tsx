@@ -206,7 +206,7 @@ export default function TeamDetailPage() {
         </Link>
 
         {Number.isInteger(teamId) && teamId > 0 ? (
-          <TeamDetailTabs teamId={teamId} activeTab="overview" />
+          <TeamDetailTabs teamId={teamId} activeTab="overview" canManageFees={canEditTeam} />
         ) : null}
 
         {errorMessage && !teamDetail ? (
