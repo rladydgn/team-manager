@@ -109,7 +109,7 @@ export default function NewMatchPage() {
         throw new Error("생성된 매치 정보를 받지 못했습니다.");
       }
 
-      router.replace(`/matches/${response.data.id}`);
+      router.replace(`/match/${response.data.id}`);
     } catch (error) {
       setErrorMessage(
         error instanceof Error ? error.message : "매치를 등록하지 못했습니다.",

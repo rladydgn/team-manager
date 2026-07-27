@@ -319,7 +319,7 @@ export default function MatchDetailPage() {
       <div className="mx-auto flex w-full max-w-6xl flex-col gap-6 px-5 py-7 sm:px-6 sm:py-10 lg:px-8">
         {team ? (
           <Link
-            href={`/team/${team.id}/matches`}
+            href={`/team/${team.id}/match`}
             className="inline-flex w-fit text-sm font-semibold text-[#3d5b86] transition-colors hover:text-[#283f62]"
           >
             경기 일정으로 돌아가기
@@ -392,7 +392,7 @@ export default function MatchDetailPage() {
                 ) : null}
                 {canManageMatchRecord ? (
                   <Link
-                    href={`/matches/${match.id}/record`}
+                    href={`/match/${match.id}/record`}
                     className="inline-flex h-10 items-center justify-center rounded-md border border-[#c8d4e6] bg-white px-4 text-sm font-semibold text-[#3d5b86] transition-colors hover:bg-[#f0f4fa]"
                   >
                     경기 기록 관리

@@ -193,7 +193,7 @@ export default function TeamMatchesPage() {
                 <p className="mt-3 text-sm leading-6 text-[#64748b]">등록된 매치를 시간순으로 확인할 수 있습니다.</p>
               </div>
               {canCreateMatch ? (
-                <Link href={`/team/${teamId}/matches/new`} className="inline-flex h-11 items-center justify-center rounded-md bg-[#4f6f9f] px-5 text-sm font-semibold text-white transition-colors hover:bg-[#435f88]">
+                <Link href={`/team/${teamId}/match/new`} className="inline-flex h-11 items-center justify-center rounded-md bg-[#4f6f9f] px-5 text-sm font-semibold text-white transition-colors hover:bg-[#435f88]">
                   경기 등록
                 </Link>
               ) : null}
@@ -230,7 +230,7 @@ export default function TeamMatchesPage() {
                       className="flex flex-col gap-4 px-5 py-5 sm:px-6 lg:flex-row lg:items-center lg:justify-between"
                     >
                       <Link
-                        href={`/matches/${match.id}`}
+                        href={`/match/${match.id}`}
                         className="min-w-0 flex-1 transition-colors hover:text-[#3d5b86]"
                       >
                         <p className="text-sm font-semibold text-[#4f6f9f]">{formatMatchAt(match.matchAt)}</p>

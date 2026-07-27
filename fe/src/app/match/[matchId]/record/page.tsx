@@ -242,7 +242,7 @@ export default function MatchRecordPage() {
 
       <div className="mx-auto flex w-full max-w-6xl flex-col gap-6 px-5 py-7 sm:px-6 sm:py-10 lg:px-8">
         {team ? (
-          <Link href={`/matches/${matchId}`} className="inline-flex w-fit text-sm font-semibold text-[#3d5b86] transition-colors hover:text-[#283f62]">
+          <Link href={`/match/${matchId}`} className="inline-flex w-fit text-sm font-semibold text-[#3d5b86] transition-colors hover:text-[#283f62]">
             매치 상세로 돌아가기
           </Link>
         ) : null}

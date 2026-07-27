@@ -45,7 +45,7 @@ This frontend must be built as a responsive application.
 - Access tokens expire after 15 minutes and refresh tokens expire after 7 days. API requests use cookies and refresh the access cookie once after a `401` response.
 - Use `Secure` in HTTPS environments and `SameSite=Lax` by default for both authentication cookies.
 - Root-layout SSR reads the access-token cookie and calls `GET /users/me` through `BACKEND_API_URL` to render the initial authenticated UI. Keep `BACKEND_API_URL` server-only.
-- The `/teams` route fetches its initial public team list on the server through `BACKEND_API_URL`; keep client-side refreshes for mutations and retry states.
+- The `/team` route fetches its initial public team list on the server through `BACKEND_API_URL`; keep client-side refreshes for mutations and retry states.
 - Use the auth context for UI state only; backend authorization must rely on the validated access-token cookie.
 
 # Visual Direction

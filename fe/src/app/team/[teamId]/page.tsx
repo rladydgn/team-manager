@@ -257,7 +257,7 @@ export default function TeamDetailPage() {
                   ) : null}
                   {canEditTeam ? (
                     <Link
-                      href={`/team/${teamDetail.team.id}/join-requests`}
+                      href={`/team/${teamDetail.team.id}/join-request`}
                       className="inline-flex h-11 w-full items-center justify-center rounded-md border border-[#b9c9df] bg-white px-5 text-sm font-semibold text-[#3d5b86] transition-colors hover:bg-[#f0f4fa] sm:w-auto"
                     >
                       가입 신청 관리
@@ -265,7 +265,7 @@ export default function TeamDetailPage() {
                   ) : null}
                   {canCreateMatch ? (
                     <Link
-                      href={`/team/${teamDetail.team.id}/matches/new`}
+                      href={`/team/${teamDetail.team.id}/match/new`}
                       className="inline-flex h-11 w-full items-center justify-center rounded-md bg-[#4f6f9f] px-5 text-sm font-semibold text-white shadow-sm transition-colors hover:bg-[#435f88] sm:w-auto"
                     >
                       경기 등록

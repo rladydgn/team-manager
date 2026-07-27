@@ -50,14 +50,14 @@ export function TeamDetailTabs({
         {canAccessTeamFeatures ? (
           <>
             <Link
-              href={`/team/${teamId}/matches`}
+              href={`/team/${teamId}/match`}
               aria-current={activeTab === "matches" ? "page" : undefined}
               className={`inline-flex h-11 items-center justify-center px-4 text-sm font-semibold transition-colors ${matchesClassName}`}
             >
               경기 일정
             </Link>
             <Link
-              href={`/team/${teamId}/members`}
+              href={`/team/${teamId}/member`}
               aria-current={activeTab === "members" ? "page" : undefined}
               className={`inline-flex h-11 items-center justify-center px-4 text-sm font-semibold transition-colors ${membersClassName}`}
             >
@@ -72,7 +72,7 @@ export function TeamDetailTabs({
             </Link>
             {canManageFees ? (
               <Link
-                href={`/team/${teamId}/fee-payments`}
+                href={`/team/${teamId}/fee-payment`}
                 aria-current={activeTab === "feePayments" ? "page" : undefined}
                 className={`inline-flex h-11 items-center justify-center px-4 text-sm font-semibold transition-colors ${feePaymentsClassName}`}
               >
