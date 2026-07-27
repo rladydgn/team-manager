@@ -42,3 +42,19 @@ ALTER TABLE match_participants
     ADD COLUMN assist_count INT UNSIGNED NOT NULL DEFAULT 0 AFTER goal_count,
     ADD COLUMN clean_sheet_count TINYINT UNSIGNED NOT NULL DEFAULT 0 AFTER assist_count;
 
+-- Keep a team-specific display name for registered members, guests, and non-members.
+ALTER TABLE team_members
+    ADD COLUMN display_name VARCHAR(50) NULL AFTER user_id;
+
+UPDATE team_members tm
+LEFT JOIN users u ON u.id = tm.user_id
+SET tm.display_name = COALESCE(u.name, '미등록 팀원')
+WHERE tm.display_name IS NULL;
+
+ALTER TABLE team_members
+    MODIFY COLUMN display_name VARCHAR(50) NOT NULL;
+
+-- Store manager-only notes for each team member.
+ALTER TABLE team_members
+    ADD COLUMN memo VARCHAR(500) NULL AFTER display_name;
+

@@ -11,6 +11,18 @@ enum class TeamErrorCode(
         status = HttpStatus.BAD_REQUEST,
         message = "팀 요청 값이 올바르지 않습니다.",
     ),
+    INVALID_TEAM_MEMBER_REQUEST(
+        status = HttpStatus.BAD_REQUEST,
+        message = "팀원 정보가 올바르지 않습니다.",
+    ),
+    INVALID_TEAM_MEMBER_MEMO(
+        status = HttpStatus.BAD_REQUEST,
+        message = "팀원 메모가 올바르지 않습니다.",
+    ),
+    TEAM_MEMBER_NOT_FOUND(
+        status = HttpStatus.NOT_FOUND,
+        message = "팀원을 찾을 수 없습니다.",
+    ),
     DUPLICATE_TEAM_NAME(
         status = HttpStatus.CONFLICT,
         message = "이미 사용 중인 팀 이름입니다.",
@@ -22,6 +34,10 @@ enum class TeamErrorCode(
     TEAM_UPDATE_FORBIDDEN(
         status = HttpStatus.FORBIDDEN,
         message = "팀 수정 권한이 없습니다.",
+    ),
+    TEAM_MEMBER_VIEW_FORBIDDEN(
+        status = HttpStatus.FORBIDDEN,
+        message = "팀원만 팀원 목록을 조회할 수 있습니다.",
     ),
     TEAM_DELETE_FORBIDDEN(
         status = HttpStatus.FORBIDDEN,

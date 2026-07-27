@@ -3,12 +3,14 @@ import Link from "next/link";
 type TeamDetailTabsProps = {
   teamId: number;
   activeTab: "overview" | "matches" | "members" | "statistics" | "feePayments";
+  canAccessTeamFeatures?: boolean;
   canManageFees?: boolean;
 };
 
 export function TeamDetailTabs({
   teamId,
   activeTab,
+  canAccessTeamFeatures = false,
   canManageFees = false,
 }: TeamDetailTabsProps) {
   const overviewClassName =
@@ -45,35 +47,39 @@ export function TeamDetailTabs({
         >
           메인
         </Link>
-        <Link
-          href={`/team/${teamId}/matches`}
-          aria-current={activeTab === "matches" ? "page" : undefined}
-          className={`inline-flex h-11 items-center justify-center px-4 text-sm font-semibold transition-colors ${matchesClassName}`}
-        >
-          경기 일정
-        </Link>
-        <Link
-          href={`/team/${teamId}/members`}
-          aria-current={activeTab === "members" ? "page" : undefined}
-          className={`inline-flex h-11 items-center justify-center px-4 text-sm font-semibold transition-colors ${membersClassName}`}
-        >
-          팀원
-        </Link>
-        <Link
-          href={`/team/${teamId}/statistics`}
-          aria-current={activeTab === "statistics" ? "page" : undefined}
-          className={`inline-flex h-11 items-center justify-center px-4 text-sm font-semibold transition-colors ${statisticsClassName}`}
-        >
-          통계
-        </Link>
-        {canManageFees ? (
-          <Link
-            href={`/team/${teamId}/fee-payments`}
-            aria-current={activeTab === "feePayments" ? "page" : undefined}
-            className={`inline-flex h-11 items-center justify-center px-4 text-sm font-semibold transition-colors ${feePaymentsClassName}`}
-          >
-            회비 납부
-          </Link>
+        {canAccessTeamFeatures ? (
+          <>
+            <Link
+              href={`/team/${teamId}/matches`}
+              aria-current={activeTab === "matches" ? "page" : undefined}
+              className={`inline-flex h-11 items-center justify-center px-4 text-sm font-semibold transition-colors ${matchesClassName}`}
+            >
+              경기 일정
+            </Link>
+            <Link
+              href={`/team/${teamId}/members`}
+              aria-current={activeTab === "members" ? "page" : undefined}
+              className={`inline-flex h-11 items-center justify-center px-4 text-sm font-semibold transition-colors ${membersClassName}`}
+            >
+              팀원
+            </Link>
+            <Link
+              href={`/team/${teamId}/statistics`}
+              aria-current={activeTab === "statistics" ? "page" : undefined}
+              className={`inline-flex h-11 items-center justify-center px-4 text-sm font-semibold transition-colors ${statisticsClassName}`}
+            >
+              통계
+            </Link>
+            {canManageFees ? (
+              <Link
+                href={`/team/${teamId}/fee-payments`}
+                aria-current={activeTab === "feePayments" ? "page" : undefined}
+                className={`inline-flex h-11 items-center justify-center px-4 text-sm font-semibold transition-colors ${feePaymentsClassName}`}
+              >
+                회비 납부
+              </Link>
+            ) : null}
+          </>
         ) : null}
       </div>
     </nav>

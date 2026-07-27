@@ -11,6 +11,7 @@ export type TeamFeePaymentMonth = {
 
 export type TeamFeePaymentMember = {
   teamMemberId: number;
+  userId: number | null;
   name: string;
   role: TeamMember["role"];
   payments: TeamFeePaymentMonth[];

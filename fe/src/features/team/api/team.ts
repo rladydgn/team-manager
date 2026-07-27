@@ -44,10 +44,16 @@ export type TeamMember = {
   id: number;
   userId: number | null;
   name: string | null;
+  memo: string | null;
   role: "OWNER" | "SUB_MANAGER" | "MEMBER" | "GUEST";
   status: "ACTIVE" | "PENDING" | "REJECTED" | "LEFT" | "BANNED";
   joinedAt: string | null;
   requestedAt: string;
+};
+
+export type TeamMemberCreateRequest = {
+  displayName: string;
+  role: "MEMBER" | "GUEST";
 };
 
 export type TeamDetail = {
@@ -63,12 +69,31 @@ export function getTeam(teamId: number) {
   return getJson<TeamDetail>(`/teams/${teamId}`);
 }
 
+export function getTeamMembers(teamId: number) {
+  return getJson<TeamMember[]>(`/teams/${teamId}/members`);
+}
+
 export function createTeam(request: TeamCreateRequest) {
   return postJson<Team, TeamCreateRequest>("/teams", request);
 }
 
 export function joinTeam(teamId: number) {
   return postJson<TeamMember>(`/teams/${teamId}/members`);
+}
+
+export function addTeamMember(teamId: number, request: TeamMemberCreateRequest) {
+  return postJson<TeamMember, TeamMemberCreateRequest>(
+    `/teams/${teamId}/members/manual`,
+    request
+  );
+}
+
+export function updateTeamMemberMemo(teamId: number, teamMemberId: number, memo: string) {
+  return putJson<TeamMember, { memo: string }>(`/teams/${teamId}/members/${teamMemberId}/memo`, { memo });
+}
+
+export function deleteTeamMemberMemo(teamId: number, teamMemberId: number) {
+  return deleteJson<TeamMember>(`/teams/${teamId}/members/${teamMemberId}/memo`);
 }
 
 export function getTeamJoinRequests(teamId: number) {

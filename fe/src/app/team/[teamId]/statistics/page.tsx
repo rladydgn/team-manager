@@ -187,7 +187,12 @@ export default function TeamStatisticsPage() {
 
       <div className="mx-auto flex w-full max-w-6xl flex-col gap-6 px-5 py-7 sm:px-6 sm:py-8 lg:px-8">
         {Number.isInteger(teamId) && teamId > 0 ? (
-          <TeamDetailTabs teamId={teamId} activeTab="statistics" canManageFees={canManageFees} />
+          <TeamDetailTabs
+            teamId={teamId}
+            activeTab="statistics"
+            canAccessTeamFeatures={Boolean(team)}
+            canManageFees={canManageFees}
+          />
         ) : null}
 
         {isLoading ? (
@@ -205,8 +210,8 @@ export default function TeamStatisticsPage() {
             <section className="flex flex-col gap-3 border-b border-[#dbe4f0] pb-6 sm:flex-row sm:items-end sm:justify-between">
               <div>
                 <p className="text-sm font-semibold text-[#4f6f9f]">TEAM STATISTICS</p>
-                <h1 className="mt-2 text-3xl font-bold text-[#0f172a] sm:text-4xl">{team.name} 통계</h1>
-                <p className="mt-3 text-sm leading-6 text-[#64748b]">참여현황에 등록된 매치 수를 기준으로 선수별 출석 현황을 확인합니다.</p>
+                <h1 className="mt-2 text-3xl font-bold text-[#0f172a] sm:text-4xl">{team.name} 선수 통계</h1>
+                <p className="mt-3 text-sm leading-6 text-[#64748b]">참여현황과 경기 기록을 기준으로 출석, 골, 어시스트, 클린시트를 확인합니다.</p>
               </div>
               <span className="w-fit rounded-md border border-[#c8d4e6] bg-[#f0f4fa] px-3 py-1.5 text-sm font-semibold text-[#3d5b86]">기간 내 경기 {statistics.totalMatchCount}회</span>
             </section>
@@ -241,7 +246,7 @@ export default function TeamStatisticsPage() {
             <section className="overflow-hidden rounded-lg border border-[#dbe4f0] bg-white">
               <div className="flex items-center justify-between gap-4 border-b border-[#e2e8f0] px-5 py-4 sm:px-6">
                 <div>
-                  <h2 className="text-lg font-bold text-[#0f172a]">선수별 출석</h2>
+                  <h2 className="text-lg font-bold text-[#0f172a]">선수별 기록</h2>
                   <p className="mt-1 text-sm text-[#64748b]">{statistics.startDate}부터 {statistics.endDate}까지</p>
                 </div>
                 <span className="shrink-0 text-sm font-semibold text-[#3d5b86]">총 {statistics.totalElements}명</span>
@@ -257,6 +262,11 @@ export default function TeamStatisticsPage() {
                         <p className="truncate font-semibold text-[#1f2937]">{member.name}</p>
                         <p className="font-bold text-[#3d5b86]">{formatRate(member.attendanceRate)}</p>
                         <p className="text-sm text-[#64748b]">출석 {member.attendanceCount}회 / 경기 {member.eligibleMatchCount}회</p>
+                        <div className="col-span-2 flex flex-wrap gap-2 text-xs font-semibold">
+                          <span className="rounded-md border border-[#c8d4e6] bg-[#f0f4fa] px-2 py-1 text-[#3d5b86]">골 {member.goalCount}</span>
+                          <span className="rounded-md border border-[#d8d4e9] bg-[#f6f5fb] px-2 py-1 text-[#695c91]">어시스트 {member.assistCount}</span>
+                          <span className="rounded-md border border-[#b8d7c1] bg-[#f1f8f2] px-2 py-1 text-[#36734a]">클린시트 {member.cleanSheetCount}</span>
+                        </div>
                       </article>
                     ))}
                   </div>
@@ -267,6 +277,9 @@ export default function TeamStatisticsPage() {
                           <th scope="col" className="px-6 py-3">선수</th>
                           <th scope="col" className="px-5 py-3 text-right">출석 횟수</th>
                           <th scope="col" className="px-6 py-3 text-right">출석률</th>
+                          <th scope="col" className="px-4 py-3 text-right">골</th>
+                          <th scope="col" className="px-4 py-3 text-right">어시스트</th>
+                          <th scope="col" className="px-6 py-3 text-right">클린시트</th>
                         </tr>
                       </thead>
                       <tbody className="divide-y divide-[#e2e8f0]">
@@ -275,6 +288,9 @@ export default function TeamStatisticsPage() {
                             <td className="px-6 py-4 font-semibold text-[#1f2937]">{member.name}</td>
                             <td className="px-5 py-4 text-right text-[#64748b]">{member.attendanceCount}회 / {member.eligibleMatchCount}회</td>
                             <td className="px-6 py-4 text-right font-bold text-[#3d5b86]">{formatRate(member.attendanceRate)}</td>
+                            <td className="px-4 py-4 text-right font-semibold text-[#3d5b86]">{member.goalCount}</td>
+                            <td className="px-4 py-4 text-right font-semibold text-[#695c91]">{member.assistCount}</td>
+                            <td className="px-6 py-4 text-right font-semibold text-[#36734a]">{member.cleanSheetCount}</td>
                           </tr>
                         ))}
                       </tbody>

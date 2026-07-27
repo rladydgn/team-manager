@@ -59,4 +59,4 @@ The backend should model football team operations clearly:
 - Allow `team_members.user_id` to be nullable so non-registered players and guest players can be managed.
 - Validate match type and opponent information in application logic: external matches use an opponent team ID or name, while internal matches do not.
 - Keep schema changes conservative and aligned with current MySQL-style SQL unless the database choice changes.
-- Append existing-database schema change DDL to `src/main/resources/change_schema.sql`; do not create separate migration files unless the user requests one.
+- Append new existing-database schema change DDL to the end of `src/main/resources/change_schema.sql`; do not create separate migration files unless the user requests one.

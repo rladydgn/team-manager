@@ -13,7 +13,6 @@ import com.yonghoo.team_manager.team.domain.TeamMemberRole
 import com.yonghoo.team_manager.team.domain.TeamMemberStatus
 import com.yonghoo.team_manager.team.exception.TeamErrorCode
 import com.yonghoo.team_manager.team.repository.TeamRepository
-import com.yonghoo.team_manager.user.repository.UserRepository
 import org.springframework.stereotype.Service
 import org.springframework.transaction.annotation.Transactional
 
@@ -22,7 +21,6 @@ import org.springframework.transaction.annotation.Transactional
 class FeePaymentService(
     private val teamFeePaymentRepository: TeamFeePaymentRepository,
     private val teamRepository: TeamRepository,
-    private val userRepository: UserRepository,
 ) {
     @Transactional(readOnly = true)
     fun getTeamFeePayments(
@@ -35,9 +33,6 @@ class FeePaymentService(
         validateFeeManagementPermission(teamId, userId)
 
         val members = teamRepository.selectMembersByTeamId(teamId)
-        val namesByUserId = userRepository
-            .selectUsersByIds(members.mapNotNull { it.userId })
-            .associateBy({ it.id }, { it.name })
         val paymentsByMemberAndMonth = teamFeePaymentRepository
             .selectPaymentsByTeamAndYear(teamId, paymentYear)
             .associateBy { it.teamMemberId to it.paymentMonth }
@@ -47,7 +42,8 @@ class FeePaymentService(
             members = members.map { member ->
                 TeamFeePaymentMemberResponse(
                     teamMemberId = member.id,
-                    name = member.userId?.let(namesByUserId::get) ?: "미가입 팀원",
+                    userId = member.userId,
+                    name = member.displayName,
                     role = member.role,
                     payments = (1..MONTHS_IN_YEAR).map { paymentMonth ->
                         val payment = paymentsByMemberAndMonth[member.id to paymentMonth]

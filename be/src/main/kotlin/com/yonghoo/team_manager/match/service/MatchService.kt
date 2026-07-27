@@ -143,21 +143,23 @@ class MatchService(
             .filter { it.status == MatchParticipantStatus.AVAILABLE }
             .groupingBy { it.teamMemberId }
             .eachCount()
+        val participantStatisticsByMemberId = matchParticipants.groupBy { it.teamMemberId }
         val members = teamRepository.selectMembersByTeamId(teamId)
-        val namesByUserId = userRepository
-            .selectUsersByIds(members.mapNotNull { it.userId })
-            .associateBy({ it.id }, { it.name })
         val memberStatistics = members
             .map { member ->
                 val attendanceCount = attendanceCountByMemberId[member.id] ?: 0
                 val eligibleMatchCount = eligibleMatchCountByMemberId[member.id] ?: 0
+                val participantStatistics = participantStatisticsByMemberId[member.id].orEmpty()
 
                 TeamAttendanceMemberResponse(
                     teamMemberId = member.id,
-                    name = member.userId?.let(namesByUserId::get) ?: "미가입 팀원",
+                    name = member.displayName,
                     attendanceCount = attendanceCount,
                     eligibleMatchCount = eligibleMatchCount,
                     attendanceRate = calculateAttendanceRate(attendanceCount, eligibleMatchCount),
+                    goalCount = participantStatistics.sumOf { it.goalCount },
+                    assistCount = participantStatistics.sumOf { it.assistCount },
+                    cleanSheetCount = participantStatistics.sumOf { it.cleanSheetCount },
                 )
             }
             .sortedWith(

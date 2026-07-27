@@ -93,6 +93,7 @@ class TeamRepository {
     fun createTeamMember(
         teamId: Long,
         userId: Long?,
+        displayName: String,
         role: TeamMemberRole,
         status: TeamMemberStatus = TeamMemberStatus.ACTIVE,
     ): TeamMemberRecord {
@@ -100,6 +101,8 @@ class TeamRepository {
         val teamMember = TeamMemberEntity.new {
             this.teamId = teamId
             this.userId = userId
+            this.displayName = displayName
+            memo = null
             this.role = role
             this.status = status
             joinedAt = now.takeIf { status == TeamMemberStatus.ACTIVE }
@@ -190,6 +193,13 @@ class TeamRepository {
         teamMember.joinedAt = now.takeIf { status == TeamMemberStatus.ACTIVE }
         teamMember.updatedAt = now
 
+        return TeamMemberRecord.from(teamMember)
+    }
+
+    fun updateTeamMemberMemo(teamMemberId: Long, memo: String?): TeamMemberRecord {
+        val teamMember = TeamMemberEntity[teamMemberId]
+        teamMember.memo = memo
+        teamMember.updatedAt = LocalDateTime.now()
         return TeamMemberRecord.from(teamMember)
     }
 

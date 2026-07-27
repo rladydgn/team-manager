@@ -5,7 +5,6 @@ import { useParams, useRouter } from "next/navigation";
 import {
   useCallback,
   useEffect,
-  useMemo,
   useState,
 } from "react";
 import { useCurrentUser } from "@/features/auth/model/auth-session";
@@ -15,15 +14,7 @@ import {
   getTeam,
   joinTeam,
   TeamDetail,
-  TeamMember,
 } from "@/features/team/api/team";
-
-const roleLabels: Record<TeamMember["role"], string> = {
-  OWNER: "팀장",
-  SUB_MANAGER: "부관리자",
-  MEMBER: "팀원",
-  GUEST: "용병",
-};
 
 function formatDate(value: string | null) {
   if (!value) {
@@ -84,16 +75,6 @@ export default function TeamDetailPage() {
 
     return () => window.clearTimeout(timerId);
   }, [loadTeam]);
-
-  const memberSummary = useMemo(() => {
-    const members = teamDetail?.members ?? [];
-
-    return {
-      total: members.filter(
-        (member) => member.status === "ACTIVE" && member.userId !== null
-      ).length,
-    };
-  }, [teamDetail]);
 
   const currentMember = teamDetail?.members.find(
     (member) => member.userId === currentUser?.id
@@ -206,7 +187,12 @@ export default function TeamDetailPage() {
         </Link>
 
         {Number.isInteger(teamId) && teamId > 0 ? (
-          <TeamDetailTabs teamId={teamId} activeTab="overview" canManageFees={canEditTeam} />
+          <TeamDetailTabs
+            teamId={teamId}
+            activeTab="overview"
+            canAccessTeamFeatures={isMember}
+            canManageFees={canEditTeam}
+          />
         ) : null}
 
         {errorMessage && !teamDetail ? (
@@ -366,46 +352,23 @@ export default function TeamDetailPage() {
             <section>
               <div className="rounded-md border border-[#dbe4f0] bg-white px-4 py-4">
                 <p className="text-sm font-semibold text-[#64748b]">팀원</p>
-                <p className="mt-2 text-2xl font-bold text-[#0f172a]">{memberSummary.total}명</p>
+                <p className="mt-2 text-2xl font-bold text-[#0f172a]">
+                  {teamDetail.members.length}명
+                </p>
               </div>
             </section>
 
             <div className="grid gap-6 lg:grid-cols-[minmax(0,1fr)_18rem]">
               <section className="rounded-lg border border-[#dbe4f0] bg-white">
-                <div className="flex items-center justify-between gap-4 border-b border-[#e2e8f0] px-5 py-4 sm:px-6">
+                <div className="border-b border-[#e2e8f0] px-5 py-4 sm:px-6">
                   <div>
-                    <h2 className="text-lg font-bold text-[#0f172a]">팀원</h2>
-                    <p className="mt-1 text-sm text-[#64748b]">현재 활동 중인 멤버입니다.</p>
+                    <h2 className="text-lg font-bold text-[#0f172a]">팀 소개</h2>
+                    <p className="mt-1 text-sm text-[#64748b]">팀의 활동 방향과 운영 정보를 확인하세요.</p>
                   </div>
-                  <span className="shrink-0 text-sm font-semibold text-[#3d5b86]">{memberSummary.total}명</span>
                 </div>
-
-                {teamDetail.members.length === 0 ? (
-                  <div className="px-5 py-12 text-center text-sm text-[#64748b]">
-                    아직 등록된 팀원이 없습니다.
-                  </div>
-                ) : (
-                  <ul className="divide-y divide-[#e2e8f0]">
-                    {teamDetail.members.map((member) => (
-                      <li
-                        key={member.id}
-                        className="flex items-center justify-between gap-4 px-5 py-4 sm:px-6"
-                      >
-                        <div className="min-w-0">
-                          <p className="truncate text-sm font-semibold text-[#1f2937]">
-                            {member.name ?? (member.userId ? "가입 팀원" : "미가입 팀원")}
-                          </p>
-                          <p className="mt-1 text-xs text-[#64748b]">
-                            {member.joinedAt ? `${formatDate(member.joinedAt)} 가입` : "가입일 미등록"}
-                          </p>
-                        </div>
-                        <span className="shrink-0 rounded-md border border-[#dbe4f0] bg-[#f8fafc] px-2.5 py-1 text-xs font-semibold text-[#3d5b86]">
-                          {roleLabels[member.role]}
-                        </span>
-                      </li>
-                    ))}
-                  </ul>
-                )}
+                <p className="whitespace-pre-wrap break-words px-5 py-6 text-sm leading-7 text-[#475569] sm:px-6 sm:py-7 sm:text-base">
+                  {teamDetail.team.description || "아직 등록된 팀 소개가 없습니다."}
+                </p>
               </section>
 
               <aside className="rounded-lg border border-[#dbe4f0] bg-white p-5 sm:p-6">

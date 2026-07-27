@@ -10,6 +10,7 @@ data class TeamFeePaymentsYearResponse(
 
 data class TeamFeePaymentMemberResponse(
     val teamMemberId: Long,
+    val userId: Long?,
     val name: String,
     val role: TeamMemberRole,
     val payments: List<TeamFeePaymentMonthResponse>,

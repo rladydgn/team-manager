@@ -8,7 +8,8 @@ import java.time.LocalDateTime
 data class TeamMemberResponse(
     val id: Long,
     val userId: Long?,
-    val name: String?,
+    val name: String,
+    val memo: String?,
     val role: TeamMemberRole,
     val status: TeamMemberStatus,
     val joinedAt: LocalDateTime?,
@@ -17,12 +18,12 @@ data class TeamMemberResponse(
     companion object {
         fun from(
             member: TeamMemberRecord,
-            name: String? = null,
         ): TeamMemberResponse {
             return TeamMemberResponse(
                 id = member.id,
                 userId = member.userId,
-                name = name,
+                name = member.displayName,
+                memo = member.memo,
                 role = member.role,
                 status = member.status,
                 joinedAt = member.joinedAt,

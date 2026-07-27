@@ -43,6 +43,13 @@ function isFeeManager(role: TeamDetail["members"][number]["role"] | undefined) {
   return role === "OWNER" || role === "SUB_MANAGER";
 }
 
+function getMemberRoleLabel(member: TeamFeePaymentMember) {
+  if (member.role === "OWNER") return "팀장";
+  if (member.role === "SUB_MANAGER") return "부관리자";
+  if (member.role === "GUEST") return "용병";
+  return member.userId === null ? "팀원(비회원)" : "팀원";
+}
+
 export default function TeamFeePaymentsPage() {
   const params = useParams<{ teamId: string }>();
   const teamId = Number(params.teamId);
@@ -232,7 +239,12 @@ export default function TeamFeePaymentsPage() {
 
       <div className="mx-auto flex w-full max-w-6xl flex-col gap-6 px-5 py-7 sm:px-6 sm:py-8 lg:px-8">
         {Number.isInteger(teamId) && teamId > 0 ? (
-          <TeamDetailTabs teamId={teamId} activeTab="feePayments" canManageFees={canManageFees} />
+          <TeamDetailTabs
+            teamId={teamId}
+            activeTab="feePayments"
+            canAccessTeamFeatures={Boolean(teamDetail)}
+            canManageFees={canManageFees}
+          />
         ) : null}
 
         {isLoading ? (
@@ -289,7 +301,7 @@ export default function TeamFeePaymentsPage() {
                       <tr key={member.teamMemberId}>
                         <td className="bg-white px-4 py-3">
                           <p className="font-semibold text-[#1f2937]">{member.name}</p>
-                          <p className="mt-0.5 text-[11px] text-[#64748b]">{member.role === "OWNER" ? "팀장" : member.role === "SUB_MANAGER" ? "부관리자" : member.role === "GUEST" ? "용병" : "팀원"}</p>
+                          <p className="mt-0.5 text-[11px] text-[#64748b]">{getMemberRoleLabel(member)}</p>
                         </td>
                         {member.payments.map((payment) => {
                           const paymentKey = `${member.teamMemberId}-${payment.paymentMonth}`;
@@ -331,7 +343,7 @@ export default function TeamFeePaymentsPage() {
                   <section key={member.teamMemberId} className="px-4 py-4 sm:px-5">
                     <div className="mb-3 flex items-baseline justify-between gap-3">
                       <p className="font-semibold text-[#1f2937]">{member.name}</p>
-                      <p className="text-xs text-[#64748b]">{member.role === "OWNER" ? "팀장" : member.role === "SUB_MANAGER" ? "부관리자" : member.role === "GUEST" ? "용병" : "팀원"}</p>
+                      <p className="text-xs text-[#64748b]">{getMemberRoleLabel(member)}</p>
                     </div>
                     <div className="grid grid-cols-3 gap-x-2 gap-y-3 sm:grid-cols-4">
                       {member.payments.map((payment) => {
