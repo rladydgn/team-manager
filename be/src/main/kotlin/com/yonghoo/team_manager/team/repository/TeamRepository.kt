@@ -161,6 +161,12 @@ class TeamRepository {
         }.firstOrNull()?.let(TeamMemberRecord::from)
     }
 
+    fun selectTeamMemberStatusesByUser(userId: Long): Map<Long, TeamMemberStatus> {
+        return TeamMemberEntity.find {
+            (TeamMembersTable.userId eq userId) and TeamMembersTable.deletedAt.isNull()
+        }.associate { teamMember -> teamMember.teamId to teamMember.status }
+    }
+
     fun selectActiveTeamMemberByTeamAndUser(
         teamId: Long,
         userId: Long,

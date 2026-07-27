@@ -39,28 +39,28 @@ export function TeamDetailTabs({
     >
       <div className="flex min-w-max items-center gap-1">
         <Link
-          href={`/teams/${teamId}`}
+          href={`/team/${teamId}`}
           aria-current={activeTab === "overview" ? "page" : undefined}
           className={`inline-flex h-11 items-center justify-center px-4 text-sm font-semibold transition-colors ${overviewClassName}`}
         >
           메인
         </Link>
         <Link
-          href={`/teams/${teamId}/matches`}
+          href={`/team/${teamId}/matches`}
           aria-current={activeTab === "matches" ? "page" : undefined}
           className={`inline-flex h-11 items-center justify-center px-4 text-sm font-semibold transition-colors ${matchesClassName}`}
         >
           경기 일정
         </Link>
         <Link
-          href={`/teams/${teamId}/members`}
+          href={`/team/${teamId}/members`}
           aria-current={activeTab === "members" ? "page" : undefined}
           className={`inline-flex h-11 items-center justify-center px-4 text-sm font-semibold transition-colors ${membersClassName}`}
         >
           팀원
         </Link>
         <Link
-          href={`/teams/${teamId}/statistics`}
+          href={`/team/${teamId}/statistics`}
           aria-current={activeTab === "statistics" ? "page" : undefined}
           className={`inline-flex h-11 items-center justify-center px-4 text-sm font-semibold transition-colors ${statisticsClassName}`}
         >
@@ -68,7 +68,7 @@ export function TeamDetailTabs({
         </Link>
         {canManageFees ? (
           <Link
-            href={`/teams/${teamId}/fee-payments`}
+            href={`/team/${teamId}/fee-payments`}
             aria-current={activeTab === "feePayments" ? "page" : undefined}
             className={`inline-flex h-11 items-center justify-center px-4 text-sm font-semibold transition-colors ${feePaymentsClassName}`}
           >

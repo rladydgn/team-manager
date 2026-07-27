@@ -4,6 +4,7 @@ export type TeamAttendanceMemberStatistic = {
   teamMemberId: number;
   name: string;
   attendanceCount: number;
+  eligibleMatchCount: number;
   attendanceRate: number;
 };
 

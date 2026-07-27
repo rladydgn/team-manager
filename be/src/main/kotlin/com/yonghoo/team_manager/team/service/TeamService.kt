@@ -29,10 +29,12 @@ class TeamService(
         createdByUserId: Long,
         request: TeamCreateRequest,
     ): TeamResponse {
-        validateTeamCreateRequest(request)
+        val normalizedRequest = request.copy(name = request.name.trim())
+        validateTeamCreateRequest(normalizedRequest)
+        validateTeamNameIsAvailable(normalizedRequest.name)
         validateUserExists(createdByUserId)
 
-        val team = teamRepository.createTeam(createdByUserId, request)
+        val team = teamRepository.createTeam(createdByUserId, normalizedRequest)
         teamRepository.createTeamMember(
             teamId = team.id,
             userId = createdByUserId,
@@ -47,14 +49,16 @@ class TeamService(
         userId: Long,
         request: TeamUpdateRequest,
     ): TeamResponse {
-        validateTeamUpdateRequest(request)
+        val normalizedRequest = request.copy(name = request.name.trim())
+        validateTeamUpdateRequest(normalizedRequest)
 
         val team = teamRepository.selectTeamById(teamId)
             ?: throw ApiException(TeamErrorCode.TEAM_NOT_FOUND)
         validateTeamUpdatePermission(teamId, userId)
+        validateTeamNameIsAvailable(normalizedRequest.name, excludedTeamId = teamId)
 
         val beforeSnapshot = serializeHistorySnapshot(team)
-        val updatedTeam = teamRepository.updateTeam(teamId, request)
+        val updatedTeam = teamRepository.updateTeam(teamId, normalizedRequest)
 
         teamRepository.createTeamHistory(
             teamId = teamId,
@@ -141,8 +145,14 @@ class TeamService(
     }
 
     @Transactional(readOnly = true)
-    fun getTeams(): List<TeamResponse> {
-        return teamRepository.selectTeams().map(TeamResponse::from)
+    fun getTeams(userId: Long?): List<TeamResponse> {
+        val membershipStatuses = userId
+            ?.let(teamRepository::selectTeamMemberStatusesByUser)
+            .orEmpty()
+
+        return teamRepository.selectTeams().map { team ->
+            TeamResponse.from(team, membershipStatuses[team.id])
+        }
     }
 
     @Transactional(readOnly = true)
@@ -179,6 +189,20 @@ class TeamService(
 
         if (normalizedName.isBlank() || normalizedName.length > TEAM_NAME_MAX_LENGTH) {
             throw ApiException(TeamErrorCode.INVALID_TEAM_REQUEST)
+        }
+    }
+
+    private fun validateTeamNameIsAvailable(
+        name: String,
+        excludedTeamId: Long? = null,
+    ) {
+        val normalizedName = name.trim()
+        val hasDuplicateName = teamRepository.selectTeams().any { team ->
+            team.id != excludedTeamId && team.name.equals(normalizedName, ignoreCase = true)
+        }
+
+        if (hasDuplicateName) {
+            throw ApiException(TeamErrorCode.DUPLICATE_TEAM_NAME)
         }
     }
 

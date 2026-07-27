@@ -206,7 +206,7 @@ export default function TeamStatisticsPage() {
               <div>
                 <p className="text-sm font-semibold text-[#4f6f9f]">TEAM STATISTICS</p>
                 <h1 className="mt-2 text-3xl font-bold text-[#0f172a] sm:text-4xl">{team.name} 통계</h1>
-                <p className="mt-3 text-sm leading-6 text-[#64748b]">참여 투표를 기준으로 선수별 출석 현황을 확인합니다.</p>
+                <p className="mt-3 text-sm leading-6 text-[#64748b]">참여현황에 등록된 매치 수를 기준으로 선수별 출석 현황을 확인합니다.</p>
               </div>
               <span className="w-fit rounded-md border border-[#c8d4e6] bg-[#f0f4fa] px-3 py-1.5 text-sm font-semibold text-[#3d5b86]">기간 내 경기 {statistics.totalMatchCount}회</span>
             </section>
@@ -256,7 +256,7 @@ export default function TeamStatisticsPage() {
                       <article key={member.teamMemberId} className="grid grid-cols-[minmax(0,1fr)_auto] gap-4 px-5 py-4">
                         <p className="truncate font-semibold text-[#1f2937]">{member.name}</p>
                         <p className="font-bold text-[#3d5b86]">{formatRate(member.attendanceRate)}</p>
-                        <p className="text-sm text-[#64748b]">출석 {member.attendanceCount}회 / 경기 {statistics.totalMatchCount}회</p>
+                        <p className="text-sm text-[#64748b]">출석 {member.attendanceCount}회 / 경기 {member.eligibleMatchCount}회</p>
                       </article>
                     ))}
                   </div>
@@ -273,7 +273,7 @@ export default function TeamStatisticsPage() {
                         {statistics.members.map((member) => (
                           <tr key={member.teamMemberId}>
                             <td className="px-6 py-4 font-semibold text-[#1f2937]">{member.name}</td>
-                            <td className="px-5 py-4 text-right text-[#64748b]">{member.attendanceCount}회 / {statistics.totalMatchCount}회</td>
+                            <td className="px-5 py-4 text-right text-[#64748b]">{member.attendanceCount}회 / {member.eligibleMatchCount}회</td>
                             <td className="px-6 py-4 text-right font-bold text-[#3d5b86]">{formatRate(member.attendanceRate)}</td>
                           </tr>
                         ))}

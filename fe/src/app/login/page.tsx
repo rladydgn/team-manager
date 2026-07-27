@@ -16,7 +16,7 @@ export default function LoginPage() {
 
   useEffect(() => {
     if (currentUser) {
-      router.replace("/teams");
+      router.replace("/team");
     }
   }, [currentUser, router]);
 
@@ -41,7 +41,7 @@ export default function LoginPage() {
           email: response.data.email,
         },
       });
-      router.replace("/teams");
+      router.replace("/team");
     } catch (error) {
       setErrorMessage(
         error instanceof Error ? error.message : "로그인에 실패했습니다."

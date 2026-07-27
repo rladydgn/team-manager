@@ -2,6 +2,7 @@ package com.yonghoo.team_manager.team.dto
 
 import com.yonghoo.team_manager.team.domain.TeamRecord
 import com.yonghoo.team_manager.team.domain.TeamCategory
+import com.yonghoo.team_manager.team.domain.TeamMemberStatus
 import com.yonghoo.team_manager.team.domain.TeamStatus
 import java.time.LocalDate
 import java.time.LocalDateTime
@@ -19,11 +20,15 @@ data class TeamResponse(
     val foundedAt: LocalDate?,
     val teamColor: String?,
     val status: TeamStatus,
+    val membershipStatus: TeamMemberStatus? = null,
     val createdAt: LocalDateTime,
     val updatedAt: LocalDateTime,
 ) {
     companion object {
-        fun from(team: TeamRecord): TeamResponse {
+        fun from(
+            team: TeamRecord,
+            membershipStatus: TeamMemberStatus? = null,
+        ): TeamResponse {
             return TeamResponse(
                 id = team.id,
                 createdByUserId = team.createdByUserId,
@@ -37,6 +42,7 @@ data class TeamResponse(
                 foundedAt = team.foundedAt,
                 teamColor = team.teamColor,
                 status = team.status,
+                membershipStatus = membershipStatus,
                 createdAt = team.createdAt,
                 updatedAt = team.updatedAt,
             )

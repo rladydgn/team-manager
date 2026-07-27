@@ -147,7 +147,7 @@ export default function EditTeamPage() {
         throw new Error("수정된 팀 정보를 받지 못했습니다.");
       }
 
-      router.replace(`/teams/${response.data.id}`);
+      router.replace(`/team/${response.data.id}`);
     } catch (error) {
       setErrorMessage(
         error instanceof Error ? error.message : "팀 정보를 수정하지 못했습니다."
@@ -157,7 +157,7 @@ export default function EditTeamPage() {
     }
   }
 
-  const detailPath = Number.isInteger(teamId) && teamId > 0 ? `/teams/${teamId}` : "/teams";
+  const detailPath = Number.isInteger(teamId) && teamId > 0 ? `/team/${teamId}` : "/team";
 
   return (
     <main className="min-h-screen bg-[#f5f7fb] text-[#111827]">

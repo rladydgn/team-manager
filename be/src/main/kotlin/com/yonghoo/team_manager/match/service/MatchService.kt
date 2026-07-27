@@ -126,12 +126,19 @@ class MatchService(
         val startAt = startDate.atStartOfDay()
         val endAtExclusive = endDate.plusDays(1).atStartOfDay()
         val matches = matchRepository.selectMatchesByTeamId(teamId).filter { match ->
-            match.status != com.yonghoo.team_manager.match.domain.MatchStatus.CANCELED &&
+            match.status != MatchStatus.CANCELED &&
                 !match.matchAt.isBefore(startAt) &&
                 match.matchAt.isBefore(endAtExclusive)
         }
-        val attendanceCountByMemberId = matchParticipantRepository
+        val matchParticipants = matchParticipantRepository
             .selectParticipantsByMatchIds(matches.map(MatchRecord::id))
+            .asSequence()
+            .toList()
+        val eligibleMatchCountByMemberId = matchParticipants
+            .asSequence()
+            .groupingBy { it.teamMemberId }
+            .eachCount()
+        val attendanceCountByMemberId = matchParticipants
             .asSequence()
             .filter { it.status == MatchParticipantStatus.AVAILABLE }
             .groupingBy { it.teamMemberId }
@@ -143,12 +150,14 @@ class MatchService(
         val memberStatistics = members
             .map { member ->
                 val attendanceCount = attendanceCountByMemberId[member.id] ?: 0
+                val eligibleMatchCount = eligibleMatchCountByMemberId[member.id] ?: 0
 
                 TeamAttendanceMemberResponse(
                     teamMemberId = member.id,
                     name = member.userId?.let(namesByUserId::get) ?: "미가입 팀원",
                     attendanceCount = attendanceCount,
-                    attendanceRate = calculateAttendanceRate(attendanceCount, matches.size),
+                    eligibleMatchCount = eligibleMatchCount,
+                    attendanceRate = calculateAttendanceRate(attendanceCount, eligibleMatchCount),
                 )
             }
             .sortedWith(

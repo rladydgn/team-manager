@@ -39,7 +39,7 @@ export default function SignUpPage() {
 
   useEffect(() => {
     if (currentUser) {
-      router.replace("/teams");
+      router.replace("/team");
     }
   }, [currentUser, router]);
 

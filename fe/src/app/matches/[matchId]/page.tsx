@@ -11,6 +11,10 @@ import {
   updateMatchParticipation,
 } from "@/features/match/api/match";
 import { canUpdateMatchParticipation } from "@/features/match/model/participation";
+import {
+  getMatchResult,
+  matchResultPresentation,
+} from "@/features/match/model/result";
 import { MatchParticipationButton } from "@/features/match/ui/MatchParticipationButton";
 import { useAuthSession } from "@/features/auth/model/auth-session";
 import { getTeam, Team, TeamMember } from "@/features/team/api/team";
@@ -149,6 +153,7 @@ export default function MatchDetailPage() {
       "SUB_MANAGER";
   const hasMatchRecord =
     match?.teamScore != null && match?.opponentScore != null;
+  const matchResult = match ? getMatchResult(match) : null;
   const matchTeamMembers = teamMembers.filter((member) =>
     participants.some((participant) => participant.teamMemberId === member.id),
   );
@@ -314,7 +319,7 @@ export default function MatchDetailPage() {
       <div className="mx-auto flex w-full max-w-6xl flex-col gap-6 px-5 py-7 sm:px-6 sm:py-10 lg:px-8">
         {team ? (
           <Link
-            href={`/teams/${team.id}/matches`}
+            href={`/team/${team.id}/matches`}
             className="inline-flex w-fit text-sm font-semibold text-[#3d5b86] transition-colors hover:text-[#283f62]"
           >
             경기 일정으로 돌아가기
@@ -353,6 +358,13 @@ export default function MatchDetailPage() {
               <p className="mt-5 text-sm font-semibold text-[#4f6f9f]">
                 {formatMatchAt(match.matchAt)}
               </p>
+              {matchResult ? (
+                <span
+                  className={`mt-3 inline-flex rounded-md border px-3 py-1 text-sm font-bold ${matchResultPresentation[matchResult].className}`}
+                >
+                  {matchResultPresentation[matchResult].label}
+                </span>
+              ) : null}
               <div className="mt-4 grid grid-cols-[minmax(0,1fr)_auto_minmax(0,1fr)] items-center gap-3 sm:gap-6">
                 <strong className="break-words text-xl text-[#0f172a] sm:text-3xl">
                   {team.name}
@@ -444,6 +456,13 @@ export default function MatchDetailPage() {
                   <p className="text-xl font-bold text-[#3d5b86]">
                     {match.teamScore} : {match.opponentScore}
                   </p>
+                  {matchResult ? (
+                    <span
+                      className={`inline-flex w-fit rounded-md border px-2.5 py-1 text-xs font-bold ${matchResultPresentation[matchResult].className}`}
+                    >
+                      {matchResultPresentation[matchResult].label}
+                    </span>
+                  ) : null}
                 </div>
 
                 {playerRecords.length > 0 ? (

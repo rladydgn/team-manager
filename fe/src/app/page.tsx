@@ -13,7 +13,7 @@ const anonymousActions = [
   {
     title: "팀 둘러보기",
     description: "등록된 팀의 정보와 멤버 구성을 확인합니다.",
-    href: "/teams",
+    href: "/team",
     action: "팀 목록 보기",
   },
   {
@@ -28,13 +28,13 @@ const memberActions = [
   {
     title: "내 팀 관리",
     description: "팀 정보, 멤버, 경기 일정을 한곳에서 관리합니다.",
-    href: "/teams",
+    href: "/team",
     action: "팀 관리로 이동",
   },
   {
     title: "새 팀 만들기",
     description: "새로운 팀을 등록하고 운영진으로 바로 시작합니다.",
-    href: "/teams",
+    href: "/team",
     action: "팀 목록 열기",
   },
 ];
@@ -43,10 +43,10 @@ export default function HomePage() {
   const currentUser = useCurrentUser();
   const isSignedIn = Boolean(currentUser);
   const primaryAction = isSignedIn
-    ? { href: "/teams", label: "내 팀 관리" }
+    ? { href: "/team", label: "내 팀 관리" }
     : { href: "/login", label: "로그인" };
   const secondaryAction = isSignedIn
-    ? { href: "/teams", label: "팀 둘러보기" }
+    ? { href: "/team", label: "팀 둘러보기" }
     : { href: "/sign-up", label: "회원가입" };
   const actionItems = isSignedIn ? memberActions : anonymousActions;
 
@@ -67,7 +67,7 @@ export default function HomePage() {
                 {currentUser?.name}
               </span>
               <Link
-                href="/teams"
+                href="/team"
                 className="inline-flex h-10 shrink-0 items-center justify-center rounded-md bg-[#4f6f9f] px-4 text-sm font-semibold text-white transition-colors hover:bg-[#435f88]"
               >
                 팀 관리
@@ -179,7 +179,7 @@ export default function HomePage() {
             </h2>
           </div>
           <Link
-            href="/teams"
+            href="/team"
             className="inline-flex w-fit text-sm font-semibold text-[#3d5b86] transition-colors hover:text-[#283f62]"
           >
             팀 목록 보기

@@ -17,5 +17,6 @@ data class TeamAttendanceMemberResponse(
     val teamMemberId: Long,
     val name: String,
     val attendanceCount: Int,
+    val eligibleMatchCount: Int,
     val attendanceRate: Double,
 )

@@ -9,6 +9,10 @@ import {
   updateMatchParticipation,
 } from "@/features/match/api/match";
 import { canUpdateMatchParticipation } from "@/features/match/model/participation";
+import {
+  getMatchResult,
+  matchResultPresentation,
+} from "@/features/match/model/result";
 import { MatchParticipationButton } from "@/features/match/ui/MatchParticipationButton";
 import { useAuthSession } from "@/features/auth/model/auth-session";
 import { getTeam, TeamDetail } from "@/features/team/api/team";
@@ -184,7 +188,7 @@ export default function TeamMatchesPage() {
                 <p className="mt-3 text-sm leading-6 text-[#64748b]">등록된 매치를 시간순으로 확인할 수 있습니다.</p>
               </div>
               {canCreateMatch ? (
-                <Link href={`/teams/${teamId}/matches/new`} className="inline-flex h-11 items-center justify-center rounded-md bg-[#4f6f9f] px-5 text-sm font-semibold text-white transition-colors hover:bg-[#435f88]">
+                <Link href={`/team/${teamId}/matches/new`} className="inline-flex h-11 items-center justify-center rounded-md bg-[#4f6f9f] px-5 text-sm font-semibold text-white transition-colors hover:bg-[#435f88]">
                   경기 등록
                 </Link>
               ) : null}
@@ -213,6 +217,7 @@ export default function TeamMatchesPage() {
               <section className="divide-y divide-[#e2e8f0] overflow-hidden rounded-lg border border-[#dbe4f0] bg-white">
                 {matches.map((match) => {
                   const isUpdating = updatingMatchId === match.id;
+                  const matchResult = getMatchResult(match);
 
                   return (
                     <article
@@ -234,6 +239,18 @@ export default function TeamMatchesPage() {
                         </div>
                       </Link>
                       <div className="flex flex-wrap items-center gap-2 lg:justify-end">
+                        {matchResult ? (
+                          <>
+                            <span className="rounded-md bg-[#0f172a] px-2.5 py-1 text-sm font-bold tabular-nums text-white">
+                              {match.teamScore} : {match.opponentScore}
+                            </span>
+                            <span
+                              className={`rounded-md border px-2.5 py-1 text-xs font-bold ${matchResultPresentation[matchResult].className}`}
+                            >
+                              {matchResultPresentation[matchResult].label}
+                            </span>
+                          </>
+                        ) : null}
                         <span className={`rounded-md border px-2.5 py-1 text-xs font-semibold ${getMatchProgress(match).className}`}>{getMatchProgress(match).label}</span>
                         <span className="rounded-md border border-[#dbe4f0] bg-[#f8fafc] px-2.5 py-1 text-xs font-semibold text-[#3d5b86]">{match.matchType === "INTERNAL" ? "자체전" : "외부전"}</span>
                         {canUpdateMatchParticipation(match) ? (

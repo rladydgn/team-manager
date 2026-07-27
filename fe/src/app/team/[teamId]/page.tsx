@@ -160,7 +160,7 @@ export default function TeamDetailPage() {
 
     try {
       await deleteTeam(teamDetail.team.id);
-      router.replace("/teams");
+      router.replace("/team");
     } catch (error) {
       setErrorMessage(
         error instanceof Error ? error.message : "팀을 삭제하지 못했습니다."
@@ -199,7 +199,7 @@ export default function TeamDetailPage() {
 
       <div className="mx-auto flex w-full max-w-6xl flex-col gap-6 px-5 py-7 sm:px-6 sm:py-8 lg:px-8">
         <Link
-          href="/teams"
+          href="/team"
           className="inline-flex w-fit text-sm font-semibold text-[#3d5b86] transition-colors hover:text-[#283f62]"
         >
           팀 목록으로
@@ -254,7 +254,7 @@ export default function TeamDetailPage() {
                 <div className="flex w-full flex-col gap-2 sm:w-auto sm:flex-row">
                   {canEditTeam ? (
                     <Link
-                      href={`/teams/${teamDetail.team.id}/edit`}
+                      href={`/team/${teamDetail.team.id}/edit`}
                       className="inline-flex h-11 w-full items-center justify-center rounded-md border border-[#b9c9df] bg-white px-5 text-sm font-semibold text-[#3d5b86] transition-colors hover:bg-[#f0f4fa] sm:w-auto"
                     >
                       팀 수정
@@ -271,7 +271,7 @@ export default function TeamDetailPage() {
                   ) : null}
                   {canEditTeam ? (
                     <Link
-                      href={`/teams/${teamDetail.team.id}/join-requests`}
+                      href={`/team/${teamDetail.team.id}/join-requests`}
                       className="inline-flex h-11 w-full items-center justify-center rounded-md border border-[#b9c9df] bg-white px-5 text-sm font-semibold text-[#3d5b86] transition-colors hover:bg-[#f0f4fa] sm:w-auto"
                     >
                       가입 신청 관리
@@ -279,18 +279,18 @@ export default function TeamDetailPage() {
                   ) : null}
                   {canCreateMatch ? (
                     <Link
-                      href={`/teams/${teamDetail.team.id}/matches/new`}
+                      href={`/team/${teamDetail.team.id}/matches/new`}
                       className="inline-flex h-11 w-full items-center justify-center rounded-md bg-[#4f6f9f] px-5 text-sm font-semibold text-white shadow-sm transition-colors hover:bg-[#435f88] sm:w-auto"
                     >
                       경기 등록
                     </Link>
                   ) : isOwner ? (
                     <span className="inline-flex h-11 w-full items-center justify-center rounded-md border border-[#b9c9df] bg-white px-4 text-sm font-semibold text-[#3d5b86] sm:w-auto">
-                      내가 만든 팀
+                      가입 완료
                     </span>
                   ) : isMember ? (
                     <span className="inline-flex h-11 w-full items-center justify-center rounded-md border border-[#b9c9df] bg-white px-4 text-sm font-semibold text-[#3d5b86] sm:w-auto">
-                      가입한 팀
+                      가입 완료
                     </span>
                   ) : isJoinRequestPending ? (
                     <span className="inline-flex h-11 w-full items-center justify-center rounded-md border border-[#b9c9df] bg-white px-4 text-sm font-semibold text-[#3d5b86] sm:w-auto">

@@ -145,7 +145,14 @@ export default function TeamsClientPage({
     setJoiningTeamId(teamId);
 
     try {
-      await joinTeam(teamId);
+      const response = await joinTeam(teamId);
+      setTeams((currentTeams) =>
+        currentTeams.map((team) =>
+          team.id === teamId
+            ? { ...team, membershipStatus: response.data?.status ?? "PENDING" }
+            : team
+        )
+      );
       setNoticeMessage(`${teamNameValue} 팀 가입 신청이 완료되었습니다.`);
     } catch (error) {
       setErrorMessage(
@@ -379,6 +386,16 @@ export default function TeamsClientPage({
           <section className="grid gap-4 md:grid-cols-2 xl:grid-cols-3">
             {filteredTeams.map((team) => {
               const isOwner = currentUser?.id === team.createdByUserId;
+              const isJoinRequestPending = team.membershipStatus === "PENDING";
+              const hasJoinedTeam = team.membershipStatus === "ACTIVE";
+              const isJoinForbidden = team.membershipStatus === "BANNED";
+              const isJoinDisabled =
+                !currentUser ||
+                isOwner ||
+                isJoinRequestPending ||
+                hasJoinedTeam ||
+                isJoinForbidden ||
+                joiningTeamId === team.id;
 
               return (
                 <article
@@ -426,7 +443,7 @@ export default function TeamsClientPage({
 
                   <div className="mt-5 grid grid-cols-2 gap-3">
                     <Link
-                      href={`/teams/${team.id}`}
+                      href={`/team/${team.id}`}
                       className="inline-flex h-11 items-center justify-center rounded-md border border-[#c8d4e6] bg-white px-4 text-sm font-semibold text-[#3d5b86] transition-colors hover:bg-[#f0f4fa]"
                     >
                       상세 보기
@@ -434,14 +451,20 @@ export default function TeamsClientPage({
                     <button
                       type="button"
                       onClick={() => void handleJoinTeam(team.id, team.name)}
-                      disabled={!currentUser || isOwner || joiningTeamId === team.id}
+                      disabled={isJoinDisabled}
                       className="inline-flex h-11 items-center justify-center rounded-md bg-[#4f6f9f] px-4 text-sm font-semibold text-white transition-colors hover:bg-[#435f88] disabled:cursor-not-allowed disabled:bg-[#e1e8f2] disabled:text-[#52627b]"
                     >
                       {joiningTeamId === team.id
                         ? "신청 중..."
                         : isOwner
-                          ? "내가 만든 팀"
-                          : "가입 신청"}
+                          ? "가입 완료"
+                          : isJoinRequestPending
+                            ? "가입 신청 대기 중"
+                            : hasJoinedTeam
+                              ? "가입 완료"
+                              : isJoinForbidden
+                                ? "가입 불가"
+                                : "가입 신청"}
                     </button>
                   </div>
                 </article>

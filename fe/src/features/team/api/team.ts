@@ -13,6 +13,7 @@ export type Team = {
   foundedAt: string | null;
   teamColor: string | null;
   status: "ACTIVE" | "INACTIVE";
+  membershipStatus: "ACTIVE" | "PENDING" | "REJECTED" | "LEFT" | "BANNED" | null;
   createdAt: string;
   updatedAt: string;
 };

@@ -11,6 +11,10 @@ enum class TeamErrorCode(
         status = HttpStatus.BAD_REQUEST,
         message = "팀 요청 값이 올바르지 않습니다.",
     ),
+    DUPLICATE_TEAM_NAME(
+        status = HttpStatus.CONFLICT,
+        message = "이미 사용 중인 팀 이름입니다.",
+    ),
     TEAM_NOT_FOUND(
         status = HttpStatus.NOT_FOUND,
         message = "팀을 찾을 수 없습니다.",

@@ -153,8 +153,8 @@ export default function NewMatchPage() {
         <Link
           href={
             Number.isInteger(teamId) && teamId > 0
-              ? `/teams/${teamId}`
-              : "/teams"
+              ? `/team/${teamId}`
+              : "/team"
           }
           className="inline-flex w-fit text-sm font-semibold text-[#3d5b86] transition-colors hover:text-[#283f62]"
         >

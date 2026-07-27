@@ -140,8 +140,10 @@ class TeamController(
         description = "활성 상태의 팀 목록을 조회합니다.",
     )
     @GetMapping
-    fun getTeams(): ResponseEntity<CommonResponse<List<TeamResponse>>> {
-        return ResponseEntity.ok(CommonResponse(data = teamService.getTeams()))
+    fun getTeams(
+        @RequestAttribute(name = AUTHENTICATED_USER_ID_ATTRIBUTE, required = false) userId: Long?,
+    ): ResponseEntity<CommonResponse<List<TeamResponse>>> {
+        return ResponseEntity.ok(CommonResponse(data = teamService.getTeams(userId)))
     }
 
     @Operation(
