@@ -22,12 +22,15 @@ class JwtAuthenticationInterceptor(
         response: HttpServletResponse,
         handler: Any,
     ): Boolean {
-        if (isPublicRequest(request)) {
+        if (isAuthenticationExemptRequest(request)) {
             return true
         }
 
         val accessToken = resolveAccessToken(request)
-            ?: return writeUnauthorizedResponse(response)
+
+        if (accessToken == null) {
+            return isPublicReadRequest(request) || writeUnauthorizedResponse(response)
+        }
 
         val userId = try {
             jwtTokenProvider.getAccessTokenUserId(accessToken)
@@ -41,16 +44,21 @@ class JwtAuthenticationInterceptor(
         return true
     }
 
-    private fun isPublicRequest(request: HttpServletRequest): Boolean {
+    private fun isAuthenticationExemptRequest(request: HttpServletRequest): Boolean {
         val path = request.requestURI
 
         return path in PUBLIC_PATHS ||
             path.startsWith("/swagger-ui/") ||
-            path.startsWith("/v3/api-docs/") ||
-            (request.method == "GET" && (
-                path == "/teams" ||
-                    TEAM_DETAIL_PATH.matches(path)
-                ))
+            path.startsWith("/v3/api-docs/")
+    }
+
+    private fun isPublicReadRequest(request: HttpServletRequest): Boolean {
+        val path = request.requestURI
+
+        return request.method == "GET" && (
+            path == "/teams" ||
+                TEAM_DETAIL_PATH.matches(path)
+            )
     }
 
     private fun resolveAccessToken(request: HttpServletRequest): String? {

@@ -6,6 +6,7 @@ import com.yonghoo.team_manager.user.domain.UsersTable
 import com.yonghoo.team_manager.user.dto.UserRegisterRequest
 import org.jetbrains.exposed.v1.core.and
 import org.jetbrains.exposed.v1.core.eq
+import org.jetbrains.exposed.v1.core.inList
 import org.jetbrains.exposed.v1.core.isNull
 import org.springframework.stereotype.Repository
 import java.time.LocalDateTime
@@ -36,6 +37,16 @@ class UserRepository {
         return UserEntity.find {
             (UsersTable.id eq userId) and UsersTable.deletedAt.isNull()
         }.firstOrNull()?.let(UserRecord::from)
+    }
+
+    fun selectUsersByIds(userIds: List<Long>): List<UserRecord> {
+        if (userIds.isEmpty()) {
+            return emptyList()
+        }
+
+        return UserEntity.find {
+            (UsersTable.id inList userIds) and UsersTable.deletedAt.isNull()
+        }.map(UserRecord::from)
     }
 
     fun existsByUsername(username: String): Boolean {

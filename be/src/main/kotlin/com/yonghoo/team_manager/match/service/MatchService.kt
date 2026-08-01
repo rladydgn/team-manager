@@ -1,11 +1,17 @@
 package com.yonghoo.team_manager.match.service
 
 import com.yonghoo.team_manager.exception.exception.ApiException
+import com.yonghoo.team_manager.match.domain.MatchParticipantRecord
+import com.yonghoo.team_manager.match.domain.MatchStatus
 import com.yonghoo.team_manager.match.domain.MatchType
 import com.yonghoo.team_manager.match.dto.MatchCreateRequest
 import com.yonghoo.team_manager.match.dto.MatchParticipantResponse
+import com.yonghoo.team_manager.match.dto.MatchParticipantStatisticsUpdateRequest
 import com.yonghoo.team_manager.match.dto.MatchParticipationUpdateRequest
+import com.yonghoo.team_manager.match.dto.MatchRecordUpdateRequest
 import com.yonghoo.team_manager.match.dto.MatchResponse
+import com.yonghoo.team_manager.match.dto.TeamAttendanceMemberResponse
+import com.yonghoo.team_manager.match.dto.TeamAttendanceStatisticsResponse
 import com.yonghoo.team_manager.match.exception.MatchErrorCode
 import com.yonghoo.team_manager.match.domain.MatchParticipantStatus
 import com.yonghoo.team_manager.match.domain.MatchRecord
@@ -14,8 +20,11 @@ import com.yonghoo.team_manager.match.repository.MatchRepository
 import com.yonghoo.team_manager.team.domain.TeamMemberRole
 import com.yonghoo.team_manager.team.exception.TeamErrorCode
 import com.yonghoo.team_manager.team.repository.TeamRepository
+import com.yonghoo.team_manager.user.repository.UserRepository
 import org.springframework.stereotype.Service
 import org.springframework.transaction.annotation.Transactional
+import java.time.LocalDate
+import kotlin.math.round
 
 @Transactional
 @Service
@@ -23,6 +32,7 @@ class MatchService(
     private val matchParticipantRepository: MatchParticipantRepository,
     private val matchRepository: MatchRepository,
     private val teamRepository: TeamRepository,
+    private val userRepository: UserRepository,
 ) {
     fun createMatch(
         createdByUserId: Long,
@@ -32,13 +42,18 @@ class MatchService(
         validateMatchManager(request.teamId, createdByUserId)
         val opponentTeamName = validateMatchRequest(request)
 
-        return MatchResponse.from(
-            matchRepository.createMatch(
-                createdByUserId = createdByUserId,
-                request = request,
-                opponentTeamName = opponentTeamName,
-            ),
+        val match = matchRepository.createMatch(
+            createdByUserId = createdByUserId,
+            request = request,
+            opponentTeamName = opponentTeamName,
         )
+        val participants = matchParticipantRepository.createDefaultParticipants(
+            matchId = match.id,
+            teamMemberIds = teamRepository.selectMembersByTeamId(match.teamId).map { it.id },
+        )
+        val currentTeamMember = requireActiveTeamMember(match.teamId, createdByUserId)
+
+        return toMatchResponse(match, currentTeamMember.id, participants)
     }
 
     @Transactional(readOnly = true)
@@ -76,20 +91,98 @@ class MatchService(
         userId: Long,
     ): List<MatchParticipantResponse> {
         val match = getMatchAndValidateViewPermission(matchId, userId)
-        val participantByMemberId = matchParticipantRepository
+        val participants = matchParticipantRepository
             .selectParticipantsByMatchIds(listOf(match.id))
-            .associateBy { it.teamMemberId }
+            .sortedBy { it.teamMemberId }
 
-        return teamRepository.selectMembersByTeamId(match.teamId).map { member ->
-            val participant = participantByMemberId[member.id]
-
+        return participants.map { participant ->
             MatchParticipantResponse(
-                teamMemberId = member.id,
-                status = participant?.status ?: MatchParticipantStatus.PENDING,
-                memo = participant?.memo,
-                respondedAt = participant?.respondedAt,
+                teamMemberId = participant.teamMemberId,
+                status = participant.status,
+                goalCount = participant.goalCount,
+                assistCount = participant.assistCount,
+                cleanSheetCount = participant.cleanSheetCount,
+                memo = participant.memo,
+                respondedAt = participant.respondedAt,
             )
         }
+    }
+
+    @Transactional(readOnly = true)
+    fun getAttendanceStatistics(
+        teamId: Long,
+        userId: Long,
+        startDate: LocalDate,
+        endDate: LocalDate,
+        page: Int,
+    ): TeamAttendanceStatisticsResponse {
+        if (startDate.isAfter(endDate) || page < 0) {
+            throw ApiException(MatchErrorCode.INVALID_MATCH_STATISTICS_REQUEST)
+        }
+
+        validateTeamExists(teamId)
+        requireActiveTeamMember(teamId, userId)
+
+        val startAt = startDate.atStartOfDay()
+        val endAtExclusive = endDate.plusDays(1).atStartOfDay()
+        val matches = matchRepository.selectMatchesByTeamId(teamId).filter { match ->
+            match.status != MatchStatus.CANCELED &&
+                !match.matchAt.isBefore(startAt) &&
+                match.matchAt.isBefore(endAtExclusive)
+        }
+        val matchParticipants = matchParticipantRepository
+            .selectParticipantsByMatchIds(matches.map(MatchRecord::id))
+            .asSequence()
+            .toList()
+        val eligibleMatchCountByMemberId = matchParticipants
+            .asSequence()
+            .groupingBy { it.teamMemberId }
+            .eachCount()
+        val attendanceCountByMemberId = matchParticipants
+            .asSequence()
+            .filter { it.status == MatchParticipantStatus.AVAILABLE }
+            .groupingBy { it.teamMemberId }
+            .eachCount()
+        val participantStatisticsByMemberId = matchParticipants.groupBy { it.teamMemberId }
+        val members = teamRepository.selectMembersByTeamId(teamId)
+        val memberStatistics = members
+            .map { member ->
+                val attendanceCount = attendanceCountByMemberId[member.id] ?: 0
+                val eligibleMatchCount = eligibleMatchCountByMemberId[member.id] ?: 0
+                val participantStatistics = participantStatisticsByMemberId[member.id].orEmpty()
+
+                TeamAttendanceMemberResponse(
+                    teamMemberId = member.id,
+                    name = member.displayName,
+                    attendanceCount = attendanceCount,
+                    eligibleMatchCount = eligibleMatchCount,
+                    attendanceRate = calculateAttendanceRate(attendanceCount, eligibleMatchCount),
+                    goalCount = participantStatistics.sumOf { it.goalCount },
+                    assistCount = participantStatistics.sumOf { it.assistCount },
+                    cleanSheetCount = participantStatistics.sumOf { it.cleanSheetCount },
+                )
+            }
+            .sortedWith(
+                compareByDescending<TeamAttendanceMemberResponse> { it.attendanceRate }
+                    .thenByDescending { it.attendanceCount }
+                    .thenBy { it.name },
+            )
+        val fromIndex = (page.toLong() * ATTENDANCE_STATISTICS_PAGE_SIZE)
+            .coerceAtMost(memberStatistics.size.toLong())
+            .toInt()
+        val toIndex = (fromIndex + ATTENDANCE_STATISTICS_PAGE_SIZE).coerceAtMost(memberStatistics.size)
+
+        return TeamAttendanceStatisticsResponse(
+            startDate = startDate,
+            endDate = endDate,
+            totalMatchCount = matches.size,
+            page = page,
+            pageSize = ATTENDANCE_STATISTICS_PAGE_SIZE,
+            totalElements = memberStatistics.size,
+            totalPages = (memberStatistics.size + ATTENDANCE_STATISTICS_PAGE_SIZE - 1) /
+                ATTENDANCE_STATISTICS_PAGE_SIZE,
+            members = memberStatistics.subList(fromIndex, toIndex),
+        )
     }
 
     fun updateMatchParticipation(
@@ -105,6 +198,12 @@ class MatchService(
         val match = getMatchAndValidateViewPermission(matchId, userId)
         validateParticipationDeadline(match)
         val teamMember = requireActiveTeamMember(match.teamId, userId)
+        val isMatchParticipant = matchParticipantRepository
+            .selectParticipantsByMatchIds(listOf(match.id))
+            .any { it.teamMemberId == teamMember.id }
+        if (!isMatchParticipant) {
+            throw ApiException(MatchErrorCode.MATCH_PARTICIPATION_NOT_AVAILABLE)
+        }
         val participant = matchParticipantRepository.upsertParticipation(
             matchId = match.id,
             teamMemberId = teamMember.id,
@@ -116,9 +215,45 @@ class MatchService(
         return MatchParticipantResponse(
             teamMemberId = participant.teamMemberId,
             status = participant.status,
+            goalCount = participant.goalCount,
+            assistCount = participant.assistCount,
+            cleanSheetCount = participant.cleanSheetCount,
             memo = participant.memo,
             respondedAt = participant.respondedAt,
         )
+    }
+
+    fun updateMatchRecord(
+        matchId: Long,
+        userId: Long,
+        request: MatchRecordUpdateRequest,
+    ): MatchResponse {
+        val match = getMatchAndValidateViewPermission(matchId, userId)
+        validateMatchRecordManager(match.teamId, userId)
+
+        if (match.status == MatchStatus.CANCELED) {
+            throw ApiException(MatchErrorCode.MATCH_RECORD_UNAVAILABLE)
+        }
+
+        val matchParticipantIds = matchParticipantRepository
+            .selectParticipantsByMatchIds(listOf(match.id))
+            .map { it.teamMemberId }
+            .toSet()
+        validateMatchRecordRequest(request, matchParticipantIds)
+
+        val teamScore = request.participants.sumOf(MatchParticipantStatisticsUpdateRequest::goalCount)
+        val updatedParticipants = matchParticipantRepository.upsertMatchStatistics(
+            matchId = match.id,
+            statistics = request.participants,
+        )
+        val updatedMatch = matchRepository.updateMatchRecord(
+            matchId = match.id,
+            teamScore = teamScore,
+            opponentScore = request.opponentScore,
+        )
+        val currentTeamMember = requireActiveTeamMember(match.teamId, userId)
+
+        return toMatchResponse(updatedMatch, currentTeamMember.id, updatedParticipants)
     }
 
     private fun validateTeamExists(teamId: Long) {
@@ -135,6 +270,17 @@ class MatchService(
 
         if (role != TeamMemberRole.OWNER && role != TeamMemberRole.SUB_MANAGER) {
             throw ApiException(MatchErrorCode.MATCH_CREATION_FORBIDDEN)
+        }
+    }
+
+    private fun validateMatchRecordManager(
+        teamId: Long,
+        userId: Long,
+    ) {
+        val role = teamRepository.selectActiveMemberRole(teamId, userId)
+
+        if (role != TeamMemberRole.OWNER && role != TeamMemberRole.SUB_MANAGER) {
+            throw ApiException(MatchErrorCode.MATCH_RECORD_FORBIDDEN)
         }
     }
 
@@ -181,14 +327,58 @@ class MatchService(
         return normalizedMemo
     }
 
+    private fun validateMatchRecordRequest(
+        request: MatchRecordUpdateRequest,
+        activeTeamMemberIds: Set<Long>,
+    ) {
+        if (request.opponentScore !in 0..MAX_MATCH_SCORE) {
+            throw ApiException(MatchErrorCode.INVALID_MATCH_RECORD_REQUEST)
+        }
+
+        val recordMemberIds = request.participants.map(MatchParticipantStatisticsUpdateRequest::teamMemberId)
+        if (recordMemberIds.size != activeTeamMemberIds.size ||
+            recordMemberIds.toSet().size != recordMemberIds.size ||
+            recordMemberIds.toSet() != activeTeamMemberIds
+        ) {
+            throw ApiException(MatchErrorCode.INVALID_MATCH_RECORD_REQUEST)
+        }
+
+        if (request.participants.any { participant ->
+                    participant.goalCount !in 0..MAX_PLAYER_STATISTIC_COUNT ||
+                    participant.assistCount !in 0..MAX_PLAYER_STATISTIC_COUNT ||
+                    participant.cleanSheetCount !in 0..MAX_PLAYER_STATISTIC_COUNT
+            }
+        ) {
+            throw ApiException(MatchErrorCode.INVALID_MATCH_RECORD_REQUEST)
+        }
+
+        val totalGoalCount = request.participants.sumOf(MatchParticipantStatisticsUpdateRequest::goalCount)
+        val totalAssistCount = request.participants.sumOf(MatchParticipantStatisticsUpdateRequest::assistCount)
+        if (totalAssistCount > totalGoalCount) {
+            throw ApiException(MatchErrorCode.INVALID_MATCH_ASSIST_COUNT)
+        }
+    }
+
+    private fun calculateAttendanceRate(
+        attendanceCount: Int,
+        totalMatchCount: Int,
+    ): Double {
+        if (totalMatchCount == 0) {
+            return 0.0
+        }
+
+        return round(attendanceCount * 1000.0 / totalMatchCount) / 10.0
+    }
+
     private fun toMatchResponse(
         match: MatchRecord,
         teamMemberId: Long,
-        participants: List<com.yonghoo.team_manager.match.domain.MatchParticipantRecord>,
+        participants: List<MatchParticipantRecord>,
     ): MatchResponse {
         return MatchResponse.from(
             match = match,
             availableParticipantCount = participants.count { it.status == MatchParticipantStatus.AVAILABLE },
+            isMatchParticipant = participants.any { it.teamMemberId == teamMemberId },
             myParticipationStatus = participants
                 .firstOrNull { it.teamMemberId == teamMemberId }
                 ?.status
@@ -232,5 +422,8 @@ class MatchService(
         private const val LOCATION_MAX_LENGTH = 255
         private const val PARTICIPATION_CUTOFF_HOURS = 24L
         private const val PARTICIPATION_MEMO_MAX_LENGTH = 500
+        private const val ATTENDANCE_STATISTICS_PAGE_SIZE = 20
+        private const val MAX_MATCH_SCORE = 99
+        private const val MAX_PLAYER_STATISTIC_COUNT = 99
     }
 }

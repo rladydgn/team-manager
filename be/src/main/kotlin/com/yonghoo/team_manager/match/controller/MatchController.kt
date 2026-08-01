@@ -5,6 +5,7 @@ import com.yonghoo.team_manager.exception.exception.ApiException
 import com.yonghoo.team_manager.match.dto.MatchCreateRequest
 import com.yonghoo.team_manager.match.dto.MatchParticipantResponse
 import com.yonghoo.team_manager.match.dto.MatchParticipationUpdateRequest
+import com.yonghoo.team_manager.match.dto.MatchRecordUpdateRequest
 import com.yonghoo.team_manager.match.dto.MatchResponse
 import com.yonghoo.team_manager.match.service.MatchService
 import com.yonghoo.team_manager.user.auth.AUTHENTICATED_USER_ID_ATTRIBUTE
@@ -67,6 +68,24 @@ class MatchController(
         return ResponseEntity.ok(
             CommonResponse(
                 data = matchService.updateMatchParticipation(
+                    matchId = matchId,
+                    userId = requireAuthenticatedUserId(userId),
+                    request = request,
+                ),
+            ),
+        )
+    }
+
+    @Operation(summary = "매치 경기 기록 저장")
+    @PutMapping("/{matchId}/record")
+    fun updateMatchRecord(
+        @PathVariable matchId: Long,
+        @RequestAttribute(name = AUTHENTICATED_USER_ID_ATTRIBUTE, required = false) userId: Long?,
+        @RequestBody request: MatchRecordUpdateRequest,
+    ): ResponseEntity<CommonResponse<MatchResponse>> {
+        return ResponseEntity.ok(
+            CommonResponse(
+                data = matchService.updateMatchRecord(
                     matchId = matchId,
                     userId = requireAuthenticatedUserId(userId),
                     request = request,

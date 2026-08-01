@@ -11,7 +11,7 @@ This project is Team Manager, a football team management service for member mana
 This frontend project follows the Spec-Driven Development workflow from Paul Everitt's DeepLearning.AI short course:
 https://www.deeplearning.ai/courses/spec-driven-development-with-coding-agents
 
-Use the local SDD files under `specs/` before implementing changes:
+For new feature development, use the local SDD files under `specs/`:
 
 - `specs/constitution.md` defines the frontend development principles.
 - `specs/mission.md` defines the product and frontend mission.
@@ -20,7 +20,7 @@ Use the local SDD files under `specs/` before implementing changes:
 - `specs/workflow.md` defines the project workflow: constitution, feature spec, implementation, validation, replanning, legacy support, and workflow improvement.
 - `specs/features/_template/` contains the feature-spec document set to copy for new frontend features.
 
-Create or update SDD documents only when the user explicitly requests them.
+Create or update SDD documents only for new feature development, or when the user explicitly requests SDD documentation. Do not create or update SDD documents for bug fixes, refactors, maintenance, or other non-feature work.
 
 The frontend should help team owners and sub-managers quickly understand what needs attention: upcoming matches, member attendance, match records, and fee status. The default experience should feel like a practical team operations tool, not a marketing page.
 
@@ -45,7 +45,7 @@ This frontend must be built as a responsive application.
 - Access tokens expire after 15 minutes and refresh tokens expire after 7 days. API requests use cookies and refresh the access cookie once after a `401` response.
 - Use `Secure` in HTTPS environments and `SameSite=Lax` by default for both authentication cookies.
 - Root-layout SSR reads the access-token cookie and calls `GET /users/me` through `BACKEND_API_URL` to render the initial authenticated UI. Keep `BACKEND_API_URL` server-only.
-- The `/teams` route fetches its initial public team list on the server through `BACKEND_API_URL`; keep client-side refreshes for mutations and retry states.
+- The `/team` route fetches its initial public team list on the server through `BACKEND_API_URL`; keep client-side refreshes for mutations and retry states.
 - Use the auth context for UI state only; backend authorization must rely on the validated access-token cookie.
 
 # Visual Direction

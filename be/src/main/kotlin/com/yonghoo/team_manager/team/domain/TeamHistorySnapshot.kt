@@ -5,6 +5,7 @@ import java.time.LocalDate
 data class TeamHistorySnapshot(
     val id: Long,
     val createdByUserId: Long,
+    val category: TeamCategory,
     val name: String,
     val shortName: String?,
     val logoUrl: String?,
@@ -20,6 +21,7 @@ data class TeamHistorySnapshot(
             return TeamHistorySnapshot(
                 id = team.id,
                 createdByUserId = team.createdByUserId,
+                category = team.category,
                 name = team.name,
                 shortName = team.shortName,
                 logoUrl = team.logoUrl,

@@ -10,7 +10,7 @@ export function AppHeader() {
   const router = useRouter();
   const { currentUser, endSession } = useAuthSession();
   const [isAccountMenuOpen, setIsAccountMenuOpen] = useState(false);
-  const isTeamsPage = pathname === "/teams" || pathname.startsWith("/teams/");
+  const isTeamsPage = pathname === "/team" || pathname.startsWith("/team/");
 
   async function handleSignOut() {
     setIsAccountMenuOpen(false);
@@ -34,7 +34,7 @@ export function AppHeader() {
 
         <nav aria-label="주요 메뉴" className="flex items-center justify-center">
           <Link
-            href="/teams"
+            href="/team"
             className={`inline-flex h-10 items-center justify-center rounded-md px-3 text-sm font-semibold transition-colors sm:px-4 ${
               isTeamsPage
                 ? "bg-[#edf3fa] text-[#2f4d76]"

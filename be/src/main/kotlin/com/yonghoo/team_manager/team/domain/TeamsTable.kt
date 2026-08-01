@@ -5,8 +5,9 @@ import org.jetbrains.exposed.v1.javatime.date
 import org.jetbrains.exposed.v1.javatime.datetime
 import java.time.LocalDateTime
 
-object TeamsTable : LongIdTable("soccer_teams") {
+object TeamsTable : LongIdTable("teams") {
     val createdByUserId = long("created_by_user_id")
+    val category = enumerationByName("category", 30, TeamCategory::class).clientDefault { TeamCategory.SOCCER }
     val name = varchar("name", 100)
     val shortName = varchar("short_name", 30).nullable()
     val logoUrl = varchar("logo_url", 500).nullable()

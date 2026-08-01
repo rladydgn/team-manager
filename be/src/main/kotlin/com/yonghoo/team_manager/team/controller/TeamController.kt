@@ -5,6 +5,8 @@ import com.yonghoo.team_manager.exception.exception.ApiException
 import com.yonghoo.team_manager.team.dto.TeamCreateRequest
 import com.yonghoo.team_manager.team.dto.TeamDetailResponse
 import com.yonghoo.team_manager.team.dto.TeamMemberResponse
+import com.yonghoo.team_manager.team.dto.TeamMemberCreateRequest
+import com.yonghoo.team_manager.team.dto.TeamMemberMemoUpdateRequest
 import com.yonghoo.team_manager.team.dto.TeamResponse
 import com.yonghoo.team_manager.team.dto.TeamUpdateRequest
 import com.yonghoo.team_manager.team.service.TeamService
@@ -140,8 +142,56 @@ class TeamController(
         description = "활성 상태의 팀 목록을 조회합니다.",
     )
     @GetMapping
-    fun getTeams(): ResponseEntity<CommonResponse<List<TeamResponse>>> {
-        return ResponseEntity.ok(CommonResponse(data = teamService.getTeams()))
+    fun getTeams(
+        @RequestAttribute(name = AUTHENTICATED_USER_ID_ATTRIBUTE, required = false) userId: Long?,
+    ): ResponseEntity<CommonResponse<List<TeamResponse>>> {
+        return ResponseEntity.ok(CommonResponse(data = teamService.getTeams(userId)))
+    }
+
+    @Operation(summary = "비회원 팀원 추가")
+    @PostMapping("/{teamId}/members/manual")
+    fun addTeamMember(
+        @PathVariable teamId: Long,
+        @RequestAttribute(name = AUTHENTICATED_USER_ID_ATTRIBUTE, required = false) userId: Long?,
+        @RequestBody request: TeamMemberCreateRequest,
+    ): ResponseEntity<CommonResponse<TeamMemberResponse>> {
+        return ResponseEntity.status(HttpStatus.CREATED).body(
+            CommonResponse(
+                data = teamService.addTeamMember(teamId, requireAuthenticatedUserId(userId), request),
+            ),
+        )
+    }
+
+    @PutMapping("/{teamId}/members/{teamMemberId}/memo")
+    fun updateTeamMemberMemo(
+        @PathVariable teamId: Long,
+        @PathVariable teamMemberId: Long,
+        @RequestAttribute(name = AUTHENTICATED_USER_ID_ATTRIBUTE, required = false) userId: Long?,
+        @RequestBody request: TeamMemberMemoUpdateRequest,
+    ): ResponseEntity<CommonResponse<TeamMemberResponse>> = ResponseEntity.ok(
+        CommonResponse(data = teamService.updateTeamMemberMemo(teamId, teamMemberId, requireAuthenticatedUserId(userId), request)),
+    )
+
+    @DeleteMapping("/{teamId}/members/{teamMemberId}/memo")
+    fun deleteTeamMemberMemo(
+        @PathVariable teamId: Long,
+        @PathVariable teamMemberId: Long,
+        @RequestAttribute(name = AUTHENTICATED_USER_ID_ATTRIBUTE, required = false) userId: Long?,
+    ): ResponseEntity<CommonResponse<TeamMemberResponse>> = ResponseEntity.ok(
+        CommonResponse(data = teamService.deleteTeamMemberMemo(teamId, teamMemberId, requireAuthenticatedUserId(userId))),
+    )
+
+    @Operation(summary = "팀원 목록 조회")
+    @GetMapping("/{teamId}/members")
+    fun getTeamMembers(
+        @PathVariable teamId: Long,
+        @RequestAttribute(name = AUTHENTICATED_USER_ID_ATTRIBUTE, required = false) userId: Long?,
+    ): ResponseEntity<CommonResponse<List<TeamMemberResponse>>> {
+        return ResponseEntity.ok(
+            CommonResponse(
+                data = teamService.getTeamMembers(teamId, requireAuthenticatedUserId(userId)),
+            ),
+        )
     }
 
     @Operation(

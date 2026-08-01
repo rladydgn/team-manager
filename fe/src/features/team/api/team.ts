@@ -3,6 +3,7 @@ import { deleteJson, getJson, postJson, putJson } from "@/shared/api/http";
 export type Team = {
   id: number;
   createdByUserId: number;
+  category: "SOCCER" | "BASKETBALL";
   name: string;
   shortName: string | null;
   logoUrl: string | null;
@@ -12,12 +13,14 @@ export type Team = {
   foundedAt: string | null;
   teamColor: string | null;
   status: "ACTIVE" | "INACTIVE";
+  membershipStatus: "ACTIVE" | "PENDING" | "REJECTED" | "LEFT" | "BANNED" | null;
   createdAt: string;
   updatedAt: string;
 };
 
 export type TeamCreateRequest = {
   name: string;
+  category?: "SOCCER" | "BASKETBALL";
   shortName?: string;
   description?: string;
   region?: string;
@@ -27,6 +30,7 @@ export type TeamCreateRequest = {
 
 export type TeamUpdateRequest = {
   name: string;
+  category?: "SOCCER" | "BASKETBALL";
   shortName?: string;
   logoUrl?: string;
   description?: string;
@@ -40,10 +44,16 @@ export type TeamMember = {
   id: number;
   userId: number | null;
   name: string | null;
+  memo: string | null;
   role: "OWNER" | "SUB_MANAGER" | "MEMBER" | "GUEST";
   status: "ACTIVE" | "PENDING" | "REJECTED" | "LEFT" | "BANNED";
   joinedAt: string | null;
   requestedAt: string;
+};
+
+export type TeamMemberCreateRequest = {
+  displayName: string;
+  role: "MEMBER" | "GUEST";
 };
 
 export type TeamDetail = {
@@ -59,12 +69,31 @@ export function getTeam(teamId: number) {
   return getJson<TeamDetail>(`/teams/${teamId}`);
 }
 
+export function getTeamMembers(teamId: number) {
+  return getJson<TeamMember[]>(`/teams/${teamId}/members`);
+}
+
 export function createTeam(request: TeamCreateRequest) {
   return postJson<Team, TeamCreateRequest>("/teams", request);
 }
 
 export function joinTeam(teamId: number) {
   return postJson<TeamMember>(`/teams/${teamId}/members`);
+}
+
+export function addTeamMember(teamId: number, request: TeamMemberCreateRequest) {
+  return postJson<TeamMember, TeamMemberCreateRequest>(
+    `/teams/${teamId}/members/manual`,
+    request
+  );
+}
+
+export function updateTeamMemberMemo(teamId: number, teamMemberId: number, memo: string) {
+  return putJson<TeamMember, { memo: string }>(`/teams/${teamId}/members/${teamMemberId}/memo`, { memo });
+}
+
+export function deleteTeamMemberMemo(teamId: number, teamMemberId: number) {
+  return deleteJson<TeamMember>(`/teams/${teamId}/members/${teamMemberId}/memo`);
 }
 
 export function getTeamJoinRequests(teamId: number) {

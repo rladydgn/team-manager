@@ -24,17 +24,35 @@ export type Match = {
   createdByUserId: number;
   matchAt: string;
   location: string | null;
+  teamScore: number | null;
+  opponentScore: number | null;
   status: "SCHEDULED" | "COMPLETED" | "CANCELED";
   createdAt: string;
   availableParticipantCount: number;
+  isMatchParticipant: boolean;
   myParticipationStatus: MatchParticipationStatus;
 };
 
 export type MatchParticipant = {
   teamMemberId: number;
   status: MatchParticipationStatus;
+  goalCount: number;
+  assistCount: number;
+  cleanSheetCount: number;
   memo: string | null;
   respondedAt: string | null;
+};
+
+export type MatchParticipantStatisticsUpdateRequest = {
+  teamMemberId: number;
+  goalCount: number;
+  assistCount: number;
+  cleanSheetCount: number;
+};
+
+export type MatchRecordUpdateRequest = {
+  opponentScore: number;
+  participants: MatchParticipantStatisticsUpdateRequest[];
 };
 
 export function createMatch(request: MatchCreateRequest) {
@@ -61,5 +79,15 @@ export function updateMatchParticipation(
   return putJson<MatchParticipant, { status: typeof status; memo?: string }>(
     `/matches/${matchId}/participation`,
     { status, ...(memo === undefined ? {} : { memo }) }
+  );
+}
+
+export function updateMatchRecord(
+  matchId: number,
+  request: MatchRecordUpdateRequest
+) {
+  return putJson<Match, MatchRecordUpdateRequest>(
+    `/matches/${matchId}/record`,
+    request
   );
 }

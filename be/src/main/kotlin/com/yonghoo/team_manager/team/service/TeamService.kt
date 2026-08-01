@@ -2,6 +2,9 @@ package com.yonghoo.team_manager.team.service
 
 import com.fasterxml.jackson.databind.ObjectMapper
 import com.yonghoo.team_manager.exception.exception.ApiException
+import com.yonghoo.team_manager.match.domain.MatchStatus
+import com.yonghoo.team_manager.match.repository.MatchParticipantRepository
+import com.yonghoo.team_manager.match.repository.MatchRepository
 import com.yonghoo.team_manager.team.domain.TeamHistoryAction
 import com.yonghoo.team_manager.team.domain.TeamHistorySnapshot
 import com.yonghoo.team_manager.team.domain.TeamMemberRole
@@ -10,6 +13,8 @@ import com.yonghoo.team_manager.team.domain.TeamRecord
 import com.yonghoo.team_manager.team.dto.TeamCreateRequest
 import com.yonghoo.team_manager.team.dto.TeamDetailResponse
 import com.yonghoo.team_manager.team.dto.TeamMemberResponse
+import com.yonghoo.team_manager.team.dto.TeamMemberCreateRequest
+import com.yonghoo.team_manager.team.dto.TeamMemberMemoUpdateRequest
 import com.yonghoo.team_manager.team.dto.TeamResponse
 import com.yonghoo.team_manager.team.dto.TeamUpdateRequest
 import com.yonghoo.team_manager.team.exception.TeamErrorCode
@@ -17,6 +22,7 @@ import com.yonghoo.team_manager.team.repository.TeamRepository
 import com.yonghoo.team_manager.user.repository.UserRepository
 import org.springframework.stereotype.Service
 import org.springframework.transaction.annotation.Transactional
+import java.time.LocalDateTime
 
 @Transactional
 @Service
@@ -24,18 +30,23 @@ class TeamService(
     private val teamRepository: TeamRepository,
     private val userRepository: UserRepository,
     private val objectMapper: ObjectMapper,
+    private val matchRepository: MatchRepository,
+    private val matchParticipantRepository: MatchParticipantRepository,
 ) {
     fun createTeam(
         createdByUserId: Long,
         request: TeamCreateRequest,
     ): TeamResponse {
-        validateTeamCreateRequest(request)
-        validateUserExists(createdByUserId)
+        val normalizedRequest = request.copy(name = request.name.trim())
+        validateTeamCreateRequest(normalizedRequest)
+        validateTeamNameIsAvailable(normalizedRequest.name)
+        val creator = getUser(createdByUserId)
 
-        val team = teamRepository.createTeam(createdByUserId, request)
+        val team = teamRepository.createTeam(createdByUserId, normalizedRequest)
         teamRepository.createTeamMember(
             teamId = team.id,
             userId = createdByUserId,
+            displayName = creator.name,
             role = TeamMemberRole.OWNER,
         )
 
@@ -47,14 +58,16 @@ class TeamService(
         userId: Long,
         request: TeamUpdateRequest,
     ): TeamResponse {
-        validateTeamUpdateRequest(request)
+        val normalizedRequest = request.copy(name = request.name.trim())
+        validateTeamUpdateRequest(normalizedRequest)
 
         val team = teamRepository.selectTeamById(teamId)
             ?: throw ApiException(TeamErrorCode.TEAM_NOT_FOUND)
         validateTeamUpdatePermission(teamId, userId)
+        validateTeamNameIsAvailable(normalizedRequest.name, excludedTeamId = teamId)
 
         val beforeSnapshot = serializeHistorySnapshot(team)
-        val updatedTeam = teamRepository.updateTeam(teamId, request)
+        val updatedTeam = teamRepository.updateTeam(teamId, normalizedRequest)
 
         teamRepository.createTeamHistory(
             teamId = teamId,
@@ -105,12 +118,76 @@ class TeamService(
             null -> teamRepository.createTeamMember(
                 teamId = teamId,
                 userId = userId,
+                displayName = user.name,
                 role = TeamMemberRole.MEMBER,
                 status = TeamMemberStatus.PENDING,
             )
         }
 
-        return TeamMemberResponse.from(teamMember, name = user.name)
+        return TeamMemberResponse.from(teamMember)
+    }
+
+    fun addTeamMember(
+        teamId: Long,
+        userId: Long,
+        request: TeamMemberCreateRequest,
+    ): TeamMemberResponse {
+        validateTeamExists(teamId)
+        validateTeamUpdatePermission(teamId, userId)
+        val displayName = request.displayName.trim()
+
+        if (displayName.isBlank() || displayName.length > TEAM_MEMBER_NAME_MAX_LENGTH ||
+            request.role !in setOf(TeamMemberRole.MEMBER, TeamMemberRole.GUEST)
+        ) {
+            throw ApiException(TeamErrorCode.INVALID_TEAM_MEMBER_REQUEST)
+        }
+
+        val teamMember = teamRepository.createTeamMember(
+                teamId = teamId,
+                userId = null,
+                displayName = displayName,
+                role = request.role,
+            )
+        val openMatchIds = matchRepository.selectMatchesByTeamId(teamId)
+            .filter { it.status == MatchStatus.SCHEDULED && it.matchAt.isAfter(LocalDateTime.now()) }
+            .map { it.id }
+
+        openMatchIds.forEach { matchId ->
+            matchParticipantRepository.createDefaultParticipants(matchId, listOf(teamMember.id))
+        }
+
+        return TeamMemberResponse.from(teamMember)
+    }
+
+    fun updateTeamMemberMemo(
+        teamId: Long,
+        teamMemberId: Long,
+        userId: Long,
+        request: TeamMemberMemoUpdateRequest,
+    ): TeamMemberResponse {
+        validateTeamExists(teamId)
+        validateTeamUpdatePermission(teamId, userId)
+        val memo = request.memo.trim()
+
+        if (memo.isBlank() || memo.length > TEAM_MEMBER_MEMO_MAX_LENGTH) {
+            throw ApiException(TeamErrorCode.INVALID_TEAM_MEMBER_MEMO)
+        }
+
+        val member = teamRepository.selectTeamMemberById(teamId, teamMemberId)
+            ?: throw ApiException(TeamErrorCode.TEAM_MEMBER_NOT_FOUND)
+        return TeamMemberResponse.from(teamRepository.updateTeamMemberMemo(member.id, memo))
+    }
+
+    fun deleteTeamMemberMemo(
+        teamId: Long,
+        teamMemberId: Long,
+        userId: Long,
+    ): TeamMemberResponse {
+        validateTeamExists(teamId)
+        validateTeamUpdatePermission(teamId, userId)
+        val member = teamRepository.selectTeamMemberById(teamId, teamMemberId)
+            ?: throw ApiException(TeamErrorCode.TEAM_MEMBER_NOT_FOUND)
+        return TeamMemberResponse.from(teamRepository.updateTeamMemberMemo(member.id, null))
     }
 
     @Transactional(readOnly = true)
@@ -141,8 +218,14 @@ class TeamService(
     }
 
     @Transactional(readOnly = true)
-    fun getTeams(): List<TeamResponse> {
-        return teamRepository.selectTeams().map(TeamResponse::from)
+    fun getTeams(userId: Long?): List<TeamResponse> {
+        val membershipStatuses = userId
+            ?.let(teamRepository::selectTeamMemberStatusesByUser)
+            .orEmpty()
+
+        return teamRepository.selectTeams().map { team ->
+            TeamResponse.from(team, membershipStatuses[team.id])
+        }
     }
 
     @Transactional(readOnly = true)
@@ -155,6 +238,20 @@ class TeamService(
             team = TeamResponse.from(team),
             members = members,
         )
+    }
+
+    @Transactional(readOnly = true)
+    fun getTeamMembers(
+        teamId: Long,
+        userId: Long,
+    ): List<TeamMemberResponse> {
+        validateTeamExists(teamId)
+
+        if (!teamRepository.existsActiveMember(teamId, userId)) {
+            throw ApiException(TeamErrorCode.TEAM_MEMBER_VIEW_FORBIDDEN)
+        }
+
+        return teamRepository.selectMembersByTeamId(teamId).map(::toTeamMemberResponse)
     }
 
     private fun validateTeamCreateRequest(request: TeamCreateRequest) {
@@ -179,6 +276,20 @@ class TeamService(
 
         if (normalizedName.isBlank() || normalizedName.length > TEAM_NAME_MAX_LENGTH) {
             throw ApiException(TeamErrorCode.INVALID_TEAM_REQUEST)
+        }
+    }
+
+    private fun validateTeamNameIsAvailable(
+        name: String,
+        excludedTeamId: Long? = null,
+    ) {
+        val normalizedName = name.trim()
+        val hasDuplicateName = teamRepository.selectTeams().any { team ->
+            team.id != excludedTeamId && team.name.equals(normalizedName, ignoreCase = true)
+        }
+
+        if (hasDuplicateName) {
+            throw ApiException(TeamErrorCode.DUPLICATE_TEAM_NAME)
         }
     }
 
@@ -220,14 +331,8 @@ class TeamService(
         return toTeamMemberResponse(teamRepository.updateTeamMemberStatus(teamMember.id, status))
     }
 
-    private fun toTeamMemberResponse(member: com.yonghoo.team_manager.team.domain.TeamMemberRecord): TeamMemberResponse {
-        return TeamMemberResponse.from(
-            member = member,
-            name = member.userId
-                ?.let(userRepository::selectUserById)
-                ?.name,
-        )
-    }
+    private fun toTeamMemberResponse(member: com.yonghoo.team_manager.team.domain.TeamMemberRecord) =
+        TeamMemberResponse.from(member)
 
     private fun validateTeamDeletePermission(
         teamId: Long,
@@ -272,6 +377,8 @@ class TeamService(
 
     companion object {
         private const val TEAM_NAME_MAX_LENGTH = 100
+        private const val TEAM_MEMBER_NAME_MAX_LENGTH = 50
+        private const val TEAM_MEMBER_MEMO_MAX_LENGTH = 500
         private const val SHORT_NAME_MAX_LENGTH = 30
         private const val LOGO_URL_MAX_LENGTH = 500
         private const val REGION_MAX_LENGTH = 100

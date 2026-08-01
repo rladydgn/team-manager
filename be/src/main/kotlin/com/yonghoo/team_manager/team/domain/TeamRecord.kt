@@ -6,6 +6,7 @@ import java.time.LocalDateTime
 data class TeamRecord(
     val id: Long,
     val createdByUserId: Long,
+    val category: TeamCategory,
     val name: String,
     val shortName: String?,
     val logoUrl: String?,
@@ -24,6 +25,7 @@ data class TeamRecord(
             return TeamRecord(
                 id = team.id.value,
                 createdByUserId = team.createdByUserId,
+                category = team.category,
                 name = team.name,
                 shortName = team.shortName,
                 logoUrl = team.logoUrl,

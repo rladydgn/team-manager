@@ -1,8 +1,10 @@
 import "server-only";
 
+import { cookies } from "next/headers";
 import type { Team } from "@/features/team/api/team";
 
 const BACKEND_API_URL = process.env.BACKEND_API_URL ?? "http://localhost:8080";
+const ACCESS_TOKEN_COOKIE_NAME = "team_manager_access_token";
 
 type ApiResponse<T> = {
   success: boolean;
@@ -15,8 +17,14 @@ type ServerTeamsResult = {
 };
 
 export async function getServerTeams(): Promise<ServerTeamsResult> {
+  const cookieStore = await cookies();
+  const accessToken = cookieStore.get(ACCESS_TOKEN_COOKIE_NAME);
+
   try {
     const response = await fetch(`${BACKEND_API_URL}/teams`, {
+      headers: accessToken
+        ? { Cookie: `${accessToken.name}=${accessToken.value}` }
+        : undefined,
       cache: "no-store",
     });
 

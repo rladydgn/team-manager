@@ -28,6 +28,7 @@ class TeamRepository {
         val now = LocalDateTime.now()
         val team = TeamEntity.new {
             this.createdByUserId = createdByUserId
+            category = request.category
             name = request.name
             shortName = request.shortName
             logoUrl = request.logoUrl
@@ -50,6 +51,7 @@ class TeamRepository {
         val team = TeamEntity[teamId]
 
         team.name = request.name.trim()
+        request.category?.let { team.category = it }
         team.shortName = request.shortName.cleanOptional()
         team.logoUrl = request.logoUrl.cleanOptional()
         team.description = request.description.cleanOptional()
@@ -91,6 +93,7 @@ class TeamRepository {
     fun createTeamMember(
         teamId: Long,
         userId: Long?,
+        displayName: String,
         role: TeamMemberRole,
         status: TeamMemberStatus = TeamMemberStatus.ACTIVE,
     ): TeamMemberRecord {
@@ -98,6 +101,8 @@ class TeamRepository {
         val teamMember = TeamMemberEntity.new {
             this.teamId = teamId
             this.userId = userId
+            this.displayName = displayName
+            memo = null
             this.role = role
             this.status = status
             joinedAt = now.takeIf { status == TeamMemberStatus.ACTIVE }
@@ -159,6 +164,12 @@ class TeamRepository {
         }.firstOrNull()?.let(TeamMemberRecord::from)
     }
 
+    fun selectTeamMemberStatusesByUser(userId: Long): Map<Long, TeamMemberStatus> {
+        return TeamMemberEntity.find {
+            (TeamMembersTable.userId eq userId) and TeamMembersTable.deletedAt.isNull()
+        }.associate { teamMember -> teamMember.teamId to teamMember.status }
+    }
+
     fun selectActiveTeamMemberByTeamAndUser(
         teamId: Long,
         userId: Long,
@@ -182,6 +193,13 @@ class TeamRepository {
         teamMember.joinedAt = now.takeIf { status == TeamMemberStatus.ACTIVE }
         teamMember.updatedAt = now
 
+        return TeamMemberRecord.from(teamMember)
+    }
+
+    fun updateTeamMemberMemo(teamMemberId: Long, memo: String?): TeamMemberRecord {
+        val teamMember = TeamMemberEntity[teamMemberId]
+        teamMember.memo = memo
+        teamMember.updatedAt = LocalDateTime.now()
         return TeamMemberRecord.from(teamMember)
     }
 

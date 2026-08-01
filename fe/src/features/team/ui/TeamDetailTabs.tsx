@@ -2,10 +2,17 @@ import Link from "next/link";
 
 type TeamDetailTabsProps = {
   teamId: number;
-  activeTab: "overview" | "matches" | "members";
+  activeTab: "overview" | "matches" | "members" | "statistics" | "feePayments";
+  canAccessTeamFeatures?: boolean;
+  canManageFees?: boolean;
 };
 
-export function TeamDetailTabs({ teamId, activeTab }: TeamDetailTabsProps) {
+export function TeamDetailTabs({
+  teamId,
+  activeTab,
+  canAccessTeamFeatures = false,
+  canManageFees = false,
+}: TeamDetailTabsProps) {
   const overviewClassName =
     activeTab === "overview"
       ? "border-b-2 border-[#4f6f9f] text-[#2f4d76]"
@@ -18,6 +25,14 @@ export function TeamDetailTabs({ teamId, activeTab }: TeamDetailTabsProps) {
     activeTab === "members"
       ? "border-b-2 border-[#4f6f9f] text-[#2f4d76]"
       : "border-b-2 border-transparent text-[#64748b] hover:border-[#c8d4e6] hover:text-[#3d5b86]";
+  const statisticsClassName =
+    activeTab === "statistics"
+      ? "border-b-2 border-[#4f6f9f] text-[#2f4d76]"
+      : "border-b-2 border-transparent text-[#64748b] hover:border-[#c8d4e6] hover:text-[#3d5b86]";
+  const feePaymentsClassName =
+    activeTab === "feePayments"
+      ? "border-b-2 border-[#4f6f9f] text-[#2f4d76]"
+      : "border-b-2 border-transparent text-[#64748b] hover:border-[#c8d4e6] hover:text-[#3d5b86]";
 
   return (
     <nav
@@ -26,33 +41,46 @@ export function TeamDetailTabs({ teamId, activeTab }: TeamDetailTabsProps) {
     >
       <div className="flex min-w-max items-center gap-1">
         <Link
-          href={`/teams/${teamId}`}
+          href={`/team/${teamId}`}
           aria-current={activeTab === "overview" ? "page" : undefined}
           className={`inline-flex h-11 items-center justify-center px-4 text-sm font-semibold transition-colors ${overviewClassName}`}
         >
           메인
         </Link>
-        <Link
-          href={`/teams/${teamId}/matches`}
-          aria-current={activeTab === "matches" ? "page" : undefined}
-          className={`inline-flex h-11 items-center justify-center px-4 text-sm font-semibold transition-colors ${matchesClassName}`}
-        >
-          경기 일정
-        </Link>
-        <Link
-          href={`/teams/${teamId}/members`}
-          aria-current={activeTab === "members" ? "page" : undefined}
-          className={`inline-flex h-11 items-center justify-center px-4 text-sm font-semibold transition-colors ${membersClassName}`}
-        >
-          팀원
-        </Link>
-        <span
-          aria-disabled="true"
-          title="출석률 기능은 준비 중입니다."
-          className="inline-flex h-11 cursor-not-allowed items-center justify-center border-b-2 border-transparent px-4 text-sm font-semibold text-[#a1afc2]"
-        >
-          출석률
-        </span>
+        {canAccessTeamFeatures ? (
+          <>
+            <Link
+              href={`/team/${teamId}/match`}
+              aria-current={activeTab === "matches" ? "page" : undefined}
+              className={`inline-flex h-11 items-center justify-center px-4 text-sm font-semibold transition-colors ${matchesClassName}`}
+            >
+              경기 일정
+            </Link>
+            <Link
+              href={`/team/${teamId}/member`}
+              aria-current={activeTab === "members" ? "page" : undefined}
+              className={`inline-flex h-11 items-center justify-center px-4 text-sm font-semibold transition-colors ${membersClassName}`}
+            >
+              팀원
+            </Link>
+            <Link
+              href={`/team/${teamId}/statistics`}
+              aria-current={activeTab === "statistics" ? "page" : undefined}
+              className={`inline-flex h-11 items-center justify-center px-4 text-sm font-semibold transition-colors ${statisticsClassName}`}
+            >
+              통계
+            </Link>
+            {canManageFees ? (
+              <Link
+                href={`/team/${teamId}/fee-payment`}
+                aria-current={activeTab === "feePayments" ? "page" : undefined}
+                className={`inline-flex h-11 items-center justify-center px-4 text-sm font-semibold transition-colors ${feePaymentsClassName}`}
+              >
+                회비 납부
+              </Link>
+            ) : null}
+          </>
+        ) : null}
       </div>
     </nav>
   );
