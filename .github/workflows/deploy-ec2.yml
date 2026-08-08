@@ -16,10 +16,10 @@ jobs:
 
     steps:
       - name: Check out source
-        uses: actions/checkout@v4
+        uses: actions/checkout@v5
 
       - name: Set up JDK 25
-        uses: actions/setup-java@v4
+        uses: actions/setup-java@v5
         with:
           distribution: temurin
           java-version: "25"
@@ -27,15 +27,12 @@ jobs:
 
       - name: Build backend
         working-directory: be
-        env:
-          APPLICATION_REAL: ${{ secrets.APPLICATION_REAL }}
         run: |
-          printf '%s' "$APPLICATION_REAL" > src/main/resources/application-real.yml
           chmod +x gradlew
-          SPRING_PROFILES_ACTIVE=real ./gradlew bootJar
+          SPRING_PROFILES_ACTIVE=real ./gradlew clean bootJar
 
       - name: Set up Node.js
-        uses: actions/setup-node@v4
+        uses: actions/setup-node@v5
         with:
           node-version: "24"
           cache: npm
@@ -51,9 +48,13 @@ jobs:
           npm run build
 
       - name: Prepare deployment files
+        env:
+          APPLICATION_REAL: ${{ secrets.APPLICATION_REAL }}
         run: |
           mkdir -p deploy/backend deploy/frontend/.next
           cp "$(find be/build/libs -maxdepth 1 -type f -name 'team-manager-*.jar' ! -name '*-plain.jar')" deploy/backend/team-manager.jar
+          printf '%s' "$APPLICATION_REAL" > deploy/backend/application-real.yml
+          test -s deploy/backend/application-real.yml
           cp -R fe/.next/standalone/. deploy/frontend/
           cp -R fe/.next/static deploy/frontend/.next/static
           if [ -d fe/public ]; then cp -R fe/public deploy/frontend/public; fi
@@ -72,6 +73,7 @@ jobs:
             APP_DIR="${{ secrets.DEPLOY_PATH }}"
             cd "$APP_DIR"
             mkdir -p logs
+            test -s backend/application-real.yml
 
             if [ -f backend.pid ] && kill -0 "$(cat backend.pid)" 2>/dev/null; then
               kill "$(cat backend.pid)"
@@ -80,8 +82,10 @@ jobs:
               kill "$(cat frontend.pid)"
             fi
 
-            export SPRING_PROFILES_ACTIVE=real
-            nohup java -jar backend/team-manager.jar > logs/backend-access.log 2> logs/backend-error.log &
+            nohup java -jar backend/team-manager.jar \
+              --spring.profiles.active=real \
+              --spring.config.additional-location="file:${APP_DIR}/backend/application-real.yml" \
+              > logs/backend-access.log 2> logs/backend-error.log &
             echo $! > backend.pid
 
             cd frontend
