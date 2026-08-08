@@ -51,15 +51,12 @@ jobs:
           npm run build
 
       - name: Prepare deployment files
-        env:
-          JWT_SECRET: ${{ secrets.JWT_SECRET }}
         run: |
           mkdir -p deploy/backend deploy/frontend/.next
           cp "$(find be/build/libs -maxdepth 1 -type f -name 'team-manager-*.jar' ! -name '*-plain.jar')" deploy/backend/team-manager.jar
           cp -R fe/.next/standalone/. deploy/frontend/
           cp -R fe/.next/static deploy/frontend/.next/static
           if [ -d fe/public ]; then cp -R fe/public deploy/frontend/public; fi
-          printf '%s' "$JWT_SECRET" > deploy/backend/.jwt-secret
 
       - name: Deploy and restart services on EC2
         uses: easingthemes/ssh-deploy@main
@@ -75,7 +72,6 @@ jobs:
             APP_DIR="${{ secrets.DEPLOY_PATH }}"
             cd "$APP_DIR"
             mkdir -p logs
-            chmod 600 backend/.jwt-secret
 
             if [ -f backend.pid ] && kill -0 "$(cat backend.pid)" 2>/dev/null; then
               kill "$(cat backend.pid)"
@@ -84,7 +80,6 @@ jobs:
               kill "$(cat frontend.pid)"
             fi
 
-            export JWT_SECRET="$(cat backend/.jwt-secret)"
             export SPRING_PROFILES_ACTIVE=real
             nohup java -jar backend/team-manager.jar > logs/backend-access.log 2> logs/backend-error.log &
             echo $! > backend.pid
