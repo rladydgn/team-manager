@@ -26,8 +26,8 @@ class MatchParticipantRepository {
                 this.matchId = matchId
                 this.teamMemberId = teamMemberId
                 teamSide = MatchTeamSide.HOME
-                status = MatchParticipantStatus.PENDING
-                participated = false
+                voteStatus = MatchParticipantStatus.PENDING
+                actualParticipated = false
                 goalCount = 0
                 assistCount = 0
                 cleanSheetCount = 0
@@ -54,7 +54,7 @@ class MatchParticipantRepository {
     fun upsertParticipation(
         matchId: Long,
         teamMemberId: Long,
-        status: MatchParticipantStatus,
+        voteStatus: MatchParticipantStatus,
         memo: String?,
         shouldUpdateMemo: Boolean,
     ): MatchParticipantRecord {
@@ -66,12 +66,12 @@ class MatchParticipantRepository {
         }.firstOrNull()
 
         if (existingParticipant != null) {
-            val statusChanged = existingParticipant.status != status
-            existingParticipant.status = status
+            val voteStatusChanged = existingParticipant.voteStatus != voteStatus
+            existingParticipant.voteStatus = voteStatus
             if (shouldUpdateMemo) {
                 existingParticipant.memo = memo
             }
-            if (statusChanged || existingParticipant.respondedAt == null) {
+            if (voteStatusChanged || existingParticipant.respondedAt == null) {
                 existingParticipant.respondedAt = now
             }
             existingParticipant.updatedAt = now
@@ -82,8 +82,8 @@ class MatchParticipantRepository {
             this.matchId = matchId
             this.teamMemberId = teamMemberId
             teamSide = MatchTeamSide.HOME
-            this.status = status
-            participated = false
+            this.voteStatus = voteStatus
+            actualParticipated = false
             goalCount = 0
             assistCount = 0
             cleanSheetCount = 0
@@ -110,14 +110,15 @@ class MatchParticipantRepository {
                 this.matchId = matchId
                 teamMemberId = statistic.teamMemberId
                 teamSide = MatchTeamSide.HOME
-                status = MatchParticipantStatus.PENDING
-                participated = false
+                voteStatus = MatchParticipantStatus.PENDING
+                actualParticipated = false
                 memo = null
                 respondedAt = null
                 createdAt = now
                 updatedAt = now
             }
 
+            participant.actualParticipated = statistic.actualParticipated
             participant.goalCount = statistic.goalCount
             participant.assistCount = statistic.assistCount
             participant.cleanSheetCount = statistic.cleanSheetCount

@@ -198,7 +198,7 @@ export default function MatchDetailPage() {
       return;
     }
 
-    const isParticipating = match.myParticipationStatus === "AVAILABLE";
+    const isParticipating = match.myVoteStatus === "AVAILABLE";
     const nextStatus = isParticipating ? "UNAVAILABLE" : "AVAILABLE";
     setParticipationErrorMessage("");
     setNoticeMessage("");
@@ -222,7 +222,7 @@ export default function MatchDetailPage() {
           ? {
               ...currentMatch,
               isMatchParticipant: true,
-              myParticipationStatus: nextStatus,
+              myVoteStatus: nextStatus,
               availableParticipantCount: Math.max(
                 0,
                 currentMatch.availableParticipantCount +
@@ -254,8 +254,8 @@ export default function MatchDetailPage() {
     }
 
     if (
-      match.myParticipationStatus !== "AVAILABLE" &&
-      match.myParticipationStatus !== "UNAVAILABLE"
+      match.myVoteStatus !== "AVAILABLE" &&
+      match.myVoteStatus !== "UNAVAILABLE"
     ) {
       setParticipationErrorMessage("참여 또는 불참을 먼저 선택해 주세요.");
       return;
@@ -268,7 +268,7 @@ export default function MatchDetailPage() {
     try {
       const response = await updateMatchParticipation(
         match.id,
-        match.myParticipationStatus,
+        match.myVoteStatus,
         getMemoDraft(),
       );
 
@@ -386,7 +386,7 @@ export default function MatchDetailPage() {
                 </span>
                 {canUpdateMatchParticipation(match) ? (
                   <MatchParticipationButton
-                    status={match.myParticipationStatus}
+                    status={match.myVoteStatus}
                     isUpdating={isParticipationUpdating}
                     onClick={() => void handleParticipation()}
                   />
@@ -507,7 +507,7 @@ export default function MatchDetailPage() {
                   const participant = participants.find(
                     (item) => item.teamMemberId === member.id,
                   );
-                  const participationStatus = participant?.status ?? "PENDING";
+                  const participationStatus = participant?.voteStatus ?? "PENDING";
                   const isCurrentUser = member.userId === currentUser?.id;
                   const canSaveMemo =
                     canUpdateMatchParticipation(match) &&
@@ -617,7 +617,7 @@ export default function MatchDetailPage() {
                         (participant) => participant.teamMemberId === member.id,
                       );
                       const participationStatus =
-                        participant?.status ?? "PENDING";
+                        participant?.voteStatus ?? "PENDING";
                       const isCurrentUser = member.userId === currentUser?.id;
                       const canSaveMemo =
                         canUpdateMatchParticipation(match) &&

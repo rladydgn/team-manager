@@ -8,8 +8,8 @@ object MatchParticipantsTable : LongIdTable("match_participants") {
     val matchId = long("match_id")
     val teamMemberId = long("team_member_id")
     val teamSide = enumerationByName("team_side", 10, MatchTeamSide::class).clientDefault { MatchTeamSide.HOME }
-    val status = enumerationByName("status", 20, MatchParticipantStatus::class).clientDefault { MatchParticipantStatus.PENDING }
-    val participated = bool("participated").clientDefault { false }
+    val voteStatus = enumerationByName("vote_status", 20, MatchParticipantStatus::class).clientDefault { MatchParticipantStatus.PENDING }
+    val actualParticipated = bool("actual_participated").clientDefault { false }
     val goalCount = integer("goal_count").clientDefault { 0 }
     val assistCount = integer("assist_count").clientDefault { 0 }
     val cleanSheetCount = integer("clean_sheet_count").clientDefault { 0 }

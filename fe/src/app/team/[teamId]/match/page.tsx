@@ -130,7 +130,7 @@ export default function TeamMatchesPage() {
     setNoticeMessage("");
     setUpdatingMatchId(match.id);
 
-    const isParticipating = match.myParticipationStatus === "AVAILABLE";
+    const isParticipating = match.myVoteStatus === "AVAILABLE";
     const nextStatus = isParticipating ? "UNAVAILABLE" : "AVAILABLE";
 
     try {
@@ -260,7 +260,7 @@ export default function TeamMatchesPage() {
                         <span className="rounded-md border border-[#dbe4f0] bg-[#f8fafc] px-2.5 py-1 text-xs font-semibold text-[#3d5b86]">{match.matchType === "INTERNAL" ? "자체전" : "외부전"}</span>
                         {canUpdateMatchParticipation(match) ? (
                           <MatchParticipationButton
-                            status={match.myParticipationStatus}
+                            status={match.myVoteStatus}
                             isUpdating={isUpdating}
                             onClick={() => void handleParticipation(match)}
                           />

@@ -73,3 +73,9 @@ ALTER TABLE matches
 ALTER TABLE team_fee_payments
     MODIFY COLUMN status ENUM('PAID', 'UNPAID', 'INJURED', 'EXEMPT') NOT NULL DEFAULT 'UNPAID';
 
+-- Clarify the match participant's pre-match vote and post-match attendance.
+ALTER TABLE match_participants
+    RENAME COLUMN status TO vote_status,
+    RENAME COLUMN participated TO actual_participated,
+    RENAME INDEX idx_match_participants_status TO idx_match_participants_vote_status;
+

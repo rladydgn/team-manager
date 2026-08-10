@@ -10,8 +10,8 @@ class MatchParticipantEntity(id: EntityID<Long>) : LongEntity(id) {
     var matchId by MatchParticipantsTable.matchId
     var teamMemberId by MatchParticipantsTable.teamMemberId
     var teamSide by MatchParticipantsTable.teamSide
-    var status by MatchParticipantsTable.status
-    var participated by MatchParticipantsTable.participated
+    var voteStatus by MatchParticipantsTable.voteStatus
+    var actualParticipated by MatchParticipantsTable.actualParticipated
     var goalCount by MatchParticipantsTable.goalCount
     var assistCount by MatchParticipantsTable.assistCount
     var cleanSheetCount by MatchParticipantsTable.cleanSheetCount

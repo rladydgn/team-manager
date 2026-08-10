@@ -101,7 +101,8 @@ class MatchService(
         return participants.map { participant ->
             MatchParticipantResponse(
                 teamMemberId = participant.teamMemberId,
-                status = participant.status,
+                voteStatus = participant.voteStatus,
+                actualParticipated = participant.actualParticipated,
                 goalCount = participant.goalCount,
                 assistCount = participant.assistCount,
                 cleanSheetCount = participant.cleanSheetCount,
@@ -143,7 +144,21 @@ class MatchService(
             .eachCount()
         val attendanceCountByMemberId = matchParticipants
             .asSequence()
-            .filter { it.status == MatchParticipantStatus.AVAILABLE }
+            .filter { it.voteStatus == MatchParticipantStatus.AVAILABLE }
+            .groupingBy { it.teamMemberId }
+            .eachCount()
+        val completedMatchIds = matches
+            .asSequence()
+            .filter { it.status == MatchStatus.COMPLETED }
+            .map(MatchRecord::id)
+            .toSet()
+        val postVoteAbsenceCountByMemberId = matchParticipants
+            .asSequence()
+            .filter {
+                it.matchId in completedMatchIds &&
+                    it.voteStatus == MatchParticipantStatus.AVAILABLE &&
+                    !it.actualParticipated
+            }
             .groupingBy { it.teamMemberId }
             .eachCount()
         val participantStatisticsByMemberId = matchParticipants.groupBy { it.teamMemberId }
@@ -160,6 +175,7 @@ class MatchService(
                     attendanceCount = attendanceCount,
                     eligibleMatchCount = eligibleMatchCount,
                     attendanceRate = calculateAttendanceRate(attendanceCount, eligibleMatchCount),
+                    postVoteAbsenceCount = postVoteAbsenceCountByMemberId[member.id] ?: 0,
                     goalCount = participantStatistics.sumOf { it.goalCount },
                     assistCount = participantStatistics.sumOf { it.assistCount },
                     cleanSheetCount = participantStatistics.sumOf { it.cleanSheetCount },
@@ -193,7 +209,7 @@ class MatchService(
         userId: Long,
         request: MatchParticipationUpdateRequest,
     ): MatchParticipantResponse {
-        if (request.status !in setOf(MatchParticipantStatus.AVAILABLE, MatchParticipantStatus.UNAVAILABLE)) {
+        if (request.voteStatus !in setOf(MatchParticipantStatus.AVAILABLE, MatchParticipantStatus.UNAVAILABLE)) {
             throw ApiException(MatchErrorCode.INVALID_MATCH_PARTICIPATION_REQUEST)
         }
         val memo = request.memo?.let(::normalizeParticipationMemo)
@@ -204,14 +220,15 @@ class MatchService(
         val participant = matchParticipantRepository.upsertParticipation(
             matchId = match.id,
             teamMemberId = teamMember.id,
-            status = request.status,
+            voteStatus = request.voteStatus,
             memo = memo,
             shouldUpdateMemo = request.memo != null,
         )
 
         return MatchParticipantResponse(
             teamMemberId = participant.teamMemberId,
-            status = participant.status,
+            voteStatus = participant.voteStatus,
+            actualParticipated = participant.actualParticipated,
             goalCount = participant.goalCount,
             assistCount = participant.assistCount,
             cleanSheetCount = participant.cleanSheetCount,
@@ -377,11 +394,11 @@ class MatchService(
     ): MatchResponse {
         return MatchResponse.from(
             match = match,
-            availableParticipantCount = participants.count { it.status == MatchParticipantStatus.AVAILABLE },
+            availableParticipantCount = participants.count { it.voteStatus == MatchParticipantStatus.AVAILABLE },
             isMatchParticipant = participants.any { it.teamMemberId == teamMemberId },
-            myParticipationStatus = participants
+            myVoteStatus = participants
                 .firstOrNull { it.teamMemberId == teamMemberId }
-                ?.status
+                ?.voteStatus
                 ?: MatchParticipantStatus.PENDING,
         )
     }

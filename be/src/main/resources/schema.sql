@@ -132,8 +132,8 @@ CREATE TABLE match_participants (
     match_id BIGINT UNSIGNED NOT NULL,
     team_member_id BIGINT UNSIGNED NOT NULL,
     team_side ENUM('HOME', 'AWAY') NOT NULL DEFAULT 'HOME',
-    status ENUM('INVITED', 'AVAILABLE', 'UNAVAILABLE', 'PENDING') NOT NULL DEFAULT 'PENDING',
-    participated TINYINT(1) NOT NULL DEFAULT 0,
+    vote_status ENUM('INVITED', 'AVAILABLE', 'UNAVAILABLE', 'PENDING') NOT NULL DEFAULT 'PENDING',
+    actual_participated TINYINT(1) NOT NULL DEFAULT 0,
     goal_count INT UNSIGNED NOT NULL DEFAULT 0,
     assist_count INT UNSIGNED NOT NULL DEFAULT 0,
     clean_sheet_count TINYINT UNSIGNED NOT NULL DEFAULT 0,
@@ -146,5 +146,5 @@ CREATE TABLE match_participants (
     KEY idx_match_participants_match_member (match_id, team_member_id),
     KEY idx_match_participants_team_member_id (team_member_id),
     KEY idx_match_participants_match_side (match_id, team_side),
-    KEY idx_match_participants_status (match_id, status)
+    KEY idx_match_participants_vote_status (match_id, vote_status)
 );

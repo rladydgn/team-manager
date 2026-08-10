@@ -13,10 +13,13 @@ import {
 import { getTeam, Team, TeamMember } from "@/features/team/api/team";
 
 type PlayerStatistics = {
+  actualParticipated: boolean;
   goalCount: number;
   assistCount: number;
   cleanSheetCount: number;
 };
+
+type PlayerStatisticCountField = Exclude<keyof PlayerStatistics, "actualParticipated">;
 
 function isMatchManager(role: TeamMember["role"] | undefined) {
   return role === "OWNER" || role === "SUB_MANAGER";
@@ -53,6 +56,11 @@ export default function MatchRecordPage() {
   const matchTeamMembers = teamMembers.filter((member) =>
     Object.prototype.hasOwnProperty.call(statisticsByMemberId, member.id)
   );
+  const areAllMatchMembersParticipating =
+    matchTeamMembers.length > 0 &&
+    matchTeamMembers.every(
+      (member) => statisticsByMemberId[member.id]?.actualParticipated
+    );
   const teamScore = useMemo(
     () =>
       Object.values(statisticsByMemberId).reduce(
@@ -128,7 +136,12 @@ export default function MatchRecordPage() {
       const nextStatistics = matchMembers.reduce<Record<number, PlayerStatistics>>(
         (statistics, member) => {
           const participant = participantsByMemberId.get(member.id);
+          const hasRecordedStatistics =
+            (participant?.goalCount ?? 0) > 0 ||
+            (participant?.assistCount ?? 0) > 0 ||
+            (participant?.cleanSheetCount ?? 0) > 0;
           statistics[member.id] = {
+            actualParticipated: participant?.actualParticipated || hasRecordedStatistics,
             goalCount: participant?.goalCount ?? 0,
             assistCount: participant?.assistCount ?? 0,
             cleanSheetCount: participant?.cleanSheetCount ?? 0,
@@ -166,13 +179,14 @@ export default function MatchRecordPage() {
 
   function updatePlayerStatistic(
     teamMemberId: number,
-    field: keyof PlayerStatistics,
+    field: PlayerStatisticCountField,
     value: number
   ) {
     setStatisticsByMemberId((current) => ({
       ...current,
       [teamMemberId]: {
         ...(current[teamMemberId] ?? {
+          actualParticipated: false,
           goalCount: 0,
           assistCount: 0,
           cleanSheetCount: 0,
@@ -180,6 +194,41 @@ export default function MatchRecordPage() {
         [field]: normalizeCount(value),
       },
     }));
+  }
+
+  function updatePlayerParticipation(teamMemberId: number, actualParticipated: boolean) {
+    setStatisticsByMemberId((current) => ({
+      ...current,
+      [teamMemberId]: {
+        ...(current[teamMemberId] ?? {
+          actualParticipated: false,
+          goalCount: 0,
+          assistCount: 0,
+          cleanSheetCount: 0,
+        }),
+        actualParticipated,
+      },
+    }));
+  }
+
+  function updateAllPlayerParticipation(actualParticipated: boolean) {
+    setStatisticsByMemberId((current) =>
+      matchTeamMembers.reduce<Record<number, PlayerStatistics>>(
+        (next, member) => ({
+          ...next,
+          [member.id]: {
+            ...(current[member.id] ?? {
+              actualParticipated: false,
+              goalCount: 0,
+              assistCount: 0,
+              cleanSheetCount: 0,
+            }),
+            actualParticipated,
+          },
+        }),
+        current
+      )
+    );
   }
 
   async function saveMatchRecord() {
@@ -202,6 +251,7 @@ export default function MatchRecordPage() {
         participants: matchTeamMembers.map((member) => ({
           teamMemberId: member.id,
           ...(statisticsByMemberId[member.id] ?? {
+            actualParticipated: false,
             goalCount: 0,
             assistCount: 0,
             cleanSheetCount: 0,
@@ -288,19 +338,36 @@ export default function MatchRecordPage() {
                   <h2 className="text-lg font-bold text-[#0f172a]">선수 기록</h2>
                   <p className="mt-1 text-sm text-[#64748b]">골 {teamScore} · 어시스트 {totalAssistCount}</p>
                 </div>
-                <p className="text-sm font-medium text-[#64748b]">쿼터별 클린시트 횟수를 합산해 기록합니다.</p>
+                <div className="flex flex-wrap items-center gap-x-5 gap-y-2">
+                  <label className="inline-flex items-center gap-2 text-sm font-semibold text-[#3d5b86]">
+                    <input
+                      type="checkbox"
+                      checked={areAllMatchMembersParticipating}
+                      onChange={(event) => updateAllPlayerParticipation(event.target.checked)}
+                      disabled={isSaving || matchTeamMembers.length === 0}
+                      aria-label="전체 실제 참여 선택"
+                      className="size-4 accent-[#4f6f9f] disabled:cursor-not-allowed"
+                    />
+                    전체 실제 참여
+                  </label>
+                  <p className="text-sm font-medium text-[#64748b]">쿼터별 클린시트 횟수를 합산해 기록합니다.</p>
+                </div>
               </div>
 
               <div className="divide-y divide-[#e2e8f0]">
                 {matchTeamMembers.map((member) => {
-                  const statistic = statisticsByMemberId[member.id] ?? { goalCount: 0, assistCount: 0, cleanSheetCount: 0 };
+                  const statistic = statisticsByMemberId[member.id] ?? { actualParticipated: false, goalCount: 0, assistCount: 0, cleanSheetCount: 0 };
 
                   return (
-                    <div key={member.id} className="grid gap-3 px-5 py-4 sm:grid-cols-[minmax(0,1fr)_6rem_6rem_7rem] sm:items-center sm:px-6">
+                    <div key={member.id} className="grid gap-3 px-5 py-4 sm:grid-cols-[minmax(0,1fr)_5.5rem_6rem_6rem_7rem] sm:items-center sm:px-6">
                       <div className="min-w-0">
                         <p className="truncate font-semibold text-[#1f2937]">{getPlayerName(member)}</p>
                         <p className="mt-1 text-xs text-[#64748b]">{member.role === "OWNER" ? "팀장" : member.role === "SUB_MANAGER" ? "부관리자" : member.role === "GUEST" ? "용병" : "팀원"}</p>
                       </div>
+                      <label className="flex items-center gap-2 text-sm font-semibold text-[#52627b] sm:flex-col sm:gap-1 sm:text-center">
+                        <input type="checkbox" checked={statistic.actualParticipated} onChange={(event) => updatePlayerParticipation(member.id, event.target.checked)} disabled={isSaving} className="size-4 accent-[#4f6f9f] disabled:cursor-not-allowed" />
+                        <span>실제 참여</span>
+                      </label>
                       <label className="grid grid-cols-[auto_1fr] items-center gap-2 text-sm font-semibold text-[#52627b] sm:grid-cols-1 sm:gap-1 sm:text-center">
                         <span>골</span>
                         <input type="number" min="0" max="99" value={statistic.goalCount} onChange={(event) => updatePlayerStatistic(member.id, "goalCount", event.target.valueAsNumber)} disabled={isSaving} className="h-9 min-w-0 rounded-md border border-[#c8d4e6] bg-white px-2 text-center text-sm font-semibold text-[#1f2937] outline-none focus:border-[#4f6f9f] focus:ring-4 focus:ring-[#e3eaf5] disabled:cursor-not-allowed" />

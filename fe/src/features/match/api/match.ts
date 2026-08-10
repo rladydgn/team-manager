@@ -32,12 +32,13 @@ export type Match = {
   createdAt: string;
   availableParticipantCount: number;
   isMatchParticipant: boolean;
-  myParticipationStatus: MatchParticipationStatus;
+  myVoteStatus: MatchParticipationStatus;
 };
 
 export type MatchParticipant = {
   teamMemberId: number;
-  status: MatchParticipationStatus;
+  voteStatus: MatchParticipationStatus;
+  actualParticipated: boolean;
   goalCount: number;
   assistCount: number;
   cleanSheetCount: number;
@@ -47,6 +48,7 @@ export type MatchParticipant = {
 
 export type MatchParticipantStatisticsUpdateRequest = {
   teamMemberId: number;
+  actualParticipated: boolean;
   goalCount: number;
   assistCount: number;
   cleanSheetCount: number;
@@ -75,12 +77,12 @@ export function getMatchParticipants(matchId: number) {
 
 export function updateMatchParticipation(
   matchId: number,
-  status: Extract<MatchParticipationStatus, "AVAILABLE" | "UNAVAILABLE">,
+  voteStatus: Extract<MatchParticipationStatus, "AVAILABLE" | "UNAVAILABLE">,
   memo?: string
 ) {
-  return putJson<MatchParticipant, { status: typeof status; memo?: string }>(
+  return putJson<MatchParticipant, { voteStatus: typeof voteStatus; memo?: string }>(
     `/matches/${matchId}/participation`,
-    { status, ...(memo === undefined ? {} : { memo }) }
+    { voteStatus, ...(memo === undefined ? {} : { memo }) }
   );
 }
 

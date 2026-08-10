@@ -22,14 +22,14 @@ data class MatchResponse(
     val createdAt: LocalDateTime,
     val availableParticipantCount: Int,
     val isMatchParticipant: Boolean,
-    val myParticipationStatus: MatchParticipantStatus,
+    val myVoteStatus: MatchParticipantStatus,
 ) {
     companion object {
         fun from(
             match: MatchRecord,
             availableParticipantCount: Int = 0,
             isMatchParticipant: Boolean = false,
-            myParticipationStatus: MatchParticipantStatus = MatchParticipantStatus.PENDING,
+            myVoteStatus: MatchParticipantStatus = MatchParticipantStatus.PENDING,
         ): MatchResponse {
             return MatchResponse(
                 id = match.id,
@@ -47,7 +47,7 @@ data class MatchResponse(
                 createdAt = match.createdAt,
                 availableParticipantCount = availableParticipantCount,
                 isMatchParticipant = isMatchParticipant,
-                myParticipationStatus = myParticipationStatus,
+                myVoteStatus = myVoteStatus,
             )
         }
     }
