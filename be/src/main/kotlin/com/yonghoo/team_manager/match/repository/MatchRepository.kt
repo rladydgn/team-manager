@@ -48,6 +48,7 @@ class MatchRepository {
 
         match.teamScore = teamScore
         match.opponentScore = opponentScore
+        match.status = MatchStatus.COMPLETED
         match.updatedAt = LocalDateTime.now()
 
         return MatchRecord.from(match)

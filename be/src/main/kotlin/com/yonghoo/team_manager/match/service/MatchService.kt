@@ -148,15 +148,18 @@ class MatchService(
             .filter { it.voteStatus == MatchParticipantStatus.AVAILABLE }
             .groupingBy { it.teamMemberId }
             .eachCount()
-        val completedMatchIds = matches
+        val recordedMatchIds = matches
             .asSequence()
-            .filter { it.status == MatchStatus.COMPLETED }
+            .filter {
+                it.status == MatchStatus.COMPLETED ||
+                    (it.teamScore != null && it.opponentScore != null)
+            }
             .map(MatchRecord::id)
             .toSet()
         val postVoteAbsenceCountByMemberId = matchParticipants
             .asSequence()
             .filter {
-                it.matchId in completedMatchIds &&
+                it.matchId in recordedMatchIds &&
                     it.voteStatus == MatchParticipantStatus.AVAILABLE &&
                     !it.actualParticipated
             }
@@ -165,7 +168,7 @@ class MatchService(
         val lateCountByMemberId = matchParticipants
             .asSequence()
             .filter {
-                it.matchId in completedMatchIds &&
+                it.matchId in recordedMatchIds &&
                     it.actualParticipated &&
                     it.late
             }

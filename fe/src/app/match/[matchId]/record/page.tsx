@@ -268,6 +268,15 @@ export default function MatchRecordPage() {
       return;
     }
 
+    if (
+      match.status === "SCHEDULED" &&
+      !window.confirm(
+        "경기 기록을 저장하면 참여/불참 투표를 더 이상 변경할 수 없습니다. 저장하시겠습니까?"
+      )
+    ) {
+      return;
+    }
+
     if (totalAssistCount > teamScore) {
       setFormErrorMessage("어시스트 합계는 골 합계보다 클 수 없습니다.");
       return;
