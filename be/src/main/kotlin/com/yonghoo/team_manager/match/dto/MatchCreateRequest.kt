@@ -9,5 +9,6 @@ data class MatchCreateRequest(
     val opponentTeamId: Long? = null,
     val opponentTeamName: String? = null,
     val matchAt: LocalDateTime,
+    val participationDeadlineAt: LocalDateTime? = null,
     val location: String? = null,
 )

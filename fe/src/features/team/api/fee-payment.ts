@@ -1,7 +1,7 @@
 import { getJson, putJson } from "@/shared/api/http";
 import type { TeamMember } from "@/features/team/api/team";
 
-export type FeePaymentStatus = "PAID" | "UNPAID" | "INJURED";
+export type FeePaymentStatus = "PAID" | "UNPAID" | "INJURED" | "EXEMPT";
 
 export type TeamFeePaymentMonth = {
   paymentMonth: number;

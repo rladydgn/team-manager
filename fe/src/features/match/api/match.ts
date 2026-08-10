@@ -12,6 +12,7 @@ export type MatchCreateRequest = {
   matchType: MatchType;
   opponentTeamName?: string;
   matchAt: string;
+  participationDeadlineAt: string;
   location?: string;
 };
 
@@ -23,6 +24,7 @@ export type Match = {
   opponentTeamName: string | null;
   createdByUserId: number;
   matchAt: string;
+  participationDeadlineAt: string;
   location: string | null;
   teamScore: number | null;
   opponentScore: number | null;

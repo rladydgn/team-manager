@@ -58,3 +58,18 @@ ALTER TABLE team_members
 ALTER TABLE team_members
     ADD COLUMN memo VARCHAR(500) NULL AFTER display_name;
 
+-- Store a configurable participation deadline for each match.
+ALTER TABLE matches
+    ADD COLUMN participation_deadline_at DATETIME NULL AFTER match_at;
+
+UPDATE matches
+SET participation_deadline_at = DATE_SUB(match_at, INTERVAL 1 DAY)
+WHERE participation_deadline_at IS NULL;
+
+ALTER TABLE matches
+    MODIFY COLUMN participation_deadline_at DATETIME NOT NULL;
+
+-- Add the fee-payment exemption status.
+ALTER TABLE team_fee_payments
+    MODIFY COLUMN status ENUM('PAID', 'UNPAID', 'INJURED', 'EXEMPT') NOT NULL DEFAULT 'UNPAID';
+

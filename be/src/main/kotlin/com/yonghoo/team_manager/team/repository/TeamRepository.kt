@@ -203,6 +203,16 @@ class TeamRepository {
         return TeamMemberRecord.from(teamMember)
     }
 
+    fun updateTeamMemberRole(
+        teamMemberId: Long,
+        role: TeamMemberRole,
+    ): TeamMemberRecord {
+        val teamMember = TeamMemberEntity[teamMemberId]
+        teamMember.role = role
+        teamMember.updatedAt = LocalDateTime.now()
+        return TeamMemberRecord.from(teamMember)
+    }
+
     fun reopenTeamJoinRequest(teamMemberId: Long): TeamMemberRecord {
         val now = LocalDateTime.now()
         val teamMember = TeamMemberEntity[teamMemberId]

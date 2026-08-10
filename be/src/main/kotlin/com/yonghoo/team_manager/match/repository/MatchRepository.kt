@@ -17,6 +17,7 @@ class MatchRepository {
         createdByUserId: Long,
         request: MatchCreateRequest,
         opponentTeamName: String?,
+        participationDeadlineAt: LocalDateTime,
     ): MatchRecord {
         val now = LocalDateTime.now()
         val match = MatchEntity.new {
@@ -26,6 +27,7 @@ class MatchRepository {
             this.opponentTeamName = opponentTeamName
             this.createdByUserId = createdByUserId
             matchAt = request.matchAt
+            this.participationDeadlineAt = participationDeadlineAt
             location = request.location?.trim()?.takeIf(String::isNotBlank)
             teamScore = null
             opponentScore = null

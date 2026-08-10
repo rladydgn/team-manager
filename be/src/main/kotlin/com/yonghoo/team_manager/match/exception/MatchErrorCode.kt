@@ -53,11 +53,7 @@ enum class MatchErrorCode(
     ),
     MATCH_PARTICIPATION_CLOSED(
         status = HttpStatus.CONFLICT,
-        message = "매치 시작 24시간 전까지만 참여 여부를 변경할 수 있습니다.",
-    ),
-    MATCH_PARTICIPATION_NOT_AVAILABLE(
-        status = HttpStatus.CONFLICT,
-        message = "매치 생성 이후 가입한 팀원은 해당 매치에 참여할 수 없습니다.",
+        message = "투표 마감일이 지났거나 이미 시작한 매치입니다.",
     );
 
     override val code: String

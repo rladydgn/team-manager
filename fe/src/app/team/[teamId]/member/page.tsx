@@ -12,6 +12,7 @@ import {
   TeamDetail,
   TeamMember,
   updateTeamMemberMemo,
+  updateTeamMemberRole,
 } from "@/features/team/api/team";
 import { TeamDetailTabs } from "@/features/team/ui/TeamDetailTabs";
 
@@ -51,6 +52,7 @@ export default function TeamMembersPage() {
   const [displayName, setDisplayName] = useState("");
   const [memberRole, setMemberRole] = useState<"MEMBER" | "GUEST">("GUEST");
   const [isAddingMember, setIsAddingMember] = useState(false);
+  const [changingRoleMemberId, setChangingRoleMemberId] = useState<number | null>(null);
 
   const loadTeam = useCallback(async () => {
     if (!Number.isInteger(teamId) || teamId <= 0) {
@@ -105,6 +107,9 @@ export default function TeamMembersPage() {
       member.userId === currentUser?.id &&
       (member.role === "OWNER" || member.role === "SUB_MANAGER")
   ) ?? false;
+  const canManageRoles = teamDetail?.members.some(
+    (member) => member.userId === currentUser?.id && member.role === "OWNER"
+  ) ?? false;
   const isTeamMember = teamDetail?.members.some(
     (member) => member.userId === currentUser?.id
   ) ?? false;
@@ -140,6 +145,30 @@ export default function TeamMembersPage() {
       await loadTeam();
     } catch (error) {
       setErrorMessage(error instanceof Error ? error.message : "팀원 메모를 저장하지 못했습니다.");
+    }
+  }
+
+  async function handleRoleChange(member: TeamMember, role: TeamMember["role"]) {
+    if (!canManageRoles || member.role === "OWNER" || member.role === role) return;
+
+    if (
+      role === "OWNER" &&
+      !window.confirm(
+        `${member.name ?? "선택한 팀원"}님을 팀장으로 변경할까요?\n현재 팀장은 부관리자로 변경됩니다.`
+      )
+    ) {
+      return;
+    }
+
+    setChangingRoleMemberId(member.id);
+    setErrorMessage("");
+    try {
+      await updateTeamMemberRole(teamId, member.id, { role });
+      await loadTeam();
+    } catch (error) {
+      setErrorMessage(error instanceof Error ? error.message : "팀원 역할을 변경하지 못했습니다.");
+    } finally {
+      setChangingRoleMemberId(null);
     }
   }
 
@@ -273,13 +302,33 @@ export default function TeamMembersPage() {
                             <p className="truncate">{member.memo || "메모 없음"}</p>
                           </td>
                           <td className="px-5 py-4 text-right sm:px-6">
-                            <span className="inline-flex rounded-md border border-[#dbe4f0] bg-[#f8fafc] px-2.5 py-1 text-xs font-semibold text-[#3d5b86]">
-                              {member.role === "GUEST"
-                                ? "용병"
-                                : member.userId === null
-                                  ? "팀원(비회원)"
-                                  : roleLabels[member.role]}
-                            </span>
+                            {canManageRoles && member.role !== "OWNER" ? (
+                              <select
+                                value={member.role}
+                                disabled={changingRoleMemberId === member.id}
+                                onChange={(event) =>
+                                  void handleRoleChange(
+                                    member,
+                                    event.target.value as TeamMember["role"]
+                                  )
+                                }
+                                aria-label={`${member.name ?? "팀원"} 역할`}
+                                className="h-8 rounded-md border border-[#c8d4e6] bg-white px-2 text-xs font-semibold text-[#3d5b86] outline-none focus:border-[#4f6f9f] disabled:cursor-not-allowed disabled:bg-[#f8fafc]"
+                              >
+                                <option value="MEMBER">{member.userId === null ? "팀원(비회원)" : "팀원"}</option>
+                                <option value="GUEST">용병</option>
+                                <option value="SUB_MANAGER" disabled={member.userId === null}>부관리자</option>
+                                <option value="OWNER" disabled={member.userId === null}>팀장</option>
+                              </select>
+                            ) : (
+                              <span className="inline-flex rounded-md border border-[#dbe4f0] bg-[#f8fafc] px-2.5 py-1 text-xs font-semibold text-[#3d5b86]">
+                                {member.role === "GUEST"
+                                  ? "용병"
+                                  : member.userId === null
+                                    ? "팀원(비회원)"
+                                    : roleLabels[member.role]}
+                              </span>
+                            )}
                           </td>
                           {canManageFees ? (
                             <td className="px-5 py-4 text-right">

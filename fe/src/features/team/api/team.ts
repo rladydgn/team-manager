@@ -56,6 +56,10 @@ export type TeamMemberCreateRequest = {
   role: "MEMBER" | "GUEST";
 };
 
+export type TeamMemberRoleUpdateRequest = {
+  role: TeamMember["role"];
+};
+
 export type TeamDetail = {
   team: Team;
   members: TeamMember[];
@@ -94,6 +98,17 @@ export function updateTeamMemberMemo(teamId: number, teamMemberId: number, memo:
 
 export function deleteTeamMemberMemo(teamId: number, teamMemberId: number) {
   return deleteJson<TeamMember>(`/teams/${teamId}/members/${teamMemberId}/memo`);
+}
+
+export function updateTeamMemberRole(
+  teamId: number,
+  teamMemberId: number,
+  request: TeamMemberRoleUpdateRequest
+) {
+  return putJson<TeamMember, TeamMemberRoleUpdateRequest>(
+    `/teams/${teamId}/members/${teamMemberId}/role`,
+    request
+  );
 }
 
 export function getTeamJoinRequests(teamId: number) {

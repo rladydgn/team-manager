@@ -7,6 +7,7 @@ import com.yonghoo.team_manager.team.dto.TeamDetailResponse
 import com.yonghoo.team_manager.team.dto.TeamMemberResponse
 import com.yonghoo.team_manager.team.dto.TeamMemberCreateRequest
 import com.yonghoo.team_manager.team.dto.TeamMemberMemoUpdateRequest
+import com.yonghoo.team_manager.team.dto.TeamMemberRoleUpdateRequest
 import com.yonghoo.team_manager.team.dto.TeamResponse
 import com.yonghoo.team_manager.team.dto.TeamUpdateRequest
 import com.yonghoo.team_manager.team.service.TeamService
@@ -179,6 +180,16 @@ class TeamController(
         @RequestAttribute(name = AUTHENTICATED_USER_ID_ATTRIBUTE, required = false) userId: Long?,
     ): ResponseEntity<CommonResponse<TeamMemberResponse>> = ResponseEntity.ok(
         CommonResponse(data = teamService.deleteTeamMemberMemo(teamId, teamMemberId, requireAuthenticatedUserId(userId))),
+    )
+
+    @PutMapping("/{teamId}/members/{teamMemberId}/role")
+    fun updateTeamMemberRole(
+        @PathVariable teamId: Long,
+        @PathVariable teamMemberId: Long,
+        @RequestAttribute(name = AUTHENTICATED_USER_ID_ATTRIBUTE, required = false) userId: Long?,
+        @RequestBody request: TeamMemberRoleUpdateRequest,
+    ): ResponseEntity<CommonResponse<TeamMemberResponse>> = ResponseEntity.ok(
+        CommonResponse(data = teamService.updateTeamMemberRole(teamId, teamMemberId, requireAuthenticatedUserId(userId), request)),
     )
 
     @Operation(summary = "팀원 목록 조회")

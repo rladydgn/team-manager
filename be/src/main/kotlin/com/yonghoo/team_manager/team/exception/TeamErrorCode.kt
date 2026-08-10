@@ -39,6 +39,14 @@ enum class TeamErrorCode(
         status = HttpStatus.FORBIDDEN,
         message = "팀원만 팀원 목록을 조회할 수 있습니다.",
     ),
+    TEAM_MEMBER_ROLE_MANAGEMENT_FORBIDDEN(
+        status = HttpStatus.FORBIDDEN,
+        message = "팀장만 팀원 역할을 변경할 수 있습니다.",
+    ),
+    INVALID_TEAM_MEMBER_ROLE_CHANGE(
+        status = HttpStatus.BAD_REQUEST,
+        message = "팀원 역할 변경 요청이 올바르지 않습니다.",
+    ),
     TEAM_DELETE_FORBIDDEN(
         status = HttpStatus.FORBIDDEN,
         message = "팀 삭제는 OWNER만 할 수 있습니다.",

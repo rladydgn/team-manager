@@ -24,6 +24,7 @@ import com.yonghoo.team_manager.user.repository.UserRepository
 import org.springframework.stereotype.Service
 import org.springframework.transaction.annotation.Transactional
 import java.time.LocalDate
+import java.time.LocalDateTime
 import kotlin.math.round
 
 @Transactional
@@ -41,11 +42,13 @@ class MatchService(
         validateTeamExists(request.teamId)
         validateMatchManager(request.teamId, createdByUserId)
         val opponentTeamName = validateMatchRequest(request)
+        val participationDeadlineAt = resolveParticipationDeadlineAt(request)
 
         val match = matchRepository.createMatch(
             createdByUserId = createdByUserId,
             request = request,
             opponentTeamName = opponentTeamName,
+            participationDeadlineAt = participationDeadlineAt,
         )
         val participants = matchParticipantRepository.createDefaultParticipants(
             matchId = match.id,
@@ -198,12 +201,6 @@ class MatchService(
         val match = getMatchAndValidateViewPermission(matchId, userId)
         validateParticipationDeadline(match)
         val teamMember = requireActiveTeamMember(match.teamId, userId)
-        val isMatchParticipant = matchParticipantRepository
-            .selectParticipantsByMatchIds(listOf(match.id))
-            .any { it.teamMemberId == teamMember.id }
-        if (!isMatchParticipant) {
-            throw ApiException(MatchErrorCode.MATCH_PARTICIPATION_NOT_AVAILABLE)
-        }
         val participant = matchParticipantRepository.upsertParticipation(
             matchId = match.id,
             teamMemberId = teamMember.id,
@@ -310,8 +307,11 @@ class MatchService(
         ?: throw ApiException(MatchErrorCode.MATCH_VIEW_FORBIDDEN)
 
     private fun validateParticipationDeadline(match: MatchRecord) {
-        if (match.status != com.yonghoo.team_manager.match.domain.MatchStatus.SCHEDULED ||
-            !match.matchAt.isAfter(java.time.LocalDateTime.now().plusHours(PARTICIPATION_CUTOFF_HOURS))
+        val now = LocalDateTime.now()
+
+        if (match.status != MatchStatus.SCHEDULED ||
+            !match.matchAt.isAfter(now) ||
+            !match.participationDeadlineAt.isAfter(now)
         ) {
             throw ApiException(MatchErrorCode.MATCH_PARTICIPATION_CLOSED)
         }
@@ -417,10 +417,21 @@ class MatchService(
         return opponentTeamName
     }
 
+    private fun resolveParticipationDeadlineAt(request: MatchCreateRequest): LocalDateTime {
+        val participationDeadlineAt = request.participationDeadlineAt
+            ?: request.matchAt.minusHours(DEFAULT_PARTICIPATION_DEADLINE_HOURS)
+
+        if (participationDeadlineAt.isAfter(request.matchAt)) {
+            throw ApiException(MatchErrorCode.INVALID_MATCH_REQUEST)
+        }
+
+        return participationDeadlineAt
+    }
+
     companion object {
         private const val OPPONENT_TEAM_NAME_MAX_LENGTH = 100
         private const val LOCATION_MAX_LENGTH = 255
-        private const val PARTICIPATION_CUTOFF_HOURS = 24L
+        private const val DEFAULT_PARTICIPATION_DEADLINE_HOURS = 24L
         private const val PARTICIPATION_MEMO_MAX_LENGTH = 500
         private const val ATTENDANCE_STATISTICS_PAGE_SIZE = 20
         private const val MAX_MATCH_SCORE = 99

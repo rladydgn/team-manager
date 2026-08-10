@@ -221,6 +221,7 @@ export default function MatchDetailPage() {
         currentMatch
           ? {
               ...currentMatch,
+              isMatchParticipant: true,
               myParticipationStatus: nextStatus,
               availableParticipantCount: Math.max(
                 0,

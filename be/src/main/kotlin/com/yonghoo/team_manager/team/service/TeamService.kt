@@ -15,6 +15,7 @@ import com.yonghoo.team_manager.team.dto.TeamDetailResponse
 import com.yonghoo.team_manager.team.dto.TeamMemberResponse
 import com.yonghoo.team_manager.team.dto.TeamMemberCreateRequest
 import com.yonghoo.team_manager.team.dto.TeamMemberMemoUpdateRequest
+import com.yonghoo.team_manager.team.dto.TeamMemberRoleUpdateRequest
 import com.yonghoo.team_manager.team.dto.TeamResponse
 import com.yonghoo.team_manager.team.dto.TeamUpdateRequest
 import com.yonghoo.team_manager.team.exception.TeamErrorCode
@@ -148,13 +149,7 @@ class TeamService(
                 displayName = displayName,
                 role = request.role,
             )
-        val openMatchIds = matchRepository.selectMatchesByTeamId(teamId)
-            .filter { it.status == MatchStatus.SCHEDULED && it.matchAt.isAfter(LocalDateTime.now()) }
-            .map { it.id }
-
-        openMatchIds.forEach { matchId ->
-            matchParticipantRepository.createDefaultParticipants(matchId, listOf(teamMember.id))
-        }
+        createDefaultParticipantsForUpcomingMatches(teamId, teamMember.id)
 
         return TeamMemberResponse.from(teamMember)
     }
@@ -188,6 +183,35 @@ class TeamService(
         val member = teamRepository.selectTeamMemberById(teamId, teamMemberId)
             ?: throw ApiException(TeamErrorCode.TEAM_MEMBER_NOT_FOUND)
         return TeamMemberResponse.from(teamRepository.updateTeamMemberMemo(member.id, null))
+    }
+
+    fun updateTeamMemberRole(
+        teamId: Long,
+        teamMemberId: Long,
+        userId: Long,
+        request: TeamMemberRoleUpdateRequest,
+    ): TeamMemberResponse {
+        validateTeamExists(teamId)
+        val currentOwner = teamRepository.selectActiveTeamMemberByTeamAndUser(teamId, userId)
+            ?.takeIf { it.role == TeamMemberRole.OWNER }
+            ?: throw ApiException(TeamErrorCode.TEAM_MEMBER_ROLE_MANAGEMENT_FORBIDDEN)
+        val targetMember = teamRepository.selectTeamMemberById(teamId, teamMemberId)
+            ?.takeIf { it.status == TeamMemberStatus.ACTIVE }
+            ?: throw ApiException(TeamErrorCode.TEAM_MEMBER_NOT_FOUND)
+
+        if (request.role in setOf(TeamMemberRole.OWNER, TeamMemberRole.SUB_MANAGER) && targetMember.userId == null) {
+            throw ApiException(TeamErrorCode.INVALID_TEAM_MEMBER_ROLE_CHANGE)
+        }
+
+        if (targetMember.role == TeamMemberRole.OWNER && request.role != TeamMemberRole.OWNER) {
+            throw ApiException(TeamErrorCode.INVALID_TEAM_MEMBER_ROLE_CHANGE)
+        }
+
+        if (request.role == TeamMemberRole.OWNER && targetMember.id != currentOwner.id) {
+            teamRepository.updateTeamMemberRole(currentOwner.id, TeamMemberRole.SUB_MANAGER)
+        }
+
+        return TeamMemberResponse.from(teamRepository.updateTeamMemberRole(targetMember.id, request.role))
     }
 
     @Transactional(readOnly = true)
@@ -328,7 +352,27 @@ class TeamService(
             ?.takeIf { it.status == TeamMemberStatus.PENDING }
             ?: throw ApiException(TeamErrorCode.TEAM_JOIN_REQUEST_NOT_FOUND)
 
-        return toTeamMemberResponse(teamRepository.updateTeamMemberStatus(teamMember.id, status))
+        val updatedMember = teamRepository.updateTeamMemberStatus(teamMember.id, status)
+
+        if (status == TeamMemberStatus.ACTIVE) {
+            createDefaultParticipantsForUpcomingMatches(teamId, updatedMember.id)
+        }
+
+        return toTeamMemberResponse(updatedMember)
+    }
+
+    private fun createDefaultParticipantsForUpcomingMatches(
+        teamId: Long,
+        teamMemberId: Long,
+    ) {
+        val now = LocalDateTime.now()
+        val openMatchIds = matchRepository.selectMatchesByTeamId(teamId)
+            .filter { it.status == MatchStatus.SCHEDULED && it.matchAt.isAfter(now) }
+            .map { it.id }
+
+        openMatchIds.forEach { matchId ->
+            matchParticipantRepository.createDefaultParticipants(matchId, listOf(teamMemberId))
+        }
     }
 
     private fun toTeamMemberResponse(member: com.yonghoo.team_manager.team.domain.TeamMemberRecord) =

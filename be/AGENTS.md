@@ -5,7 +5,7 @@ This project is Team Manager, a football team management service for member mana
 This backend project follows the Spec-Driven Development workflow from Paul Everitt's DeepLearning.AI short course:
 https://www.deeplearning.ai/courses/spec-driven-development-with-coding-agents
 
-For new feature development, use the local SDD files under `specs/`:
+Use the local SDD files under `specs/` only when the user explicitly requests SDD documentation:
 
 - `specs/constitution.md` defines the backend development principles.
 - `specs/mission.md` defines the product and backend mission.
@@ -14,7 +14,7 @@ For new feature development, use the local SDD files under `specs/`:
 - `specs/workflow.md` defines the project workflow: constitution, feature spec, implementation, validation, replanning, legacy support, and workflow improvement.
 - `specs/features/_template/` contains the feature-spec document set to copy for new backend features.
 
-Create or update SDD documents only for new feature development, or when the user explicitly requests SDD documentation. Do not create or update SDD documents for bug fixes, refactors, maintenance, or other non-feature work.
+Create or update SDD documents only when the user explicitly requests them. Do not infer an SDD-documentation request from feature development, bug fixes, refactors, maintenance, or any other work.
 
 The backend should model football team operations clearly:
 

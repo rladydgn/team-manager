@@ -20,12 +20,14 @@ const statusLabels: Record<FeePaymentStatus, string> = {
   PAID: "납부",
   UNPAID: "미납",
   INJURED: "부상",
+  EXEMPT: "면제",
 };
 
 const statusClassNames: Record<FeePaymentStatus, string> = {
   PAID: "border-[#b8d7c1] bg-[#f1f8f2] text-[#36734a]",
   UNPAID: "border-[#f1d3d1] bg-[#fff5f4] text-[#a85450]",
   INJURED: "border-[#d8d4e9] bg-[#f6f5fb] text-[#695c91]",
+  EXEMPT: "border-[#d6dee9] bg-[#f5f7fa] text-[#526274]",
 };
 
 type MemoEditor = {

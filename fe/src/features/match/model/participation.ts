@@ -1,15 +1,19 @@
 import type { Match } from "@/features/match/api/match";
 
-const PARTICIPATION_CUTOFF_MS = 24 * 60 * 60 * 1000;
-
 export function canUpdateMatchParticipation(
-  match: Pick<Match, "matchAt" | "status" | "isMatchParticipant">
+  match: Pick<Match, "matchAt" | "participationDeadlineAt" | "status">
 ) {
-  const cutoffAt = new Date(match.matchAt).getTime() - PARTICIPATION_CUTOFF_MS;
+  const matchAt = new Date(match.matchAt).getTime();
+  const participationDeadlineAt = new Date(
+    match.participationDeadlineAt
+  ).getTime();
+  const now = Date.now();
 
   return (
-    match.isMatchParticipant &&
     match.status === "SCHEDULED" &&
-    Date.now() < cutoffAt
+    Number.isFinite(matchAt) &&
+    Number.isFinite(participationDeadlineAt) &&
+    now < matchAt &&
+    now < participationDeadlineAt
   );
 }

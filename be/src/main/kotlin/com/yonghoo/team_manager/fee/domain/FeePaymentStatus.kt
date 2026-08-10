@@ -4,4 +4,5 @@ enum class FeePaymentStatus {
     PAID,
     UNPAID,
     INJURED,
+    EXEMPT,
 }

@@ -18,6 +18,23 @@ function cleanOptionalValue(value: string) {
   return trimmed || undefined;
 }
 
+function toDateTimeLocalValue(value: Date) {
+  const localValue = new Date(value.getTime() - value.getTimezoneOffset() * 60_000);
+
+  return localValue.toISOString().slice(0, 16);
+}
+
+function getDefaultParticipationDeadline(matchAt: string) {
+  const matchDate = new Date(matchAt);
+
+  if (Number.isNaN(matchDate.getTime())) {
+    return "";
+  }
+
+  matchDate.setHours(matchDate.getHours() - 24);
+  return toDateTimeLocalValue(matchDate);
+}
+
 export default function NewMatchPage() {
   const params = useParams<{ teamId: string }>();
   const router = useRouter();
@@ -27,6 +44,7 @@ export default function NewMatchPage() {
   const [matchType, setMatchType] = useState<MatchType>("EXTERNAL");
   const [opponentTeamName, setOpponentTeamName] = useState("");
   const [matchAt, setMatchAt] = useState("");
+  const [participationDeadlineAt, setParticipationDeadlineAt] = useState("");
   const [location, setLocation] = useState("");
   const [isLoading, setIsLoading] = useState(true);
   const [isSubmitting, setIsSubmitting] = useState(false);
@@ -81,6 +99,11 @@ export default function NewMatchPage() {
     }
   }
 
+  function handleMatchAtChange(value: string) {
+    setMatchAt(value);
+    setParticipationDeadlineAt(getDefaultParticipationDeadline(value));
+  }
+
   async function handleSubmit(event: FormEvent<HTMLFormElement>) {
     event.preventDefault();
     setErrorMessage("");
@@ -88,6 +111,14 @@ export default function NewMatchPage() {
 
     if (!teamDetail || !canCreateMatch) {
       setErrorMessage("매치를 생성할 권한이 없습니다.");
+      return;
+    }
+
+    if (
+      new Date(participationDeadlineAt).getTime() >
+      new Date(matchAt).getTime()
+    ) {
+      setErrorMessage("투표 마감일은 경기 일시보다 늦을 수 없습니다.");
       return;
     }
 
@@ -102,6 +133,7 @@ export default function NewMatchPage() {
             ? cleanOptionalValue(opponentTeamName)
             : undefined,
         matchAt,
+        participationDeadlineAt,
         location: cleanOptionalValue(location),
       });
 
@@ -273,10 +305,25 @@ export default function NewMatchPage() {
                   경기 일시
                   <input
                     value={matchAt}
-                    onChange={(event) => setMatchAt(event.target.value)}
+                    onChange={(event) => handleMatchAtChange(event.target.value)}
                     className="h-12 rounded-md border border-[#cbd5e1] bg-white px-4 text-base font-normal outline-none transition-colors focus:border-[#4f6f9f] focus:ring-4 focus:ring-[#e3eaf5]"
                     type="datetime-local"
                     step={600}
+                    required
+                  />
+                </label>
+
+                <label className="grid gap-2 text-sm font-semibold">
+                  투표 마감일
+                  <input
+                    value={participationDeadlineAt}
+                    onChange={(event) =>
+                      setParticipationDeadlineAt(event.target.value)
+                    }
+                    className="h-12 rounded-md border border-[#cbd5e1] bg-white px-4 text-base font-normal outline-none transition-colors focus:border-[#4f6f9f] focus:ring-4 focus:ring-[#e3eaf5]"
+                    type="datetime-local"
+                    step={600}
+                    max={matchAt || undefined}
                     required
                   />
                 </label>
@@ -311,6 +358,7 @@ export default function NewMatchPage() {
                 disabled={
                   isSubmitting ||
                   !matchAt ||
+                  !participationDeadlineAt ||
                   (matchType === "EXTERNAL" && !opponentTeamName.trim())
                 }
               >
