@@ -7,6 +7,7 @@ export type TeamAttendanceMemberStatistic = {
   eligibleMatchCount: number;
   attendanceRate: number;
   postVoteAbsenceCount: number;
+  lateCount: number;
   goalCount: number;
   assistCount: number;
   cleanSheetCount: number;

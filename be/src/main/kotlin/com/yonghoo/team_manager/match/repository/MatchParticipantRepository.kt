@@ -28,6 +28,7 @@ class MatchParticipantRepository {
                 teamSide = MatchTeamSide.HOME
                 voteStatus = MatchParticipantStatus.PENDING
                 actualParticipated = false
+                late = false
                 goalCount = 0
                 assistCount = 0
                 cleanSheetCount = 0
@@ -84,6 +85,7 @@ class MatchParticipantRepository {
             teamSide = MatchTeamSide.HOME
             this.voteStatus = voteStatus
             actualParticipated = false
+            late = false
             goalCount = 0
             assistCount = 0
             cleanSheetCount = 0
@@ -112,6 +114,7 @@ class MatchParticipantRepository {
                 teamSide = MatchTeamSide.HOME
                 voteStatus = MatchParticipantStatus.PENDING
                 actualParticipated = false
+                late = false
                 memo = null
                 respondedAt = null
                 createdAt = now
@@ -119,6 +122,7 @@ class MatchParticipantRepository {
             }
 
             participant.actualParticipated = statistic.actualParticipated
+            participant.late = statistic.late
             participant.goalCount = statistic.goalCount
             participant.assistCount = statistic.assistCount
             participant.cleanSheetCount = statistic.cleanSheetCount

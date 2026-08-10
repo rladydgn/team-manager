@@ -14,12 +14,16 @@ import { getTeam, Team, TeamMember } from "@/features/team/api/team";
 
 type PlayerStatistics = {
   actualParticipated: boolean;
+  late: boolean;
   goalCount: number;
   assistCount: number;
   cleanSheetCount: number;
 };
 
-type PlayerStatisticCountField = Exclude<keyof PlayerStatistics, "actualParticipated">;
+type PlayerStatisticCountField = Exclude<
+  keyof PlayerStatistics,
+  "actualParticipated" | "late"
+>;
 
 function isMatchManager(role: TeamMember["role"] | undefined) {
   return role === "OWNER" || role === "SUB_MANAGER";
@@ -142,6 +146,7 @@ export default function MatchRecordPage() {
             (participant?.cleanSheetCount ?? 0) > 0;
           statistics[member.id] = {
             actualParticipated: participant?.actualParticipated || hasRecordedStatistics,
+            late: participant?.late ?? false,
             goalCount: participant?.goalCount ?? 0,
             assistCount: participant?.assistCount ?? 0,
             cleanSheetCount: participant?.cleanSheetCount ?? 0,
@@ -187,6 +192,7 @@ export default function MatchRecordPage() {
       [teamMemberId]: {
         ...(current[teamMemberId] ?? {
           actualParticipated: false,
+          late: false,
           goalCount: 0,
           assistCount: 0,
           cleanSheetCount: 0,
@@ -197,16 +203,38 @@ export default function MatchRecordPage() {
   }
 
   function updatePlayerParticipation(teamMemberId: number, actualParticipated: boolean) {
+    setStatisticsByMemberId((current) => {
+      const statistic = current[teamMemberId] ?? {
+        actualParticipated: false,
+        late: false,
+        goalCount: 0,
+        assistCount: 0,
+        cleanSheetCount: 0,
+      };
+
+      return {
+        ...current,
+        [teamMemberId]: {
+          ...statistic,
+          actualParticipated,
+          late: actualParticipated ? statistic.late : false,
+        },
+      };
+    });
+  }
+
+  function updatePlayerLate(teamMemberId: number, late: boolean) {
     setStatisticsByMemberId((current) => ({
       ...current,
       [teamMemberId]: {
         ...(current[teamMemberId] ?? {
           actualParticipated: false,
+          late: false,
           goalCount: 0,
           assistCount: 0,
           cleanSheetCount: 0,
         }),
-        actualParticipated,
+        late,
       },
     }));
   }
@@ -219,11 +247,15 @@ export default function MatchRecordPage() {
           [member.id]: {
             ...(current[member.id] ?? {
               actualParticipated: false,
+              late: false,
               goalCount: 0,
               assistCount: 0,
               cleanSheetCount: 0,
             }),
             actualParticipated,
+            late: actualParticipated
+              ? (current[member.id]?.late ?? false)
+              : false,
           },
         }),
         current
@@ -252,6 +284,7 @@ export default function MatchRecordPage() {
           teamMemberId: member.id,
           ...(statisticsByMemberId[member.id] ?? {
             actualParticipated: false,
+            late: false,
             goalCount: 0,
             assistCount: 0,
             cleanSheetCount: 0,
@@ -356,10 +389,10 @@ export default function MatchRecordPage() {
 
               <div className="divide-y divide-[#e2e8f0]">
                 {matchTeamMembers.map((member) => {
-                  const statistic = statisticsByMemberId[member.id] ?? { actualParticipated: false, goalCount: 0, assistCount: 0, cleanSheetCount: 0 };
+                  const statistic = statisticsByMemberId[member.id] ?? { actualParticipated: false, late: false, goalCount: 0, assistCount: 0, cleanSheetCount: 0 };
 
                   return (
-                    <div key={member.id} className="grid gap-3 px-5 py-4 sm:grid-cols-[minmax(0,1fr)_5.5rem_6rem_6rem_7rem] sm:items-center sm:px-6">
+                    <div key={member.id} className="grid gap-3 px-5 py-4 sm:grid-cols-[minmax(0,1fr)_5.5rem_4.5rem_6rem_6rem_7rem] sm:items-center sm:px-6">
                       <div className="min-w-0">
                         <p className="truncate font-semibold text-[#1f2937]">{getPlayerName(member)}</p>
                         <p className="mt-1 text-xs text-[#64748b]">{member.role === "OWNER" ? "팀장" : member.role === "SUB_MANAGER" ? "부관리자" : member.role === "GUEST" ? "용병" : "팀원"}</p>
@@ -367,6 +400,10 @@ export default function MatchRecordPage() {
                       <label className="flex items-center gap-2 text-sm font-semibold text-[#52627b] sm:flex-col sm:gap-1 sm:text-center">
                         <input type="checkbox" checked={statistic.actualParticipated} onChange={(event) => updatePlayerParticipation(member.id, event.target.checked)} disabled={isSaving} className="size-4 accent-[#4f6f9f] disabled:cursor-not-allowed" />
                         <span>실제 참여</span>
+                      </label>
+                      <label className="flex items-center gap-2 text-sm font-semibold text-[#52627b] sm:flex-col sm:gap-1 sm:text-center">
+                        <input type="checkbox" checked={statistic.late} onChange={(event) => updatePlayerLate(member.id, event.target.checked)} disabled={isSaving || !statistic.actualParticipated} className="size-4 accent-[#b45309] disabled:cursor-not-allowed" />
+                        <span>지각</span>
                       </label>
                       <label className="grid grid-cols-[auto_1fr] items-center gap-2 text-sm font-semibold text-[#52627b] sm:grid-cols-1 sm:gap-1 sm:text-center">
                         <span>골</span>

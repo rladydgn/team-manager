@@ -7,6 +7,7 @@ data class MatchParticipantResponse(
     val teamMemberId: Long,
     val voteStatus: MatchParticipantStatus,
     val actualParticipated: Boolean,
+    val late: Boolean,
     val goalCount: Int,
     val assistCount: Int,
     val cleanSheetCount: Int,

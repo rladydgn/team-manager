@@ -263,6 +263,7 @@ export default function TeamStatisticsPage() {
                         <p className="font-bold text-[#3d5b86]">{formatRate(member.attendanceRate)}</p>
                         <p className="text-sm text-[#64748b]">출석 {member.attendanceCount}회 / 경기 {member.eligibleMatchCount}회</p>
                         <p className="text-sm text-[#b45309]">투표 후 불참 {member.postVoteAbsenceCount}회</p>
+                        <p className="text-sm text-[#b45309]">지각 {member.lateCount}회</p>
                         <div className="col-span-2 flex flex-wrap gap-2 text-xs font-semibold">
                           <span className="rounded-md border border-[#c8d4e6] bg-[#f0f4fa] px-2 py-1 text-[#3d5b86]">골 {member.goalCount}</span>
                           <span className="rounded-md border border-[#d8d4e9] bg-[#f6f5fb] px-2 py-1 text-[#695c91]">어시스트 {member.assistCount}</span>
@@ -279,6 +280,7 @@ export default function TeamStatisticsPage() {
                           <th scope="col" className="px-5 py-3 text-right">출석 횟수</th>
                           <th scope="col" className="px-6 py-3 text-right">출석률</th>
                           <th scope="col" className="px-5 py-3 text-right">투표 후 불참</th>
+                          <th scope="col" className="px-4 py-3 text-right">지각</th>
                           <th scope="col" className="px-4 py-3 text-right">골</th>
                           <th scope="col" className="px-4 py-3 text-right">어시스트</th>
                           <th scope="col" className="px-6 py-3 text-right">클린시트</th>
@@ -291,6 +293,7 @@ export default function TeamStatisticsPage() {
                             <td className="px-5 py-4 text-right text-[#64748b]">{member.attendanceCount}회 / {member.eligibleMatchCount}회</td>
                             <td className="px-6 py-4 text-right font-bold text-[#3d5b86]">{formatRate(member.attendanceRate)}</td>
                             <td className="px-5 py-4 text-right font-semibold text-[#b45309]">{member.postVoteAbsenceCount}회</td>
+                            <td className="px-4 py-4 text-right font-semibold text-[#b45309]">{member.lateCount}회</td>
                             <td className="px-4 py-4 text-right font-semibold text-[#3d5b86]">{member.goalCount}</td>
                             <td className="px-4 py-4 text-right font-semibold text-[#695c91]">{member.assistCount}</td>
                             <td className="px-6 py-4 text-right font-semibold text-[#36734a]">{member.cleanSheetCount}</td>

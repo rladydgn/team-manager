@@ -134,6 +134,7 @@ CREATE TABLE match_participants (
     team_side ENUM('HOME', 'AWAY') NOT NULL DEFAULT 'HOME',
     vote_status ENUM('INVITED', 'AVAILABLE', 'UNAVAILABLE', 'PENDING') NOT NULL DEFAULT 'PENDING',
     actual_participated TINYINT(1) NOT NULL DEFAULT 0,
+    late TINYINT(1) NOT NULL DEFAULT 0,
     goal_count INT UNSIGNED NOT NULL DEFAULT 0,
     assist_count INT UNSIGNED NOT NULL DEFAULT 0,
     clean_sheet_count TINYINT UNSIGNED NOT NULL DEFAULT 0,

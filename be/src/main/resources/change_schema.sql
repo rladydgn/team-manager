@@ -79,3 +79,7 @@ ALTER TABLE match_participants
     RENAME COLUMN participated TO actual_participated,
     RENAME INDEX idx_match_participants_status TO idx_match_participants_vote_status;
 
+-- Store whether an actual participant arrived late.
+ALTER TABLE match_participants
+    ADD COLUMN late TINYINT(1) NOT NULL DEFAULT 0 AFTER actual_participated;
+

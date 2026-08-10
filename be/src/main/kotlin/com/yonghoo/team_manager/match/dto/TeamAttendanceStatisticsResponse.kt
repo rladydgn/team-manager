@@ -20,6 +20,7 @@ data class TeamAttendanceMemberResponse(
     val eligibleMatchCount: Int,
     val attendanceRate: Double,
     val postVoteAbsenceCount: Int,
+    val lateCount: Int,
     val goalCount: Int,
     val assistCount: Int,
     val cleanSheetCount: Int,

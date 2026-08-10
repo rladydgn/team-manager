@@ -103,6 +103,7 @@ class MatchService(
                 teamMemberId = participant.teamMemberId,
                 voteStatus = participant.voteStatus,
                 actualParticipated = participant.actualParticipated,
+                late = participant.late,
                 goalCount = participant.goalCount,
                 assistCount = participant.assistCount,
                 cleanSheetCount = participant.cleanSheetCount,
@@ -161,6 +162,15 @@ class MatchService(
             }
             .groupingBy { it.teamMemberId }
             .eachCount()
+        val lateCountByMemberId = matchParticipants
+            .asSequence()
+            .filter {
+                it.matchId in completedMatchIds &&
+                    it.actualParticipated &&
+                    it.late
+            }
+            .groupingBy { it.teamMemberId }
+            .eachCount()
         val participantStatisticsByMemberId = matchParticipants.groupBy { it.teamMemberId }
         val members = teamRepository.selectMembersByTeamId(teamId)
         val memberStatistics = members
@@ -176,6 +186,7 @@ class MatchService(
                     eligibleMatchCount = eligibleMatchCount,
                     attendanceRate = calculateAttendanceRate(attendanceCount, eligibleMatchCount),
                     postVoteAbsenceCount = postVoteAbsenceCountByMemberId[member.id] ?: 0,
+                    lateCount = lateCountByMemberId[member.id] ?: 0,
                     goalCount = participantStatistics.sumOf { it.goalCount },
                     assistCount = participantStatistics.sumOf { it.assistCount },
                     cleanSheetCount = participantStatistics.sumOf { it.cleanSheetCount },
@@ -229,6 +240,7 @@ class MatchService(
             teamMemberId = participant.teamMemberId,
             voteStatus = participant.voteStatus,
             actualParticipated = participant.actualParticipated,
+            late = participant.late,
             goalCount = participant.goalCount,
             assistCount = participant.assistCount,
             cleanSheetCount = participant.cleanSheetCount,
@@ -361,6 +373,7 @@ class MatchService(
         }
 
         if (request.participants.any { participant ->
+                    (participant.late && !participant.actualParticipated) ||
                     participant.goalCount !in 0..MAX_PLAYER_STATISTIC_COUNT ||
                     participant.assistCount !in 0..MAX_PLAYER_STATISTIC_COUNT ||
                     participant.cleanSheetCount !in 0..MAX_PLAYER_STATISTIC_COUNT

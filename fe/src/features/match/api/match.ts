@@ -39,6 +39,7 @@ export type MatchParticipant = {
   teamMemberId: number;
   voteStatus: MatchParticipationStatus;
   actualParticipated: boolean;
+  late: boolean;
   goalCount: number;
   assistCount: number;
   cleanSheetCount: number;
@@ -49,6 +50,7 @@ export type MatchParticipant = {
 export type MatchParticipantStatisticsUpdateRequest = {
   teamMemberId: number;
   actualParticipated: boolean;
+  late: boolean;
   goalCount: number;
   assistCount: number;
   cleanSheetCount: number;
