@@ -337,16 +337,9 @@ export default function MatchRecordPage() {
 
       <div className="mx-auto flex w-full max-w-6xl flex-col gap-6 px-5 py-7 sm:px-6 sm:py-10 lg:px-8">
         {team ? (
-          <div className="flex flex-wrap items-center gap-x-5 gap-y-2">
-            <Link href={`/match/${matchId}`} className="inline-flex w-fit text-sm font-semibold text-[#3d5b86] transition-colors hover:text-[#283f62]">
-              매치 상세로 돌아가기
-            </Link>
-            {match?.status === "COMPLETED" ? (
-              <Link href={`/team/${team.id}/match/history?matchId=${matchId}`} className="inline-flex w-fit text-sm font-semibold text-[#3d5b86] transition-colors hover:text-[#283f62]">
-                참가 명단 수정
-              </Link>
-            ) : null}
-          </div>
+          <Link href={`/match/${matchId}`} className="inline-flex w-fit text-sm font-semibold text-[#3d5b86] transition-colors hover:text-[#283f62]">
+            매치 상세로 돌아가기
+          </Link>
         ) : null}
 
         {isLoading ? (
@@ -391,6 +384,11 @@ export default function MatchRecordPage() {
                   <p className="mt-1 text-sm text-[#64748b]">골 {teamScore} · 어시스트 {totalAssistCount}</p>
                 </div>
                 <div className="flex flex-wrap items-center gap-x-5 gap-y-2">
+                  {match.status === "COMPLETED" ? (
+                    <Link href={`/team/${team.id}/match/history?matchId=${matchId}`} className="inline-flex h-9 items-center justify-center rounded-md border border-[#b9c8dd] bg-white px-3 text-sm font-semibold text-[#3d5b86] transition-colors hover:border-[#8fa6c7] hover:bg-[#f0f4fa] focus:outline-none focus:ring-4 focus:ring-[#e3eaf5]">
+                      참가 명단 수정
+                    </Link>
+                  ) : null}
                   <label className="inline-flex items-center gap-2 text-sm font-semibold text-[#3d5b86]">
                     <input
                       type="checkbox"
