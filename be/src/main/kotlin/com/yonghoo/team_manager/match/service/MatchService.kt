@@ -5,6 +5,8 @@ import com.yonghoo.team_manager.match.domain.MatchParticipantRecord
 import com.yonghoo.team_manager.match.domain.MatchStatus
 import com.yonghoo.team_manager.match.domain.MatchType
 import com.yonghoo.team_manager.match.dto.MatchCreateRequest
+import com.yonghoo.team_manager.match.dto.HistoricalMatchCreateRequest
+import com.yonghoo.team_manager.match.dto.HistoricalMatchParticipantsUpdateRequest
 import com.yonghoo.team_manager.match.dto.MatchParticipantResponse
 import com.yonghoo.team_manager.match.dto.MatchParticipantStatisticsUpdateRequest
 import com.yonghoo.team_manager.match.dto.MatchParticipationUpdateRequest
@@ -55,6 +57,64 @@ class MatchService(
             teamMemberIds = teamRepository.selectMembersByTeamId(match.teamId).map { it.id },
         )
         val currentTeamMember = requireActiveTeamMember(match.teamId, createdByUserId)
+
+        return toMatchResponse(match, currentTeamMember.id, participants)
+    }
+
+    fun createHistoricalMatch(
+        createdByUserId: Long,
+        request: HistoricalMatchCreateRequest,
+    ): MatchResponse {
+        validateTeamExists(request.teamId)
+        validateMatchManager(request.teamId, createdByUserId)
+        if (request.matchAt.isAfter(LocalDateTime.now())) {
+            throw ApiException(MatchErrorCode.INVALID_MATCH_REQUEST)
+        }
+
+        val matchRequest = MatchCreateRequest(
+            teamId = request.teamId,
+            matchType = request.matchType,
+            opponentTeamName = request.opponentTeamName,
+            matchAt = request.matchAt,
+            participationDeadlineAt = request.matchAt,
+            location = request.location,
+        )
+        val opponentTeamName = validateMatchRequest(matchRequest)
+        validateHistoricalMatchParticipants(request)
+
+        val match = matchRepository.createMatch(
+            createdByUserId = createdByUserId,
+            request = matchRequest,
+            opponentTeamName = opponentTeamName,
+            participationDeadlineAt = request.matchAt,
+            initialStatus = MatchStatus.COMPLETED,
+        )
+        val participants = matchParticipantRepository.createHistoricalParticipants(
+            matchId = match.id,
+            participants = request.participants,
+        )
+        val currentTeamMember = requireActiveTeamMember(match.teamId, createdByUserId)
+
+        return toMatchResponse(match, currentTeamMember.id, participants)
+    }
+
+    fun updateHistoricalMatchParticipants(
+        matchId: Long,
+        userId: Long,
+        request: HistoricalMatchParticipantsUpdateRequest,
+    ): MatchResponse {
+        val match = getMatchAndValidateViewPermission(matchId, userId)
+        validateMatchRecordManager(match.teamId, userId)
+        if (match.matchAt.isAfter(LocalDateTime.now())) {
+            throw ApiException(MatchErrorCode.INVALID_MATCH_REQUEST)
+        }
+
+        validateHistoricalMatchParticipants(match.teamId, request.participants)
+        val participants = matchParticipantRepository.replaceHistoricalParticipants(
+            matchId = match.id,
+            participants = request.participants,
+        )
+        val currentTeamMember = requireActiveTeamMember(match.teamId, userId)
 
         return toMatchResponse(match, currentTeamMember.id, participants)
     }
@@ -361,16 +421,16 @@ class MatchService(
 
     private fun validateMatchRecordRequest(
         request: MatchRecordUpdateRequest,
-        activeTeamMemberIds: Set<Long>,
+        matchParticipantIds: Set<Long>,
     ) {
         if (request.opponentScore !in 0..MAX_MATCH_SCORE) {
             throw ApiException(MatchErrorCode.INVALID_MATCH_RECORD_REQUEST)
         }
 
         val recordMemberIds = request.participants.map(MatchParticipantStatisticsUpdateRequest::teamMemberId)
-        if (recordMemberIds.size != activeTeamMemberIds.size ||
+        if (recordMemberIds.isEmpty() ||
             recordMemberIds.toSet().size != recordMemberIds.size ||
-            recordMemberIds.toSet() != activeTeamMemberIds
+            recordMemberIds.toSet() != matchParticipantIds
         ) {
             throw ApiException(MatchErrorCode.INVALID_MATCH_RECORD_REQUEST)
         }
@@ -448,6 +508,33 @@ class MatchService(
         }
 
         return opponentTeamName
+    }
+
+    private fun validateHistoricalMatchParticipants(request: HistoricalMatchCreateRequest) {
+        validateHistoricalMatchParticipants(request.teamId, request.participants)
+    }
+
+    private fun validateHistoricalMatchParticipants(
+        teamId: Long,
+        participants: List<com.yonghoo.team_manager.match.dto.HistoricalMatchParticipantCreateRequest>,
+    ) {
+        val participantIds = participants.map { it.teamMemberId }
+        val activeMemberIds = teamRepository.selectMembersByTeamId(teamId)
+            .map { it.id }
+            .toSet()
+
+        if (participantIds.isEmpty() ||
+            participantIds.toSet().size != participantIds.size ||
+            !activeMemberIds.containsAll(participantIds) ||
+            participants.any {
+                it.voteStatus !in setOf(
+                    MatchParticipantStatus.AVAILABLE,
+                    MatchParticipantStatus.UNAVAILABLE,
+                )
+            }
+        ) {
+            throw ApiException(MatchErrorCode.INVALID_MATCH_REQUEST)
+        }
     }
 
     private fun resolveParticipationDeadlineAt(request: MatchCreateRequest): LocalDateTime {

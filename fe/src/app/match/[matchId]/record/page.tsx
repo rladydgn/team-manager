@@ -1,7 +1,7 @@
 "use client";
 
 import Link from "next/link";
-import { useParams } from "next/navigation";
+import { useParams, useRouter } from "next/navigation";
 import { useCallback, useEffect, useMemo, useState } from "react";
 import { useAuthSession } from "@/features/auth/model/auth-session";
 import {
@@ -39,11 +39,13 @@ function normalizeCount(value: number) {
 
 export default function MatchRecordPage() {
   const params = useParams<{ matchId: string }>();
+  const router = useRouter();
   const matchId = Number(params.matchId);
   const { currentUser, isSessionReady } = useAuthSession();
   const [match, setMatch] = useState<Match | null>(null);
   const [team, setTeam] = useState<Team | null>(null);
   const [teamMembers, setTeamMembers] = useState<TeamMember[]>([]);
+  const [recordMembers, setRecordMembers] = useState<TeamMember[]>([]);
   const [statisticsByMemberId, setStatisticsByMemberId] = useState<
     Record<number, PlayerStatistics>
   >({});
@@ -57,12 +59,9 @@ export default function MatchRecordPage() {
   const canManageRecords = isMatchManager(
     teamMembers.find((member) => member.userId === currentUser?.id)?.role
   );
-  const matchTeamMembers = teamMembers.filter((member) =>
-    Object.prototype.hasOwnProperty.call(statisticsByMemberId, member.id)
-  );
   const areAllMatchMembersParticipating =
-    matchTeamMembers.length > 0 &&
-    matchTeamMembers.every(
+    recordMembers.length > 0 &&
+    recordMembers.every(
       (member) => statisticsByMemberId[member.id]?.actualParticipated
     );
   const teamScore = useMemo(
@@ -124,6 +123,7 @@ export default function MatchRecordPage() {
         setMatch(matchResponse.data);
         setTeam(detail?.team ?? null);
         setTeamMembers(members);
+        setRecordMembers([]);
         setErrorMessage("경기 기록은 팀장 또는 부관리자만 관리할 수 있습니다.");
         return;
       }
@@ -134,10 +134,10 @@ export default function MatchRecordPage() {
           participant,
         ])
       );
-      const matchMembers = members.filter((member) =>
+      const nextRecordMembers = members.filter((member) =>
         participantsByMemberId.has(member.id)
       );
-      const nextStatistics = matchMembers.reduce<Record<number, PlayerStatistics>>(
+      const nextStatistics = nextRecordMembers.reduce<Record<number, PlayerStatistics>>(
         (statistics, member) => {
           const participant = participantsByMemberId.get(member.id);
           const hasRecordedStatistics =
@@ -159,6 +159,7 @@ export default function MatchRecordPage() {
       setMatch(matchResponse.data);
       setTeam(detail.team);
       setTeamMembers(members);
+      setRecordMembers(nextRecordMembers);
       setStatisticsByMemberId(nextStatistics);
       setOpponentScore(matchResponse.data.opponentScore ?? 0);
     } catch (error) {
@@ -241,7 +242,7 @@ export default function MatchRecordPage() {
 
   function updateAllPlayerParticipation(actualParticipated: boolean) {
     setStatisticsByMemberId((current) =>
-      matchTeamMembers.reduce<Record<number, PlayerStatistics>>(
+      recordMembers.reduce<Record<number, PlayerStatistics>>(
         (next, member) => ({
           ...next,
           [member.id]: {
@@ -289,16 +290,18 @@ export default function MatchRecordPage() {
     try {
       const response = await updateMatchRecord(match.id, {
         opponentScore: normalizeCount(opponentScore),
-        participants: matchTeamMembers.map((member) => ({
-          teamMemberId: member.id,
-          ...(statisticsByMemberId[member.id] ?? {
-            actualParticipated: false,
-            late: false,
-            goalCount: 0,
-            assistCount: 0,
-            cleanSheetCount: 0,
-          }),
-        })),
+        participants: recordMembers.map((member) => {
+          const statistic = statisticsByMemberId[member.id];
+
+          return {
+            teamMemberId: member.id,
+            actualParticipated: statistic?.actualParticipated ?? false,
+            late: statistic?.late ?? false,
+            goalCount: statistic?.goalCount ?? 0,
+            assistCount: statistic?.assistCount ?? 0,
+            cleanSheetCount: statistic?.cleanSheetCount ?? 0,
+          };
+        }),
       });
 
       if (!response.data) {
@@ -306,7 +309,7 @@ export default function MatchRecordPage() {
       }
 
       setMatch(response.data);
-      setNoticeMessage("경기 기록을 저장했습니다.");
+      router.replace(`/match/${response.data.id}`);
     } catch (error) {
       setFormErrorMessage(
         error instanceof Error ? error.message : "경기 기록을 저장하지 못했습니다."
@@ -334,9 +337,16 @@ export default function MatchRecordPage() {
 
       <div className="mx-auto flex w-full max-w-6xl flex-col gap-6 px-5 py-7 sm:px-6 sm:py-10 lg:px-8">
         {team ? (
-          <Link href={`/match/${matchId}`} className="inline-flex w-fit text-sm font-semibold text-[#3d5b86] transition-colors hover:text-[#283f62]">
-            매치 상세로 돌아가기
-          </Link>
+          <div className="flex flex-wrap items-center gap-x-5 gap-y-2">
+            <Link href={`/match/${matchId}`} className="inline-flex w-fit text-sm font-semibold text-[#3d5b86] transition-colors hover:text-[#283f62]">
+              매치 상세로 돌아가기
+            </Link>
+            {match?.status === "COMPLETED" ? (
+              <Link href={`/team/${team.id}/match/history?matchId=${matchId}`} className="inline-flex w-fit text-sm font-semibold text-[#3d5b86] transition-colors hover:text-[#283f62]">
+                참가 명단 수정
+              </Link>
+            ) : null}
+          </div>
         ) : null}
 
         {isLoading ? (
@@ -386,7 +396,7 @@ export default function MatchRecordPage() {
                       type="checkbox"
                       checked={areAllMatchMembersParticipating}
                       onChange={(event) => updateAllPlayerParticipation(event.target.checked)}
-                      disabled={isSaving || matchTeamMembers.length === 0}
+                      disabled={isSaving || recordMembers.length === 0}
                       aria-label="전체 실제 참여 선택"
                       className="size-4 accent-[#4f6f9f] disabled:cursor-not-allowed"
                     />
@@ -397,11 +407,11 @@ export default function MatchRecordPage() {
               </div>
 
               <div className="divide-y divide-[#e2e8f0]">
-                {matchTeamMembers.map((member) => {
+                {recordMembers.map((member) => {
                   const statistic = statisticsByMemberId[member.id] ?? { actualParticipated: false, late: false, goalCount: 0, assistCount: 0, cleanSheetCount: 0 };
 
                   return (
-                    <div key={member.id} className="grid gap-3 px-5 py-4 sm:grid-cols-[minmax(0,1fr)_5.5rem_4.5rem_6rem_6rem_7rem] sm:items-center sm:px-6">
+                    <div key={member.id} className="grid gap-3 px-5 py-4 lg:grid-cols-[minmax(0,1fr)_5.5rem_4.5rem_5rem_5rem_6rem] lg:items-center sm:px-6">
                       <div className="min-w-0">
                         <p className="truncate font-semibold text-[#1f2937]">{getPlayerName(member)}</p>
                         <p className="mt-1 text-xs text-[#64748b]">{member.role === "OWNER" ? "팀장" : member.role === "SUB_MANAGER" ? "부관리자" : member.role === "GUEST" ? "용병" : "팀원"}</p>

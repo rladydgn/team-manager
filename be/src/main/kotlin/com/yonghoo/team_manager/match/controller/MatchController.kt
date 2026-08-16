@@ -3,6 +3,8 @@ package com.yonghoo.team_manager.match.controller
 import com.yonghoo.team_manager.common.dto.CommonResponse
 import com.yonghoo.team_manager.exception.exception.ApiException
 import com.yonghoo.team_manager.match.dto.MatchCreateRequest
+import com.yonghoo.team_manager.match.dto.HistoricalMatchCreateRequest
+import com.yonghoo.team_manager.match.dto.HistoricalMatchParticipantsUpdateRequest
 import com.yonghoo.team_manager.match.dto.MatchParticipantResponse
 import com.yonghoo.team_manager.match.dto.MatchParticipationUpdateRequest
 import com.yonghoo.team_manager.match.dto.MatchRecordUpdateRequest
@@ -36,6 +38,35 @@ class MatchController(
         return ResponseEntity
             .status(HttpStatus.CREATED)
             .body(CommonResponse(data = matchService.createMatch(requireAuthenticatedUserId(userId), request)))
+    }
+
+    @Operation(summary = "이전 매치 등록")
+    @PostMapping("/historical")
+    fun createHistoricalMatch(
+        @RequestAttribute(name = AUTHENTICATED_USER_ID_ATTRIBUTE, required = false) userId: Long?,
+        @RequestBody request: HistoricalMatchCreateRequest,
+    ): ResponseEntity<CommonResponse<MatchResponse>> {
+        return ResponseEntity
+            .status(HttpStatus.CREATED)
+            .body(CommonResponse(data = matchService.createHistoricalMatch(requireAuthenticatedUserId(userId), request)))
+    }
+
+    @Operation(summary = "이전 매치 참가 명단 수정")
+    @PutMapping("/{matchId}/historical-participants")
+    fun updateHistoricalMatchParticipants(
+        @PathVariable matchId: Long,
+        @RequestAttribute(name = AUTHENTICATED_USER_ID_ATTRIBUTE, required = false) userId: Long?,
+        @RequestBody request: HistoricalMatchParticipantsUpdateRequest,
+    ): ResponseEntity<CommonResponse<MatchResponse>> {
+        return ResponseEntity.ok(
+            CommonResponse(
+                data = matchService.updateHistoricalMatchParticipants(
+                    matchId = matchId,
+                    userId = requireAuthenticatedUserId(userId),
+                    request = request,
+                ),
+            ),
+        )
     }
 
     @Operation(summary = "매치 단건 조회")

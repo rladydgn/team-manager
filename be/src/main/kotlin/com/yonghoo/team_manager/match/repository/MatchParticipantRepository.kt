@@ -5,6 +5,7 @@ import com.yonghoo.team_manager.match.domain.MatchParticipantRecord
 import com.yonghoo.team_manager.match.domain.MatchParticipantStatus
 import com.yonghoo.team_manager.match.domain.MatchParticipantsTable
 import com.yonghoo.team_manager.match.domain.MatchTeamSide
+import com.yonghoo.team_manager.match.dto.HistoricalMatchParticipantCreateRequest
 import com.yonghoo.team_manager.match.dto.MatchParticipantStatisticsUpdateRequest
 import org.jetbrains.exposed.v1.core.and
 import org.jetbrains.exposed.v1.core.eq
@@ -37,6 +38,83 @@ class MatchParticipantRepository {
                 createdAt = now
                 updatedAt = now
             }
+
+            MatchParticipantRecord.from(participant)
+        }
+    }
+
+    fun createHistoricalParticipants(
+        matchId: Long,
+        participants: List<HistoricalMatchParticipantCreateRequest>,
+    ): List<MatchParticipantRecord> {
+        val now = LocalDateTime.now()
+
+        return participants.map { participantRequest ->
+            val participant = MatchParticipantEntity.new {
+                this.matchId = matchId
+                teamMemberId = participantRequest.teamMemberId
+                teamSide = MatchTeamSide.HOME
+                voteStatus = participantRequest.voteStatus
+                actualParticipated = participantRequest.voteStatus == MatchParticipantStatus.AVAILABLE
+                late = false
+                goalCount = 0
+                assistCount = 0
+                cleanSheetCount = 0
+                memo = null
+                respondedAt = now
+                createdAt = now
+                updatedAt = now
+            }
+
+            MatchParticipantRecord.from(participant)
+        }
+    }
+
+    fun replaceHistoricalParticipants(
+        matchId: Long,
+        participants: List<HistoricalMatchParticipantCreateRequest>,
+    ): List<MatchParticipantRecord> {
+        val existingParticipants = MatchParticipantEntity.find {
+            MatchParticipantsTable.matchId eq matchId
+        }.toList()
+        val activeByMemberId = existingParticipants
+            .filter { it.deletedAt == null }
+            .associateBy { it.teamMemberId }
+        val deletedByMemberId = existingParticipants
+            .filter { it.deletedAt != null }
+            .associateBy { it.teamMemberId }
+        val now = LocalDateTime.now()
+        val selectedMemberIds = participants.map { it.teamMemberId }.toSet()
+
+        activeByMemberId
+            .filterKeys { it !in selectedMemberIds }
+            .values
+            .forEach { participant ->
+                participant.deletedAt = now
+                participant.updatedAt = now
+            }
+
+        return participants.map { participantRequest ->
+            val participant = activeByMemberId[participantRequest.teamMemberId]
+                ?: deletedByMemberId[participantRequest.teamMemberId]?.also { it.deletedAt = null }
+                ?: MatchParticipantEntity.new {
+                    this.matchId = matchId
+                    teamMemberId = participantRequest.teamMemberId
+                    teamSide = MatchTeamSide.HOME
+                    voteStatus = participantRequest.voteStatus
+                    actualParticipated = participantRequest.voteStatus == MatchParticipantStatus.AVAILABLE
+                    late = false
+                    goalCount = 0
+                    assistCount = 0
+                    cleanSheetCount = 0
+                    memo = null
+                    respondedAt = now
+                    createdAt = now
+                    updatedAt = now
+                }
+
+            participant.voteStatus = participantRequest.voteStatus
+            participant.updatedAt = now
 
             MatchParticipantRecord.from(participant)
         }
@@ -104,22 +182,12 @@ class MatchParticipantRepository {
     ): List<MatchParticipantRecord> {
         val existingByMemberId = MatchParticipantEntity.find {
             (MatchParticipantsTable.matchId eq matchId) and MatchParticipantsTable.deletedAt.isNull()
-        }.associateBy { it.teamMemberId }
+        }
+            .associateBy { it.teamMemberId }
         val now = LocalDateTime.now()
 
         return statistics.map { statistic ->
-            val participant = existingByMemberId[statistic.teamMemberId] ?: MatchParticipantEntity.new {
-                this.matchId = matchId
-                teamMemberId = statistic.teamMemberId
-                teamSide = MatchTeamSide.HOME
-                voteStatus = MatchParticipantStatus.PENDING
-                actualParticipated = false
-                late = false
-                memo = null
-                respondedAt = null
-                createdAt = now
-                updatedAt = now
-            }
+            val participant = requireNotNull(existingByMemberId[statistic.teamMemberId])
 
             participant.actualParticipated = statistic.actualParticipated
             participant.late = statistic.late

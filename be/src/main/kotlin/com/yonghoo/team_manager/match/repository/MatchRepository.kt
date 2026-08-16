@@ -18,6 +18,7 @@ class MatchRepository {
         request: MatchCreateRequest,
         opponentTeamName: String?,
         participationDeadlineAt: LocalDateTime,
+        initialStatus: MatchStatus = MatchStatus.SCHEDULED,
     ): MatchRecord {
         val now = LocalDateTime.now()
         val match = MatchEntity.new {
@@ -31,7 +32,7 @@ class MatchRepository {
             location = request.location?.trim()?.takeIf(String::isNotBlank)
             teamScore = null
             opponentScore = null
-            status = MatchStatus.SCHEDULED
+            status = initialStatus
             createdAt = now
             updatedAt = now
         }

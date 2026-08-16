@@ -16,6 +16,27 @@ export type MatchCreateRequest = {
   location?: string;
 };
 
+export type HistoricalMatchParticipantCreateRequest = {
+  teamMemberId: number;
+  voteStatus: Extract<
+    MatchParticipationStatus,
+    "AVAILABLE" | "UNAVAILABLE"
+  >;
+};
+
+export type HistoricalMatchCreateRequest = {
+  teamId: number;
+  matchType: MatchType;
+  opponentTeamName?: string;
+  matchAt: string;
+  location?: string;
+  participants: HistoricalMatchParticipantCreateRequest[];
+};
+
+export type HistoricalMatchParticipantsUpdateRequest = {
+  participants: HistoricalMatchParticipantCreateRequest[];
+};
+
 export type Match = {
   id: number;
   teamId: number;
@@ -63,6 +84,23 @@ export type MatchRecordUpdateRequest = {
 
 export function createMatch(request: MatchCreateRequest) {
   return postJson<Match, MatchCreateRequest>("/matches", request);
+}
+
+export function createHistoricalMatch(request: HistoricalMatchCreateRequest) {
+  return postJson<Match, HistoricalMatchCreateRequest>(
+    "/matches/historical",
+    request
+  );
+}
+
+export function updateHistoricalMatchParticipants(
+  matchId: number,
+  request: HistoricalMatchParticipantsUpdateRequest
+) {
+  return putJson<Match, HistoricalMatchParticipantsUpdateRequest>(
+    `/matches/${matchId}/historical-participants`,
+    request
+  );
 }
 
 export function getMatch(matchId: number) {
