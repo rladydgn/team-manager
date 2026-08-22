@@ -1,6 +1,7 @@
 "use client";
 
 import Link from "next/link";
+import Image from "next/image";
 import { usePathname, useRouter } from "next/navigation";
 import { useState } from "react";
 import { useAuthSession } from "@/features/auth/model/auth-session";
@@ -26,9 +27,14 @@ export function AppHeader() {
     <header className="app-header sticky top-0 z-30 border-b border-[#dbe4f0] bg-white/95 backdrop-blur">
       <div className="mx-auto grid h-16 w-full max-w-6xl grid-cols-[1fr_auto_1fr] items-center gap-3 px-5 sm:px-6 lg:px-8">
         <Link href="/" className="flex min-w-0 items-center gap-3">
-          <span className="grid size-9 shrink-0 place-items-center rounded-md bg-[#4f6f9f] text-sm font-bold text-white">
-            TM
-          </span>
+          <Image
+            src="/team-manager-logo.png"
+            alt=""
+            width={36}
+            height={36}
+            priority
+            className="size-9 shrink-0"
+          />
           <span className="hidden truncate text-base font-semibold sm:block">Team Manager</span>
         </Link>
 

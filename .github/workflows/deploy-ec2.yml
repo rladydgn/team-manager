@@ -82,7 +82,7 @@ jobs:
               kill "$(cat frontend.pid)"
             fi
 
-            nohup java -jar backend/team-manager.jar \
+            nohup java -Xms128m -Xmx256m -jar backend/team-manager.jar \
               --spring.profiles.active=real \
               --spring.config.additional-location="file:${APP_DIR}/backend/application-real.yml" \
               > logs/backend-access.log 2> logs/backend-error.log &
