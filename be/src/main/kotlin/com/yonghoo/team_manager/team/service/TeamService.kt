@@ -214,6 +214,31 @@ class TeamService(
         return TeamMemberResponse.from(teamRepository.updateTeamMemberRole(targetMember.id, request.role))
     }
 
+    fun removeTeamMember(
+        teamId: Long,
+        teamMemberId: Long,
+        userId: Long,
+    ) {
+        validateTeamExists(teamId)
+        val currentMember = teamRepository.selectActiveTeamMemberByTeamAndUser(teamId, userId)
+            ?: throw ApiException(TeamErrorCode.TEAM_MEMBER_REMOVAL_FORBIDDEN)
+        val targetMember = teamRepository.selectTeamMemberById(teamId, teamMemberId)
+            ?.takeIf { it.status == TeamMemberStatus.ACTIVE }
+            ?: throw ApiException(TeamErrorCode.TEAM_MEMBER_NOT_FOUND)
+
+        val canRemove = when (currentMember.role) {
+            TeamMemberRole.OWNER -> targetMember.id != currentMember.id && targetMember.role != TeamMemberRole.OWNER
+            TeamMemberRole.SUB_MANAGER -> targetMember.role in setOf(TeamMemberRole.MEMBER, TeamMemberRole.GUEST)
+            else -> false
+        }
+        if (!canRemove) {
+            throw ApiException(TeamErrorCode.TEAM_MEMBER_REMOVAL_FORBIDDEN)
+        }
+
+        teamRepository.updateTeamMemberStatus(targetMember.id, TeamMemberStatus.LEFT)
+        removeParticipantFromUpcomingMatches(teamId, targetMember.id)
+    }
+
     @Transactional(readOnly = true)
     fun getJoinRequests(
         teamId: Long,
@@ -372,6 +397,20 @@ class TeamService(
 
         openMatchIds.forEach { matchId ->
             matchParticipantRepository.createDefaultParticipants(matchId, listOf(teamMemberId))
+        }
+    }
+
+    private fun removeParticipantFromUpcomingMatches(
+        teamId: Long,
+        teamMemberId: Long,
+    ) {
+        val now = LocalDateTime.now()
+        val openMatchIds = matchRepository.selectMatchesByTeamId(teamId)
+            .filter { it.status == MatchStatus.SCHEDULED && it.matchAt.isAfter(now) }
+            .map { it.id }
+
+        openMatchIds.forEach { matchId ->
+            matchParticipantRepository.removeParticipant(matchId, teamMemberId)
         }
     }
 

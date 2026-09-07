@@ -176,6 +176,21 @@ class MatchParticipantRepository {
         return MatchParticipantRecord.from(participant)
     }
 
+    fun removeParticipant(
+        matchId: Long,
+        teamMemberId: Long,
+    ) {
+        val participant = MatchParticipantEntity.find {
+            (MatchParticipantsTable.matchId eq matchId) and
+                (MatchParticipantsTable.teamMemberId eq teamMemberId) and
+                MatchParticipantsTable.deletedAt.isNull()
+        }.firstOrNull() ?: return
+        val now = LocalDateTime.now()
+
+        participant.deletedAt = now
+        participant.updatedAt = now
+    }
+
     fun upsertMatchStatistics(
         matchId: Long,
         statistics: List<MatchParticipantStatisticsUpdateRequest>,

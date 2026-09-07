@@ -192,6 +192,17 @@ class TeamController(
         CommonResponse(data = teamService.updateTeamMemberRole(teamId, teamMemberId, requireAuthenticatedUserId(userId), request)),
     )
 
+    @Operation(summary = "팀원 내보내기")
+    @DeleteMapping("/{teamId}/members/{teamMemberId}")
+    fun removeTeamMember(
+        @PathVariable teamId: Long,
+        @PathVariable teamMemberId: Long,
+        @RequestAttribute(name = AUTHENTICATED_USER_ID_ATTRIBUTE, required = false) userId: Long?,
+    ): ResponseEntity<CommonResponse<Nothing>> {
+        teamService.removeTeamMember(teamId, teamMemberId, requireAuthenticatedUserId(userId))
+        return ResponseEntity.ok(CommonResponse<Nothing>())
+    }
+
     @Operation(summary = "팀원 목록 조회")
     @GetMapping("/{teamId}/members")
     fun getTeamMembers(

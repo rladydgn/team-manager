@@ -9,6 +9,7 @@ import {
   getTeamMembers,
   addTeamMember,
   deleteTeamMemberMemo,
+  removeTeamMember,
   TeamDetail,
   TeamMember,
   updateTeamMemberMemo,
@@ -53,6 +54,7 @@ export default function TeamMembersPage() {
   const [memberRole, setMemberRole] = useState<"MEMBER" | "GUEST">("GUEST");
   const [isAddingMember, setIsAddingMember] = useState(false);
   const [changingRoleMemberId, setChangingRoleMemberId] = useState<number | null>(null);
+  const [removingMemberId, setRemovingMemberId] = useState<number | null>(null);
 
   const loadTeam = useCallback(async () => {
     if (!Number.isInteger(teamId) || teamId <= 0) {
@@ -110,6 +112,9 @@ export default function TeamMembersPage() {
   const canManageRoles = teamDetail?.members.some(
     (member) => member.userId === currentUser?.id && member.role === "OWNER"
   ) ?? false;
+  const currentMember = teamDetail?.members.find(
+    (member) => member.userId === currentUser?.id
+  );
   const isTeamMember = teamDetail?.members.some(
     (member) => member.userId === currentUser?.id
   ) ?? false;
@@ -169,6 +174,45 @@ export default function TeamMembersPage() {
       setErrorMessage(error instanceof Error ? error.message : "팀원 역할을 변경하지 못했습니다.");
     } finally {
       setChangingRoleMemberId(null);
+    }
+  }
+
+  function canRemoveMember(member: TeamMember) {
+    if (!currentMember || member.role === "OWNER") {
+      return false;
+    }
+
+    if (currentMember.role === "OWNER") {
+      return member.id !== currentMember.id;
+    }
+
+    return (
+      currentMember.role === "SUB_MANAGER" &&
+      (member.role === "MEMBER" || member.role === "GUEST")
+    );
+  }
+
+  async function handleRemoveMember(member: TeamMember) {
+    if (!canRemoveMember(member)) return;
+
+    const memberName = member.name ?? "선택한 팀원";
+    if (
+      !window.confirm(
+        `${memberName}님을 팀에서 내보낼까요?\n과거 경기 기록과 회비 기록은 유지됩니다.`
+      )
+    ) {
+      return;
+    }
+
+    setRemovingMemberId(member.id);
+    setErrorMessage("");
+    try {
+      await removeTeamMember(teamId, member.id);
+      await loadTeam();
+    } catch (error) {
+      setErrorMessage(error instanceof Error ? error.message : "팀원을 내보내지 못했습니다.");
+    } finally {
+      setRemovingMemberId(null);
     }
   }
 
@@ -279,7 +323,7 @@ export default function TeamMembersPage() {
                 </div>
               ) : (
                 <div className="overflow-x-auto">
-                  <table className="w-full min-w-[46rem] text-left text-sm">
+                  <table className="w-full min-w-[50rem] text-left text-sm">
                     <thead className="bg-[#f8fafc] text-xs font-semibold text-[#64748b]">
                       <tr>
                         <th scope="col" className="px-5 py-3 sm:px-6">이름</th>
@@ -332,9 +376,16 @@ export default function TeamMembersPage() {
                           </td>
                           {canManageFees ? (
                             <td className="px-5 py-4 text-right">
-                              <button type="button" onClick={() => void handleMemo(member)} className="rounded-md border border-[#c8d4e6] bg-[#f0f4fa] px-2.5 py-1 text-xs font-semibold text-[#3d5b86] hover:bg-[#e3ecf7]">
-                                메모 관리
-                              </button>
+                              <div className="flex justify-end gap-2">
+                                <button type="button" onClick={() => void handleMemo(member)} disabled={removingMemberId === member.id} className="rounded-md border border-[#c8d4e6] bg-[#f0f4fa] px-2.5 py-1 text-xs font-semibold text-[#3d5b86] hover:bg-[#e3ecf7] disabled:cursor-not-allowed disabled:opacity-60">
+                                  메모 관리
+                                </button>
+                                {canRemoveMember(member) ? (
+                                  <button type="button" onClick={() => void handleRemoveMember(member)} disabled={removingMemberId === member.id} className="rounded-md border border-[#fecaca] bg-white px-2.5 py-1 text-xs font-semibold text-[#b91c1c] transition-colors hover:bg-[#fef2f2] disabled:cursor-not-allowed disabled:opacity-60">
+                                    {removingMemberId === member.id ? "내보내는 중" : "내보내기"}
+                                  </button>
+                                ) : null}
+                              </div>
                             </td>
                           ) : null}
                         </tr>

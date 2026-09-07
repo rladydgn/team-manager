@@ -111,6 +111,10 @@ export function updateTeamMemberRole(
   );
 }
 
+export function removeTeamMember(teamId: number, teamMemberId: number) {
+  return deleteJson<null>(`/teams/${teamId}/members/${teamMemberId}`);
+}
+
 export function getTeamJoinRequests(teamId: number) {
   return getJson<TeamMember[]>(`/teams/${teamId}/join-requests`);
 }
