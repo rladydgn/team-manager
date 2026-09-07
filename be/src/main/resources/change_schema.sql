@@ -83,3 +83,8 @@ ALTER TABLE match_participants
 ALTER TABLE match_participants
     ADD COLUMN late TINYINT(1) NOT NULL DEFAULT 0 AFTER actual_participated;
 
+-- Store goals and assists that cannot be assigned to a selected team member.
+ALTER TABLE matches
+    ADD COLUMN unknown_goal_count INT UNSIGNED NOT NULL DEFAULT 0 AFTER team_score,
+    ADD COLUMN unknown_assist_count INT UNSIGNED NOT NULL DEFAULT 0 AFTER opponent_score;
+

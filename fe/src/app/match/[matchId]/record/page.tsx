@@ -50,6 +50,8 @@ export default function MatchRecordPage() {
     Record<number, PlayerStatistics>
   >({});
   const [opponentScore, setOpponentScore] = useState(0);
+  const [unknownGoalCount, setUnknownGoalCount] = useState(0);
+  const [unknownAssistCount, setUnknownAssistCount] = useState(0);
   const [isLoading, setIsLoading] = useState(true);
   const [isSaving, setIsSaving] = useState(false);
   const [errorMessage, setErrorMessage] = useState("");
@@ -68,17 +70,17 @@ export default function MatchRecordPage() {
     () =>
       Object.values(statisticsByMemberId).reduce(
         (total, statistic) => total + statistic.goalCount,
-        0
+        unknownGoalCount
       ),
-    [statisticsByMemberId]
+    [statisticsByMemberId, unknownGoalCount]
   );
   const totalAssistCount = useMemo(
     () =>
       Object.values(statisticsByMemberId).reduce(
         (total, statistic) => total + statistic.assistCount,
-        0
+        unknownAssistCount
       ),
-    [statisticsByMemberId]
+    [statisticsByMemberId, unknownAssistCount]
   );
   const opponentLabel =
     match?.matchType === "INTERNAL"
@@ -162,6 +164,8 @@ export default function MatchRecordPage() {
       setRecordMembers(nextRecordMembers);
       setStatisticsByMemberId(nextStatistics);
       setOpponentScore(matchResponse.data.opponentScore ?? 0);
+      setUnknownGoalCount(matchResponse.data.unknownGoalCount ?? 0);
+      setUnknownAssistCount(matchResponse.data.unknownAssistCount ?? 0);
     } catch (error) {
       setErrorMessage(
         error instanceof Error ? error.message : "경기 기록을 불러오지 못했습니다."
@@ -290,6 +294,8 @@ export default function MatchRecordPage() {
     try {
       const response = await updateMatchRecord(match.id, {
         opponentScore: normalizeCount(opponentScore),
+        unknownGoalCount: normalizeCount(unknownGoalCount),
+        unknownAssistCount: normalizeCount(unknownAssistCount),
         participants: recordMembers.map((member) => {
           const statistic = statisticsByMemberId[member.id];
 
@@ -363,7 +369,7 @@ export default function MatchRecordPage() {
                 <div className="min-w-0">
                   <p className="truncate text-sm font-semibold text-[#52627b]">{team.name}</p>
                   <p className="mt-2 text-4xl font-bold text-[#0f172a]">{teamScore}</p>
-                  <p className="mt-1 text-xs text-[#64748b]">선수 골 합계</p>
+                  <p className="mt-1 text-xs text-[#64748b]">팀 골 합계</p>
                 </div>
                 <span className="text-sm font-bold text-[#94a3b8]">:</span>
                 <div className="min-w-0">
@@ -437,6 +443,22 @@ export default function MatchRecordPage() {
                     </div>
                   );
                 })}
+                <div className="grid gap-3 bg-[#fbfcfe] px-5 py-4 lg:grid-cols-[minmax(0,1fr)_5.5rem_4.5rem_5rem_5rem_6rem] lg:items-center sm:px-6">
+                  <div className="min-w-0">
+                    <p className="font-semibold text-[#1f2937]">알 수 없음</p>
+                    <p className="mt-1 text-xs text-[#64748b]">명단 외 용병 또는 선수를 특정할 수 없는 기록</p>
+                  </div>
+                  <p className="text-sm text-[#64748b] lg:col-span-2 lg:text-center">개인 기록 미상</p>
+                  <label className="grid grid-cols-[auto_1fr] items-center gap-2 text-sm font-semibold text-[#52627b] sm:grid-cols-1 sm:gap-1 sm:text-center">
+                    <span>골</span>
+                    <input type="number" min="0" max="99" value={unknownGoalCount} onChange={(event) => setUnknownGoalCount(normalizeCount(event.target.valueAsNumber))} disabled={isSaving} aria-label="알 수 없는 골" className="h-9 min-w-0 rounded-md border border-[#c8d4e6] bg-white px-2 text-center text-sm font-semibold text-[#1f2937] outline-none focus:border-[#4f6f9f] focus:ring-4 focus:ring-[#e3eaf5] disabled:cursor-not-allowed" />
+                  </label>
+                  <label className="grid grid-cols-[auto_1fr] items-center gap-2 text-sm font-semibold text-[#52627b] sm:grid-cols-1 sm:gap-1 sm:text-center">
+                    <span>어시스트</span>
+                    <input type="number" min="0" max="99" value={unknownAssistCount} onChange={(event) => setUnknownAssistCount(normalizeCount(event.target.valueAsNumber))} disabled={isSaving} aria-label="알 수 없는 어시스트" className="h-9 min-w-0 rounded-md border border-[#c8d4e6] bg-white px-2 text-center text-sm font-semibold text-[#1f2937] outline-none focus:border-[#4f6f9f] focus:ring-4 focus:ring-[#e3eaf5] disabled:cursor-not-allowed" />
+                  </label>
+                  <p className="text-sm text-[#94a3b8] lg:text-center">-</p>
+                </div>
               </div>
               <div className="flex justify-end border-t border-[#e2e8f0] bg-[#fbfcfe] px-5 py-4 sm:px-6">
                 <button type="button" onClick={() => void saveMatchRecord()} disabled={isSaving || totalAssistCount > teamScore} className="inline-flex h-11 items-center justify-center rounded-md bg-[#4f6f9f] px-5 text-sm font-semibold text-white transition-colors hover:bg-[#435f88] disabled:cursor-not-allowed disabled:bg-[#a9b9d3]">

@@ -330,7 +330,8 @@ class MatchService(
             .toSet()
         validateMatchRecordRequest(request, matchParticipantIds)
 
-        val teamScore = request.participants.sumOf(MatchParticipantStatisticsUpdateRequest::goalCount)
+        val teamScore = request.participants.sumOf(MatchParticipantStatisticsUpdateRequest::goalCount) +
+            request.unknownGoalCount
         val updatedParticipants = matchParticipantRepository.upsertMatchStatistics(
             matchId = match.id,
             statistics = request.participants,
@@ -339,6 +340,8 @@ class MatchService(
             matchId = match.id,
             teamScore = teamScore,
             opponentScore = request.opponentScore,
+            unknownGoalCount = request.unknownGoalCount,
+            unknownAssistCount = request.unknownAssistCount,
         )
         val currentTeamMember = requireActiveTeamMember(match.teamId, userId)
 
@@ -423,7 +426,10 @@ class MatchService(
         request: MatchRecordUpdateRequest,
         matchParticipantIds: Set<Long>,
     ) {
-        if (request.opponentScore !in 0..MAX_MATCH_SCORE) {
+        if (request.opponentScore !in 0..MAX_MATCH_SCORE ||
+            request.unknownGoalCount !in 0..MAX_PLAYER_STATISTIC_COUNT ||
+            request.unknownAssistCount !in 0..MAX_PLAYER_STATISTIC_COUNT
+        ) {
             throw ApiException(MatchErrorCode.INVALID_MATCH_RECORD_REQUEST)
         }
 
@@ -445,8 +451,10 @@ class MatchService(
             throw ApiException(MatchErrorCode.INVALID_MATCH_RECORD_REQUEST)
         }
 
-        val totalGoalCount = request.participants.sumOf(MatchParticipantStatisticsUpdateRequest::goalCount)
-        val totalAssistCount = request.participants.sumOf(MatchParticipantStatisticsUpdateRequest::assistCount)
+        val totalGoalCount = request.participants.sumOf(MatchParticipantStatisticsUpdateRequest::goalCount) +
+            request.unknownGoalCount
+        val totalAssistCount = request.participants.sumOf(MatchParticipantStatisticsUpdateRequest::assistCount) +
+            request.unknownAssistCount
         if (totalAssistCount > totalGoalCount) {
             throw ApiException(MatchErrorCode.INVALID_MATCH_ASSIST_COUNT)
         }

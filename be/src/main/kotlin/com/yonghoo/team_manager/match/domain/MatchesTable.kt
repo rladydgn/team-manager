@@ -14,7 +14,9 @@ object MatchesTable : LongIdTable("matches") {
     val participationDeadlineAt = datetime("participation_deadline_at")
     val location = varchar("location", 255).nullable()
     val teamScore = integer("team_score").nullable()
+    val unknownGoalCount = integer("unknown_goal_count").default(0)
     val opponentScore = integer("opponent_score").nullable()
+    val unknownAssistCount = integer("unknown_assist_count").default(0)
     val status = enumerationByName("status", 20, MatchStatus::class).clientDefault { MatchStatus.SCHEDULED }
     val createdAt = datetime("created_at").clientDefault { LocalDateTime.now() }
     val updatedAt = datetime("updated_at").clientDefault { LocalDateTime.now() }

@@ -31,7 +31,9 @@ class MatchRepository {
             this.participationDeadlineAt = participationDeadlineAt
             location = request.location?.trim()?.takeIf(String::isNotBlank)
             teamScore = null
+            unknownGoalCount = 0
             opponentScore = null
+            unknownAssistCount = 0
             status = initialStatus
             createdAt = now
             updatedAt = now
@@ -44,11 +46,15 @@ class MatchRepository {
         matchId: Long,
         teamScore: Int,
         opponentScore: Int,
+        unknownGoalCount: Int,
+        unknownAssistCount: Int,
     ): MatchRecord {
         val match = MatchEntity[matchId]
 
         match.teamScore = teamScore
+        match.unknownGoalCount = unknownGoalCount
         match.opponentScore = opponentScore
+        match.unknownAssistCount = unknownAssistCount
         match.status = MatchStatus.COMPLETED
         match.updatedAt = LocalDateTime.now()
 

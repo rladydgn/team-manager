@@ -48,7 +48,9 @@ export type Match = {
   participationDeadlineAt: string;
   location: string | null;
   teamScore: number | null;
+  unknownGoalCount: number;
   opponentScore: number | null;
+  unknownAssistCount: number;
   status: "SCHEDULED" | "COMPLETED" | "CANCELED";
   createdAt: string;
   availableParticipantCount: number;
@@ -79,6 +81,8 @@ export type MatchParticipantStatisticsUpdateRequest = {
 
 export type MatchRecordUpdateRequest = {
   opponentScore: number;
+  unknownGoalCount: number;
+  unknownAssistCount: number;
   participants: MatchParticipantStatisticsUpdateRequest[];
 };
 

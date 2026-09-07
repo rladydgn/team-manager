@@ -16,7 +16,9 @@ class MatchEntity(id: EntityID<Long>) : LongEntity(id) {
     var participationDeadlineAt by MatchesTable.participationDeadlineAt
     var location by MatchesTable.location
     var teamScore by MatchesTable.teamScore
+    var unknownGoalCount by MatchesTable.unknownGoalCount
     var opponentScore by MatchesTable.opponentScore
+    var unknownAssistCount by MatchesTable.unknownAssistCount
     var status by MatchesTable.status
     var createdAt by MatchesTable.createdAt
     var updatedAt by MatchesTable.updatedAt
