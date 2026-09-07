@@ -3,6 +3,8 @@ package com.yonghoo.team_manager.match.controller
 import com.yonghoo.team_manager.common.dto.CommonResponse
 import com.yonghoo.team_manager.exception.exception.ApiException
 import com.yonghoo.team_manager.match.dto.TeamAttendanceStatisticsResponse
+import com.yonghoo.team_manager.match.dto.TeamAttendanceSortBy
+import com.yonghoo.team_manager.match.dto.SortDirection
 import com.yonghoo.team_manager.match.service.MatchService
 import com.yonghoo.team_manager.user.auth.AUTHENTICATED_USER_ID_ATTRIBUTE
 import com.yonghoo.team_manager.user.exception.UserErrorCode
@@ -29,6 +31,8 @@ class TeamStatisticsController(
         @RequestParam @DateTimeFormat(iso = DateTimeFormat.ISO.DATE) startDate: LocalDate,
         @RequestParam @DateTimeFormat(iso = DateTimeFormat.ISO.DATE) endDate: LocalDate,
         @RequestParam(defaultValue = "0") page: Int,
+        @RequestParam(defaultValue = "NAME") sortBy: TeamAttendanceSortBy,
+        @RequestParam(defaultValue = "ASC") sortDirection: SortDirection,
         @RequestAttribute(name = AUTHENTICATED_USER_ID_ATTRIBUTE, required = false) userId: Long?,
     ): ResponseEntity<CommonResponse<TeamAttendanceStatisticsResponse>> {
         return ResponseEntity.ok(
@@ -39,6 +43,8 @@ class TeamStatisticsController(
                     startDate = startDate,
                     endDate = endDate,
                     page = page,
+                    sortBy = sortBy,
+                    sortDirection = sortDirection,
                 ),
             ),
         )

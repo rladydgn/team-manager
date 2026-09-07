@@ -14,6 +14,8 @@ import com.yonghoo.team_manager.match.dto.MatchRecordUpdateRequest
 import com.yonghoo.team_manager.match.dto.MatchResponse
 import com.yonghoo.team_manager.match.dto.TeamAttendanceMemberResponse
 import com.yonghoo.team_manager.match.dto.TeamAttendanceStatisticsResponse
+import com.yonghoo.team_manager.match.dto.TeamAttendanceSortBy
+import com.yonghoo.team_manager.match.dto.SortDirection
 import com.yonghoo.team_manager.match.exception.MatchErrorCode
 import com.yonghoo.team_manager.match.domain.MatchParticipantStatus
 import com.yonghoo.team_manager.match.domain.MatchRecord
@@ -180,6 +182,8 @@ class MatchService(
         startDate: LocalDate,
         endDate: LocalDate,
         page: Int,
+        sortBy: TeamAttendanceSortBy = TeamAttendanceSortBy.NAME,
+        sortDirection: SortDirection = SortDirection.ASC,
     ): TeamAttendanceStatisticsResponse {
         if (startDate.isAfter(endDate) || page < 0) {
             throw ApiException(MatchErrorCode.INVALID_MATCH_STATISTICS_REQUEST)
@@ -255,15 +259,21 @@ class MatchService(
                     cleanSheetCount = participantStatistics.sumOf { it.cleanSheetCount },
                 )
             }
-            .sortedWith(
-                compareByDescending<TeamAttendanceMemberResponse> { it.attendanceRate }
-                    .thenByDescending { it.attendanceCount }
-                    .thenBy { it.name },
-            )
+        val sortComparator = when (sortBy) {
+            TeamAttendanceSortBy.NAME -> compareBy<TeamAttendanceMemberResponse> { it.name }
+            TeamAttendanceSortBy.GOAL_COUNT -> compareBy { it.goalCount }
+            TeamAttendanceSortBy.ASSIST_COUNT -> compareBy { it.assistCount }
+            TeamAttendanceSortBy.CLEAN_SHEET_COUNT -> compareBy { it.cleanSheetCount }
+        }
+        val sortedMemberStatistics = memberStatistics.sortedWith(
+            (if (sortDirection == SortDirection.DESC) sortComparator.reversed() else sortComparator)
+                .thenBy { it.name }
+                .thenBy { it.teamMemberId },
+        )
         val fromIndex = (page.toLong() * ATTENDANCE_STATISTICS_PAGE_SIZE)
-            .coerceAtMost(memberStatistics.size.toLong())
+            .coerceAtMost(sortedMemberStatistics.size.toLong())
             .toInt()
-        val toIndex = (fromIndex + ATTENDANCE_STATISTICS_PAGE_SIZE).coerceAtMost(memberStatistics.size)
+        val toIndex = (fromIndex + ATTENDANCE_STATISTICS_PAGE_SIZE).coerceAtMost(sortedMemberStatistics.size)
 
         return TeamAttendanceStatisticsResponse(
             startDate = startDate,
@@ -271,10 +281,10 @@ class MatchService(
             totalMatchCount = matches.size,
             page = page,
             pageSize = ATTENDANCE_STATISTICS_PAGE_SIZE,
-            totalElements = memberStatistics.size,
-            totalPages = (memberStatistics.size + ATTENDANCE_STATISTICS_PAGE_SIZE - 1) /
+            totalElements = sortedMemberStatistics.size,
+            totalPages = (sortedMemberStatistics.size + ATTENDANCE_STATISTICS_PAGE_SIZE - 1) /
                 ATTENDANCE_STATISTICS_PAGE_SIZE,
-            members = memberStatistics.subList(fromIndex, toIndex),
+            members = sortedMemberStatistics.subList(fromIndex, toIndex),
         )
     }
 

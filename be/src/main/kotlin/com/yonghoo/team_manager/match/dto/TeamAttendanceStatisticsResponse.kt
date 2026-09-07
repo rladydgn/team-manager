@@ -2,6 +2,18 @@ package com.yonghoo.team_manager.match.dto
 
 import java.time.LocalDate
 
+enum class TeamAttendanceSortBy {
+    NAME,
+    GOAL_COUNT,
+    ASSIST_COUNT,
+    CLEAN_SHEET_COUNT,
+}
+
+enum class SortDirection {
+    ASC,
+    DESC,
+}
+
 data class TeamAttendanceStatisticsResponse(
     val startDate: LocalDate,
     val endDate: LocalDate,
