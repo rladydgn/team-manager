@@ -4,6 +4,11 @@ spring:
   exposed:
     show-sql: true
 
+server:
+  tomcat:
+    threads:
+      max: 40
+
 app:
   jwt:
     secret: ${JWT_SECRET}
