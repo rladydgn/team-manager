@@ -71,6 +71,8 @@ export type MatchParticipant = {
   cleanSheetCount: number;
   memo: string | null;
   respondedAt: string | null;
+  name: string | null;
+  role: "OWNER" | "SUB_MANAGER" | "MEMBER" | "GUEST" | null;
 };
 
 export type MatchParticipantStatisticsUpdateRequest = {

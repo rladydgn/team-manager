@@ -154,8 +154,18 @@ export default function MatchDetailPage() {
   const hasMatchRecord =
     match?.teamScore != null && match?.opponentScore != null;
   const matchResult = match ? getMatchResult(match) : null;
-  const matchTeamMembers = teamMembers.filter((member) =>
-    participants.some((participant) => participant.teamMemberId === member.id),
+  const teamMembersById = new Map(teamMembers.map((member) => [member.id, member]));
+  const matchTeamMembers = participants.map((participant) =>
+    teamMembersById.get(participant.teamMemberId) ?? {
+      id: participant.teamMemberId,
+      userId: null,
+      name: participant.name ?? "내보낸 팀원",
+      memo: null,
+      role: participant.role ?? "MEMBER",
+      status: "LEFT" as const,
+      joinedAt: null,
+      requestedAt: "",
+    },
   );
   const playerRecords = matchTeamMembers
     .map((member) => ({

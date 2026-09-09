@@ -1,6 +1,7 @@
 package com.yonghoo.team_manager.match.dto
 
 import com.yonghoo.team_manager.match.domain.MatchParticipantStatus
+import com.yonghoo.team_manager.team.domain.TeamMemberRole
 import java.time.LocalDateTime
 
 data class MatchParticipantResponse(
@@ -13,4 +14,6 @@ data class MatchParticipantResponse(
     val cleanSheetCount: Int,
     val memo: String?,
     val respondedAt: LocalDateTime?,
+    val name: String? = null,
+    val role: TeamMemberRole? = null,
 )

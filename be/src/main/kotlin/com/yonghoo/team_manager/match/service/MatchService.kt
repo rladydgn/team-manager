@@ -160,8 +160,13 @@ class MatchService(
         val participants = matchParticipantRepository
             .selectParticipantsByMatchIds(listOf(match.id))
             .sortedBy { it.teamMemberId }
+        val membersById = participants.mapNotNull { participant ->
+            teamRepository.selectTeamMemberById(match.teamId, participant.teamMemberId)
+        }.associateBy { it.id }
 
         return participants.map { participant ->
+            val member = membersById[participant.teamMemberId]
+
             MatchParticipantResponse(
                 teamMemberId = participant.teamMemberId,
                 voteStatus = participant.voteStatus,
@@ -172,6 +177,8 @@ class MatchService(
                 cleanSheetCount = participant.cleanSheetCount,
                 memo = participant.memo,
                 respondedAt = participant.respondedAt,
+                name = member?.displayName,
+                role = member?.role,
             )
         }
     }

@@ -136,8 +136,18 @@ export default function MatchRecordPage() {
           participant,
         ])
       );
-      const nextRecordMembers = members.filter((member) =>
-        participantsByMemberId.has(member.id)
+      const membersById = new Map(members.map((member) => [member.id, member]));
+      const nextRecordMembers = (participantsResponse.data ?? []).map((participant) =>
+        membersById.get(participant.teamMemberId) ?? {
+          id: participant.teamMemberId,
+          userId: null,
+          name: participant.name ?? "내보낸 팀원",
+          memo: null,
+          role: participant.role ?? "MEMBER",
+          status: "LEFT" as const,
+          joinedAt: null,
+          requestedAt: "",
+        }
       );
       const nextStatistics = nextRecordMembers.reduce<Record<number, PlayerStatistics>>(
         (statistics, member) => {
