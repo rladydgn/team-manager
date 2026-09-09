@@ -6,7 +6,9 @@ import { useParams } from "next/navigation";
 import { useAuthSession } from "@/features/auth/model/auth-session";
 import {
   getTeamAttendanceStatistics,
+  SortDirection,
   TeamAttendanceStatistics,
+  TeamAttendanceSortBy,
 } from "@/features/team/api/statistics";
 import { getTeam, Team } from "@/features/team/api/team";
 import { TeamDetailTabs } from "@/features/team/ui/TeamDetailTabs";
@@ -22,6 +24,13 @@ const periodPresetLabels: Record<Exclude<PeriodPreset, "CUSTOM">, string> = {
   THIS_YEAR: "올해",
   SIX_MONTHS: "최근 6개월",
   ONE_YEAR: "최근 1년",
+};
+
+const statisticSortLabels: Record<TeamAttendanceSortBy, string> = {
+  NAME: "이름",
+  GOAL_COUNT: "골",
+  ASSIST_COUNT: "어시스트",
+  CLEAN_SHEET_COUNT: "클린시트",
 };
 
 function toDateInputValue(date: Date) {
@@ -83,6 +92,8 @@ export default function TeamStatisticsPage() {
   const [draftStartDate, setDraftStartDate] = useState(initialRange.startDate);
   const [draftEndDate, setDraftEndDate] = useState(initialRange.endDate);
   const [page, setPage] = useState(0);
+  const [sortBy, setSortBy] = useState<TeamAttendanceSortBy>("NAME");
+  const [sortDirection, setSortDirection] = useState<SortDirection>("ASC");
   const [isLoading, setIsLoading] = useState(true);
   const [errorMessage, setErrorMessage] = useState("");
 
@@ -109,7 +120,7 @@ export default function TeamStatisticsPage() {
     try {
       const [teamResponse, statisticsResponse] = await Promise.all([
         getTeam(teamId),
-        getTeamAttendanceStatistics(teamId, startDate, endDate, page),
+        getTeamAttendanceStatistics(teamId, startDate, endDate, page, sortBy, sortDirection),
       ]);
       setTeam(teamResponse.data?.team ?? null);
       setCanManageFees(
@@ -127,7 +138,7 @@ export default function TeamStatisticsPage() {
     } finally {
       setIsLoading(false);
     }
-  }, [currentUser, endDate, isSessionReady, page, startDate, teamId]);
+  }, [currentUser, endDate, isSessionReady, page, sortBy, sortDirection, startDate, teamId]);
 
   useEffect(() => {
     if (!isSessionReady) {
@@ -163,6 +174,28 @@ export default function TeamStatisticsPage() {
     setStartDate(draftStartDate);
     setEndDate(draftEndDate);
     setPage(0);
+  }
+
+  function toggleStatisticSort(nextSortBy: Exclude<TeamAttendanceSortBy, "NAME">) {
+    setPage(0);
+
+    if (sortBy === nextSortBy) {
+      setSortDirection((currentDirection) =>
+        currentDirection === "ASC" ? "DESC" : "ASC"
+      );
+      return;
+    }
+
+    setSortBy(nextSortBy);
+    setSortDirection("ASC");
+  }
+
+  function getSortIndicator(targetSortBy: TeamAttendanceSortBy) {
+    if (sortBy !== targetSortBy) {
+      return null;
+    }
+
+    return sortDirection === "ASC" ? "▲" : "▼";
   }
 
   const pageLabel = statistics && statistics.totalPages > 0
@@ -248,6 +281,7 @@ export default function TeamStatisticsPage() {
                 <div>
                   <h2 className="text-lg font-bold text-[#0f172a]">선수별 기록</h2>
                   <p className="mt-1 text-sm text-[#64748b]">{statistics.startDate}부터 {statistics.endDate}까지</p>
+                  <p className="mt-1 text-xs font-semibold text-[#4f6f9f]">정렬: {statisticSortLabels[sortBy]} {sortDirection === "ASC" ? "오름차순" : "내림차순"}</p>
                 </div>
                 <span className="shrink-0 text-sm font-semibold text-[#3d5b86]">총 {statistics.totalElements}명</span>
               </div>
@@ -256,6 +290,19 @@ export default function TeamStatisticsPage() {
                 <div className="px-5 py-16 text-center text-sm text-[#64748b]">표시할 팀원이 없습니다.</div>
               ) : (
                 <>
+                  <div className="flex flex-wrap gap-2 border-b border-[#e2e8f0] px-5 py-3 sm:hidden">
+                    {(["GOAL_COUNT", "ASSIST_COUNT", "CLEAN_SHEET_COUNT"] as const).map((targetSortBy) => (
+                      <button
+                        key={targetSortBy}
+                        type="button"
+                        onClick={() => toggleStatisticSort(targetSortBy)}
+                        aria-pressed={sortBy === targetSortBy}
+                        className={`inline-flex h-8 items-center gap-1 rounded-md border px-2.5 text-xs font-semibold transition-colors ${sortBy === targetSortBy ? "border-[#4f6f9f] bg-[#f0f4fa] text-[#3d5b86]" : "border-[#dbe4f0] bg-white text-[#64748b]"}`}
+                      >
+                        {statisticSortLabels[targetSortBy]} <span aria-hidden="true">{getSortIndicator(targetSortBy) ?? ""}</span>
+                      </button>
+                    ))}
+                  </div>
                   <div className="divide-y divide-[#e2e8f0] sm:hidden">
                     {statistics.members.map((member) => (
                       <article key={member.teamMemberId} className="grid grid-cols-[minmax(0,1fr)_auto] gap-4 px-5 py-4">
@@ -281,9 +328,19 @@ export default function TeamStatisticsPage() {
                           <th scope="col" className="px-6 py-3 text-right">출석률</th>
                           <th scope="col" className="px-5 py-3 text-right">투표 후 불참</th>
                           <th scope="col" className="px-4 py-3 text-right">지각</th>
-                          <th scope="col" className="px-4 py-3 text-right">골</th>
-                          <th scope="col" className="px-4 py-3 text-right">어시스트</th>
-                          <th scope="col" className="px-6 py-3 text-right">클린시트</th>
+                          {(["GOAL_COUNT", "ASSIST_COUNT", "CLEAN_SHEET_COUNT"] as const).map((targetSortBy, index) => (
+                            <th key={targetSortBy} scope="col" className={index === 2 ? "px-6 py-3 text-right" : "px-4 py-3 text-right"}>
+                              <button
+                                type="button"
+                                onClick={() => toggleStatisticSort(targetSortBy)}
+                                aria-pressed={sortBy === targetSortBy}
+                                className={`inline-flex items-center gap-1 rounded-sm px-1 py-0.5 transition-colors ${sortBy === targetSortBy ? "text-[#3d5b86]" : "hover:text-[#3d5b86]"}`}
+                              >
+                                {statisticSortLabels[targetSortBy]}
+                                {getSortIndicator(targetSortBy) ? <span className="text-[10px]" aria-hidden="true">{getSortIndicator(targetSortBy)}</span> : null}
+                              </button>
+                            </th>
+                          ))}
                         </tr>
                       </thead>
                       <tbody className="divide-y divide-[#e2e8f0]">

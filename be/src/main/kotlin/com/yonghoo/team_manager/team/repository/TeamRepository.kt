@@ -116,6 +116,7 @@ class TeamRepository {
         return TeamEntity.find {
             (TeamsTable.status eq TeamStatus.ACTIVE) and TeamsTable.deletedAt.isNull()
         }.map(TeamRecord::from)
+            .sortedWith(compareBy(String.CASE_INSENSITIVE_ORDER, TeamRecord::name).thenBy(TeamRecord::id))
     }
 
     fun selectTeamById(teamId: Long): TeamRecord? {
@@ -132,6 +133,7 @@ class TeamRepository {
                 (TeamMembersTable.status eq TeamMemberStatus.ACTIVE) and
                 TeamMembersTable.deletedAt.isNull()
         }.map(TeamMemberRecord::from)
+            .sortedWith(compareBy(String.CASE_INSENSITIVE_ORDER, TeamMemberRecord::displayName).thenBy(TeamMemberRecord::id))
     }
 
     fun selectPendingMembersByTeamId(teamId: Long): List<TeamMemberRecord> {
@@ -140,6 +142,7 @@ class TeamRepository {
                 (TeamMembersTable.status eq TeamMemberStatus.PENDING) and
                 TeamMembersTable.deletedAt.isNull()
         }.map(TeamMemberRecord::from)
+            .sortedWith(compareBy(String.CASE_INSENSITIVE_ORDER, TeamMemberRecord::displayName).thenBy(TeamMemberRecord::id))
     }
 
     fun selectTeamMemberById(

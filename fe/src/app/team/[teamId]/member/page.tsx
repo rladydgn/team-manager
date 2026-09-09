@@ -2,7 +2,7 @@
 
 import Link from "next/link";
 import { useParams } from "next/navigation";
-import { FormEvent, useCallback, useEffect, useMemo, useState } from "react";
+import { FormEvent, useCallback, useEffect, useState } from "react";
 import { useCurrentUser } from "@/features/auth/model/auth-session";
 import {
   getTeam,
@@ -22,13 +22,6 @@ const roleLabels: Record<TeamMember["role"], string> = {
   SUB_MANAGER: "부관리자",
   MEMBER: "팀원",
   GUEST: "용병",
-};
-
-const roleOrder: Record<TeamMember["role"], number> = {
-  OWNER: 0,
-  SUB_MANAGER: 1,
-  MEMBER: 2,
-  GUEST: 3,
 };
 
 function formatJoinedAt(value: string | null) {
@@ -97,13 +90,7 @@ export default function TeamMembersPage() {
     return () => window.clearTimeout(timerId);
   }, [loadTeam]);
 
-  const members = useMemo(
-    () =>
-      [...(teamDetail?.members ?? [])].sort(
-        (left, right) => roleOrder[left.role] - roleOrder[right.role]
-      ),
-    [teamDetail?.members]
-  );
+  const members = teamDetail?.members ?? [];
   const canManageFees = teamDetail?.members.some(
     (member) =>
       member.userId === currentUser?.id &&

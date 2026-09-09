@@ -24,16 +24,28 @@ export type TeamAttendanceStatistics = {
   members: TeamAttendanceMemberStatistic[];
 };
 
+export type TeamAttendanceSortBy =
+  | "NAME"
+  | "GOAL_COUNT"
+  | "ASSIST_COUNT"
+  | "CLEAN_SHEET_COUNT";
+
+export type SortDirection = "ASC" | "DESC";
+
 export function getTeamAttendanceStatistics(
   teamId: number,
   startDate: string,
   endDate: string,
-  page: number
+  page: number,
+  sortBy: TeamAttendanceSortBy = "NAME",
+  sortDirection: SortDirection = "ASC"
 ) {
   const searchParams = new URLSearchParams({
     startDate,
     endDate,
     page: String(page),
+    sortBy,
+    sortDirection,
   });
 
   return getJson<TeamAttendanceStatistics>(

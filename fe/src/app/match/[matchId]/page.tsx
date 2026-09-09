@@ -476,7 +476,7 @@ export default function MatchDetailPage() {
                         <div className="flex shrink-0 items-center gap-2 text-xs font-semibold sm:text-sm">
                           {(participant?.goalCount ?? 0) > 0 ? <span className="rounded-md border border-[#c8d4e6] bg-[#f0f4fa] px-2.5 py-1 text-[#3d5b86]">골 {participant?.goalCount}</span> : null}
                           {(participant?.assistCount ?? 0) > 0 ? <span className="rounded-md border border-[#d8d4e9] bg-[#f6f5fb] px-2.5 py-1 text-[#695c91]">도움 {participant?.assistCount}</span> : null}
-                          {(participant?.cleanSheetCount ?? 0) > 0 ? <span className="rounded-md border border-[#b8d7c1] bg-[#f1f8f2] px-2.5 py-1 text-[#36734a]">클린시트</span> : null}
+                          {(participant?.cleanSheetCount ?? 0) > 0 ? <span className="rounded-md border border-[#b8d7c1] bg-[#f1f8f2] px-2.5 py-1 text-[#36734a]">클린시트 {participant?.cleanSheetCount}</span> : null}
                         </div>
                       </div>
                     ))}
