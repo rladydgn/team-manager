@@ -6,6 +6,7 @@ import java.time.LocalDateTime
 data class MatchCreateRequest(
     val teamId: Long,
     val matchType: MatchType,
+    val isTraining: Boolean = false,
     val opponentTeamId: Long? = null,
     val opponentTeamName: String? = null,
     val matchAt: LocalDateTime,

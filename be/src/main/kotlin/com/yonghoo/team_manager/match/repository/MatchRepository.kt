@@ -24,6 +24,7 @@ class MatchRepository {
         val match = MatchEntity.new {
             teamId = request.teamId
             matchType = request.matchType
+            isTraining = request.isTraining
             opponentTeamId = request.opponentTeamId
             this.opponentTeamName = opponentTeamName
             this.createdByUserId = createdByUserId

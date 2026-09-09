@@ -60,6 +60,10 @@ export type TeamMemberRoleUpdateRequest = {
   role: TeamMember["role"];
 };
 
+export type TeamJoinRequestApprovalRequest = {
+  existingTeamMemberId?: number;
+};
+
 export type TeamDetail = {
   team: Team;
   members: TeamMember[];
@@ -119,9 +123,14 @@ export function getTeamJoinRequests(teamId: number) {
   return getJson<TeamMember[]>(`/teams/${teamId}/join-requests`);
 }
 
-export function approveTeamJoinRequest(teamId: number, teamMemberId: number) {
-  return postJson<TeamMember>(
-    `/teams/${teamId}/join-requests/${teamMemberId}/approve`
+export function approveTeamJoinRequest(
+  teamId: number,
+  teamMemberId: number,
+  request: TeamJoinRequestApprovalRequest = {}
+) {
+  return postJson<TeamMember, TeamJoinRequestApprovalRequest>(
+    `/teams/${teamId}/join-requests/${teamMemberId}/approve`,
+    request
   );
 }
 

@@ -206,6 +206,27 @@ class TeamRepository {
         return TeamMemberRecord.from(teamMember)
     }
 
+    fun linkTeamMemberToUser(
+        teamMemberId: Long,
+        userId: Long,
+    ): TeamMemberRecord {
+        val teamMember = TeamMemberEntity[teamMemberId]
+
+        teamMember.userId = userId
+        teamMember.updatedAt = LocalDateTime.now()
+
+        return TeamMemberRecord.from(teamMember)
+    }
+
+    fun discardTeamJoinRequest(teamMemberId: Long) {
+        val teamMember = TeamMemberEntity[teamMemberId]
+        val now = LocalDateTime.now()
+
+        teamMember.status = TeamMemberStatus.REJECTED
+        teamMember.deletedAt = now
+        teamMember.updatedAt = now
+    }
+
     fun updateTeamMemberRole(
         teamMemberId: Long,
         role: TeamMemberRole,

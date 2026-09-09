@@ -82,6 +82,10 @@ enum class TeamErrorCode(
     TEAM_JOIN_REQUEST_NOT_FOUND(
         status = HttpStatus.NOT_FOUND,
         message = "대기 중인 가입 신청을 찾을 수 없습니다.",
+    ),
+    TEAM_MEMBER_LINK_TARGET_NOT_FOUND(
+        status = HttpStatus.NOT_FOUND,
+        message = "연결할 계정 미연결 팀원을 찾을 수 없습니다.",
     );
 
     override val code: String

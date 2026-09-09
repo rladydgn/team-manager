@@ -42,6 +42,7 @@ export default function NewMatchPage() {
   const currentUser = useCurrentUser();
   const [teamDetail, setTeamDetail] = useState<TeamDetail | null>(null);
   const [matchType, setMatchType] = useState<MatchType>("EXTERNAL");
+  const [isTraining, setIsTraining] = useState(false);
   const [opponentTeamName, setOpponentTeamName] = useState("");
   const [matchAt, setMatchAt] = useState("");
   const [participationDeadlineAt, setParticipationDeadlineAt] = useState("");
@@ -128,6 +129,7 @@ export default function NewMatchPage() {
       const response = await createMatch({
         teamId: teamDetail.team.id,
         matchType,
+        isTraining,
         opponentTeamName:
           matchType === "EXTERNAL"
             ? cleanOptionalValue(opponentTeamName)
@@ -279,6 +281,12 @@ export default function NewMatchPage() {
                   ))}
                 </div>
               </fieldset>
+
+              <label className="flex flex-wrap items-center gap-x-3 gap-y-1 rounded-md border border-[#dbe4f0] bg-[#f8fafc] px-4 py-3 text-sm font-semibold text-[#475569]">
+                <input type="checkbox" checked={isTraining} onChange={(event) => setIsTraining(event.target.checked)} className="size-4 accent-[#4f6f9f]" />
+                훈련으로 등록
+                <span className="font-normal text-[#64748b]">통계에서 경기 출석과 별도로 집계됩니다.</span>
+              </label>
 
               {matchType === "EXTERNAL" ? (
                 <label className="grid gap-2 text-sm font-semibold">

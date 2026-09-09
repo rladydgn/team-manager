@@ -6,6 +6,7 @@ import com.yonghoo.team_manager.team.dto.TeamCreateRequest
 import com.yonghoo.team_manager.team.dto.TeamDetailResponse
 import com.yonghoo.team_manager.team.dto.TeamMemberResponse
 import com.yonghoo.team_manager.team.dto.TeamMemberCreateRequest
+import com.yonghoo.team_manager.team.dto.TeamJoinRequestApprovalRequest
 import com.yonghoo.team_manager.team.dto.TeamMemberMemoUpdateRequest
 import com.yonghoo.team_manager.team.dto.TeamMemberRoleUpdateRequest
 import com.yonghoo.team_manager.team.dto.TeamResponse
@@ -74,6 +75,7 @@ class TeamController(
         @PathVariable teamId: Long,
         @PathVariable teamMemberId: Long,
         @RequestAttribute(name = AUTHENTICATED_USER_ID_ATTRIBUTE, required = false) userId: Long?,
+        @RequestBody request: TeamJoinRequestApprovalRequest,
     ): ResponseEntity<CommonResponse<TeamMemberResponse>> {
         return ResponseEntity.ok(
             CommonResponse(
@@ -81,6 +83,7 @@ class TeamController(
                     teamId = teamId,
                     teamMemberId = teamMemberId,
                     userId = requireAuthenticatedUserId(userId),
+                    request = request,
                 ),
             ),
         )

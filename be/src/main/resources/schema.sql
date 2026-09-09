@@ -91,6 +91,7 @@ CREATE TABLE matches (
     id BIGINT UNSIGNED NOT NULL AUTO_INCREMENT,
     team_id BIGINT UNSIGNED NOT NULL,
     match_type ENUM('EXTERNAL', 'INTERNAL') NOT NULL DEFAULT 'EXTERNAL',
+    is_training TINYINT(1) NOT NULL DEFAULT 0,
     opponent_team_id BIGINT UNSIGNED NULL,
     opponent_team_name VARCHAR(100) NULL,
     created_by_user_id BIGINT UNSIGNED NOT NULL,

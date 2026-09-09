@@ -76,6 +76,7 @@ class MatchService(
         val matchRequest = MatchCreateRequest(
             teamId = request.teamId,
             matchType = request.matchType,
+            isTraining = request.isTraining,
             opponentTeamName = request.opponentTeamName,
             matchAt = request.matchAt,
             participationDeadlineAt = request.matchAt,
@@ -199,15 +200,30 @@ class MatchService(
                 !match.matchAt.isBefore(startAt) &&
                 match.matchAt.isBefore(endAtExclusive)
         }
+        val regularMatches = matches.filterNot(MatchRecord::isTraining)
+        val trainingMatches = matches.filter(MatchRecord::isTraining)
         val matchParticipants = matchParticipantRepository
             .selectParticipantsByMatchIds(matches.map(MatchRecord::id))
             .asSequence()
             .toList()
-        val eligibleMatchCountByMemberId = matchParticipants
+        val regularMatchIds = regularMatches.map(MatchRecord::id).toSet()
+        val trainingMatchIds = trainingMatches.map(MatchRecord::id).toSet()
+        val regularMatchParticipants = matchParticipants.filter { it.matchId in regularMatchIds }
+        val trainingMatchParticipants = matchParticipants.filter { it.matchId in trainingMatchIds }
+        val eligibleMatchCountByMemberId = regularMatchParticipants
             .asSequence()
             .groupingBy { it.teamMemberId }
             .eachCount()
-        val attendanceCountByMemberId = matchParticipants
+        val attendanceCountByMemberId = regularMatchParticipants
+            .asSequence()
+            .filter { it.voteStatus == MatchParticipantStatus.AVAILABLE }
+            .groupingBy { it.teamMemberId }
+            .eachCount()
+        val trainingEligibleMatchCountByMemberId = trainingMatchParticipants
+            .asSequence()
+            .groupingBy { it.teamMemberId }
+            .eachCount()
+        val trainingAttendanceCountByMemberId = trainingMatchParticipants
             .asSequence()
             .filter { it.voteStatus == MatchParticipantStatus.AVAILABLE }
             .groupingBy { it.teamMemberId }
@@ -244,6 +260,8 @@ class MatchService(
             .map { member ->
                 val attendanceCount = attendanceCountByMemberId[member.id] ?: 0
                 val eligibleMatchCount = eligibleMatchCountByMemberId[member.id] ?: 0
+                val trainingAttendanceCount = trainingAttendanceCountByMemberId[member.id] ?: 0
+                val trainingEligibleMatchCount = trainingEligibleMatchCountByMemberId[member.id] ?: 0
                 val participantStatistics = participantStatisticsByMemberId[member.id].orEmpty()
 
                 TeamAttendanceMemberResponse(
@@ -252,6 +270,12 @@ class MatchService(
                     attendanceCount = attendanceCount,
                     eligibleMatchCount = eligibleMatchCount,
                     attendanceRate = calculateAttendanceRate(attendanceCount, eligibleMatchCount),
+                    trainingAttendanceCount = trainingAttendanceCount,
+                    trainingEligibleMatchCount = trainingEligibleMatchCount,
+                    trainingAttendanceRate = calculateAttendanceRate(
+                        trainingAttendanceCount,
+                        trainingEligibleMatchCount,
+                    ),
                     postVoteAbsenceCount = postVoteAbsenceCountByMemberId[member.id] ?: 0,
                     lateCount = lateCountByMemberId[member.id] ?: 0,
                     goalCount = participantStatistics.sumOf { it.goalCount },
@@ -278,7 +302,8 @@ class MatchService(
         return TeamAttendanceStatisticsResponse(
             startDate = startDate,
             endDate = endDate,
-            totalMatchCount = matches.size,
+            totalMatchCount = regularMatches.size,
+            totalTrainingCount = trainingMatches.size,
             page = page,
             pageSize = ATTENDANCE_STATISTICS_PAGE_SIZE,
             totalElements = sortedMemberStatistics.size,

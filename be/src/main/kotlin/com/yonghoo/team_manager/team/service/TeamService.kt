@@ -14,6 +14,7 @@ import com.yonghoo.team_manager.team.dto.TeamCreateRequest
 import com.yonghoo.team_manager.team.dto.TeamDetailResponse
 import com.yonghoo.team_manager.team.dto.TeamMemberResponse
 import com.yonghoo.team_manager.team.dto.TeamMemberCreateRequest
+import com.yonghoo.team_manager.team.dto.TeamJoinRequestApprovalRequest
 import com.yonghoo.team_manager.team.dto.TeamMemberMemoUpdateRequest
 import com.yonghoo.team_manager.team.dto.TeamMemberRoleUpdateRequest
 import com.yonghoo.team_manager.team.dto.TeamResponse
@@ -254,7 +255,17 @@ class TeamService(
         teamId: Long,
         teamMemberId: Long,
         userId: Long,
+        request: TeamJoinRequestApprovalRequest,
     ): TeamMemberResponse {
+        request.existingTeamMemberId?.let { existingTeamMemberId ->
+            return linkJoinRequestToExistingMember(
+                teamId = teamId,
+                joinRequestMemberId = teamMemberId,
+                existingTeamMemberId = existingTeamMemberId,
+                userId = userId,
+            )
+        }
+
         return updateJoinRequest(teamId, teamMemberId, userId, TeamMemberStatus.ACTIVE)
     }
 
@@ -384,6 +395,29 @@ class TeamService(
         }
 
         return toTeamMemberResponse(updatedMember)
+    }
+
+    private fun linkJoinRequestToExistingMember(
+        teamId: Long,
+        joinRequestMemberId: Long,
+        existingTeamMemberId: Long,
+        userId: Long,
+    ): TeamMemberResponse {
+        validateTeamExists(teamId)
+        validateJoinRequestManagementPermission(teamId, userId)
+
+        val joinRequest = teamRepository.selectTeamMemberById(teamId, joinRequestMemberId)
+            ?.takeIf { it.status == TeamMemberStatus.PENDING && it.userId != null }
+            ?: throw ApiException(TeamErrorCode.TEAM_JOIN_REQUEST_NOT_FOUND)
+        val joiningUserId = joinRequest.userId ?: throw ApiException(TeamErrorCode.TEAM_JOIN_REQUEST_NOT_FOUND)
+        val existingMember = teamRepository.selectTeamMemberById(teamId, existingTeamMemberId)
+            ?.takeIf { it.status == TeamMemberStatus.ACTIVE && it.userId == null }
+            ?: throw ApiException(TeamErrorCode.TEAM_MEMBER_LINK_TARGET_NOT_FOUND)
+
+        val linkedMember = teamRepository.linkTeamMemberToUser(existingMember.id, joiningUserId)
+        teamRepository.discardTeamJoinRequest(joinRequest.id)
+
+        return toTeamMemberResponse(linkedMember)
     }
 
     private fun createDefaultParticipantsForUpcomingMatches(

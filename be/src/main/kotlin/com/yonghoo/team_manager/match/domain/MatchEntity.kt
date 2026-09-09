@@ -9,6 +9,7 @@ class MatchEntity(id: EntityID<Long>) : LongEntity(id) {
 
     var teamId by MatchesTable.teamId
     var matchType by MatchesTable.matchType
+    var isTraining by MatchesTable.isTraining
     var opponentTeamId by MatchesTable.opponentTeamId
     var opponentTeamName by MatchesTable.opponentTeamName
     var createdByUserId by MatchesTable.createdByUserId

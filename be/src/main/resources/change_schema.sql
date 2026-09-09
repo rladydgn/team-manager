@@ -88,3 +88,5 @@ ALTER TABLE matches
     ADD COLUMN unknown_goal_count INT UNSIGNED NOT NULL DEFAULT 0 AFTER team_score,
     ADD COLUMN unknown_assist_count INT UNSIGNED NOT NULL DEFAULT 0 AFTER opponent_score;
 
+ALTER TABLE matches
+    ADD COLUMN is_training TINYINT(1) NOT NULL DEFAULT 0 AFTER match_type;

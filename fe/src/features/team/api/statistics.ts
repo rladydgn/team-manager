@@ -6,6 +6,9 @@ export type TeamAttendanceMemberStatistic = {
   attendanceCount: number;
   eligibleMatchCount: number;
   attendanceRate: number;
+  trainingAttendanceCount: number;
+  trainingEligibleMatchCount: number;
+  trainingAttendanceRate: number;
   postVoteAbsenceCount: number;
   lateCount: number;
   goalCount: number;
@@ -17,6 +20,7 @@ export type TeamAttendanceStatistics = {
   startDate: string;
   endDate: string;
   totalMatchCount: number;
+  totalTrainingCount: number;
   page: number;
   pageSize: number;
   totalElements: number;

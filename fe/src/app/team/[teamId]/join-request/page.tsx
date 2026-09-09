@@ -29,6 +29,7 @@ export default function TeamJoinRequestsPage() {
   const { currentUser, isSessionReady } = useAuthSession();
   const [teamDetail, setTeamDetail] = useState<TeamDetail | null>(null);
   const [requests, setRequests] = useState<TeamMember[]>([]);
+  const [existingMemberIdByRequestId, setExistingMemberIdByRequestId] = useState<Record<number, string>>({});
   const [isLoading, setIsLoading] = useState(true);
   const [processingMemberId, setProcessingMemberId] = useState<number | null>(null);
   const [errorMessage, setErrorMessage] = useState("");
@@ -106,16 +107,24 @@ export default function TeamJoinRequestsPage() {
 
     try {
       if (decision === "approve") {
-        await approveTeamJoinRequest(teamDetail.team.id, teamMember.id);
-        setNoticeMessage(`${teamMember.name ?? "신청자"} 님을 팀원으로 승인했습니다.`);
+        const existingTeamMemberId = Number(existingMemberIdByRequestId[teamMember.id]);
+        const isLinkingExistingMember = Number.isInteger(existingTeamMemberId) && existingTeamMemberId > 0;
+        await approveTeamJoinRequest(
+          teamDetail.team.id,
+          teamMember.id,
+          isLinkingExistingMember ? { existingTeamMemberId } : {}
+        );
+        setNoticeMessage(
+          isLinkingExistingMember
+            ? `${teamMember.name ?? "신청자"} 님을 기존 팀원 기록에 연결했습니다.`
+            : `${teamMember.name ?? "신청자"} 님을 팀원으로 승인했습니다.`
+        );
       } else {
         await rejectTeamJoinRequest(teamDetail.team.id, teamMember.id);
         setNoticeMessage(`${teamMember.name ?? "신청자"} 님의 가입 신청을 거부했습니다.`);
       }
 
-      setRequests((currentRequests) =>
-        currentRequests.filter((request) => request.id !== teamMember.id)
-      );
+      await loadJoinRequests();
     } catch (error) {
       setErrorMessage(
         error instanceof Error
@@ -197,6 +206,9 @@ export default function TeamJoinRequestsPage() {
               <section className="divide-y divide-[#e2e8f0] overflow-hidden rounded-lg border border-[#dbe4f0] bg-white">
                 {requests.map((request) => {
                   const isProcessing = processingMemberId === request.id;
+                  const unlinkedMembers = teamDetail.members.filter(
+                    (member) => member.userId === null
+                  );
 
                   return (
                     <article
@@ -210,6 +222,28 @@ export default function TeamJoinRequestsPage() {
                         <p className="mt-1 text-sm text-[#64748b]">
                           신청 시각 {formatRequestedAt(request.requestedAt)}
                         </p>
+                        {unlinkedMembers.length > 0 ? (
+                          <label className="mt-3 grid max-w-sm gap-1.5 text-sm font-semibold text-[#475569]">
+                            기존 기록 연결 (선택)
+                            <select
+                              value={existingMemberIdByRequestId[request.id] ?? ""}
+                              onChange={(event) => setExistingMemberIdByRequestId((current) => ({
+                                ...current,
+                                [request.id]: event.target.value,
+                              }))}
+                              disabled={isProcessing}
+                              className="h-9 rounded-md border border-[#c8d4e6] bg-white px-2.5 text-sm font-normal text-[#1f2937] outline-none focus:border-[#4f6f9f] focus:ring-4 focus:ring-[#e3eaf5] disabled:cursor-not-allowed"
+                            >
+                              <option value="">새 팀원으로 승인</option>
+                              {unlinkedMembers.map((member) => (
+                                <option key={member.id} value={member.id}>
+                                  {member.name ?? "이름 없음"} ({member.role === "GUEST" ? "용병" : "비회원 팀원"})
+                                </option>
+                              ))}
+                            </select>
+                            <span className="text-xs font-normal text-[#64748b]">선택하면 기존 경기·회비 기록을 유지한 채 계정만 연결합니다.</span>
+                          </label>
+                        ) : null}
                       </div>
                       <div className="flex shrink-0 gap-2">
                         <button

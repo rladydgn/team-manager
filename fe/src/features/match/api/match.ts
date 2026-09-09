@@ -10,6 +10,7 @@ export type MatchParticipationStatus =
 export type MatchCreateRequest = {
   teamId: number;
   matchType: MatchType;
+  isTraining: boolean;
   opponentTeamName?: string;
   matchAt: string;
   participationDeadlineAt: string;
@@ -27,6 +28,7 @@ export type HistoricalMatchParticipantCreateRequest = {
 export type HistoricalMatchCreateRequest = {
   teamId: number;
   matchType: MatchType;
+  isTraining: boolean;
   opponentTeamName?: string;
   matchAt: string;
   location?: string;
@@ -41,6 +43,7 @@ export type Match = {
   id: number;
   teamId: number;
   matchType: MatchType;
+  isTraining: boolean;
   opponentTeamId: number | null;
   opponentTeamName: string | null;
   createdByUserId: number;

@@ -78,6 +78,10 @@ function formatRate(value: number) {
   return `${value.toLocaleString("ko-KR", { maximumFractionDigits: 1 })}%`;
 }
 
+function formatAttendance(attendanceCount: number, eligibleMatchCount: number, attendanceRate: number) {
+  return `${attendanceCount}회 / ${eligibleMatchCount}회 (${formatRate(attendanceRate)})`;
+}
+
 export default function TeamStatisticsPage() {
   const params = useParams<{ teamId: string }>();
   const teamId = Number(params.teamId);
@@ -246,7 +250,7 @@ export default function TeamStatisticsPage() {
                 <h1 className="mt-2 text-3xl font-bold text-[#0f172a] sm:text-4xl">{team.name} 선수 통계</h1>
                 <p className="mt-3 text-sm leading-6 text-[#64748b]">참여현황과 경기 기록을 기준으로 출석, 골, 어시스트, 클린시트를 확인합니다.</p>
               </div>
-              <span className="w-fit rounded-md border border-[#c8d4e6] bg-[#f0f4fa] px-3 py-1.5 text-sm font-semibold text-[#3d5b86]">기간 내 경기 {statistics.totalMatchCount}회</span>
+              <span className="w-fit rounded-md border border-[#c8d4e6] bg-[#f0f4fa] px-3 py-1.5 text-sm font-semibold text-[#3d5b86]">기간 내 경기 {statistics.totalMatchCount}회 · 훈련 {statistics.totalTrainingCount}회</span>
             </section>
 
             <section className="border-y border-[#dbe4f0] py-5">
@@ -307,8 +311,8 @@ export default function TeamStatisticsPage() {
                     {statistics.members.map((member) => (
                       <article key={member.teamMemberId} className="grid grid-cols-[minmax(0,1fr)_auto] gap-4 px-5 py-4">
                         <p className="truncate font-semibold text-[#1f2937]">{member.name}</p>
-                        <p className="font-bold text-[#3d5b86]">{formatRate(member.attendanceRate)}</p>
-                        <p className="text-sm text-[#64748b]">출석 {member.attendanceCount}회 / 경기 {member.eligibleMatchCount}회</p>
+                        <p className="text-sm font-semibold text-[#3d5b86]">경기 출석 {formatAttendance(member.attendanceCount, member.eligibleMatchCount, member.attendanceRate)}</p>
+                        <p className="text-sm font-semibold text-[#36734a]">훈련 출석 {formatAttendance(member.trainingAttendanceCount, member.trainingEligibleMatchCount, member.trainingAttendanceRate)}</p>
                         <p className="text-sm text-[#b45309]">투표 후 불참 {member.postVoteAbsenceCount}회</p>
                         <p className="text-sm text-[#b45309]">지각 {member.lateCount}회</p>
                         <div className="col-span-2 flex flex-wrap gap-2 text-xs font-semibold">
@@ -324,8 +328,8 @@ export default function TeamStatisticsPage() {
                       <thead className="bg-[#f8fafc] text-xs font-semibold text-[#64748b]">
                         <tr>
                           <th scope="col" className="px-6 py-3">선수</th>
-                          <th scope="col" className="px-5 py-3 text-right">출석 횟수</th>
-                          <th scope="col" className="px-6 py-3 text-right">출석률</th>
+                          <th scope="col" className="px-5 py-3 text-right">경기 출석 (투표/전체)</th>
+                          <th scope="col" className="px-5 py-3 text-right">훈련 출석 (투표/전체)</th>
                           <th scope="col" className="px-5 py-3 text-right">투표 후 불참</th>
                           <th scope="col" className="px-4 py-3 text-right">지각</th>
                           {(["GOAL_COUNT", "ASSIST_COUNT", "CLEAN_SHEET_COUNT"] as const).map((targetSortBy, index) => (
@@ -347,8 +351,8 @@ export default function TeamStatisticsPage() {
                         {statistics.members.map((member) => (
                           <tr key={member.teamMemberId}>
                             <td className="px-6 py-4 font-semibold text-[#1f2937]">{member.name}</td>
-                            <td className="px-5 py-4 text-right text-[#64748b]">{member.attendanceCount}회 / {member.eligibleMatchCount}회</td>
-                            <td className="px-6 py-4 text-right font-bold text-[#3d5b86]">{formatRate(member.attendanceRate)}</td>
+                            <td className="px-5 py-4 text-right font-semibold text-[#3d5b86]">{formatAttendance(member.attendanceCount, member.eligibleMatchCount, member.attendanceRate)}</td>
+                            <td className="px-5 py-4 text-right font-semibold text-[#36734a]">{formatAttendance(member.trainingAttendanceCount, member.trainingEligibleMatchCount, member.trainingAttendanceRate)}</td>
                             <td className="px-5 py-4 text-right font-semibold text-[#b45309]">{member.postVoteAbsenceCount}회</td>
                             <td className="px-4 py-4 text-right font-semibold text-[#b45309]">{member.lateCount}회</td>
                             <td className="px-4 py-4 text-right font-semibold text-[#3d5b86]">{member.goalCount}</td>
