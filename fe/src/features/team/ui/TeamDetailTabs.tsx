@@ -2,7 +2,7 @@ import Link from "next/link";
 
 type TeamDetailTabsProps = {
   teamId: number;
-  activeTab: "overview" | "matches" | "members" | "statistics" | "feePayments";
+  activeTab: "overview" | "matches" | "members" | "statistics" | "rankings" | "feePayments";
   canAccessTeamFeatures?: boolean;
   canManageFees?: boolean;
 };
@@ -25,6 +25,10 @@ export function TeamDetailTabs({
       : "border-b-2 border-transparent text-[#64748b] hover:border-[#c8d4e6] hover:text-[#3d5b86]";
   const statisticsClassName =
     activeTab === "statistics"
+      ? "border-b-2 border-[#4f6f9f] text-[#2f4d76]"
+      : "border-b-2 border-transparent text-[#64748b] hover:border-[#c8d4e6] hover:text-[#3d5b86]";
+  const rankingsClassName =
+    activeTab === "rankings"
       ? "border-b-2 border-[#4f6f9f] text-[#2f4d76]"
       : "border-b-2 border-transparent text-[#64748b] hover:border-[#c8d4e6] hover:text-[#3d5b86]";
   const feePaymentsClassName =
@@ -65,6 +69,13 @@ export function TeamDetailTabs({
           className={`inline-flex h-11 items-center justify-center px-4 text-sm font-semibold transition-colors ${statisticsClassName}`}
         >
           통계
+        </Link>
+        <Link
+          href={`/team/${teamId}/ranking`}
+          aria-current={activeTab === "rankings" ? "page" : undefined}
+          className={`inline-flex h-11 items-center justify-center px-4 text-sm font-semibold transition-colors ${rankingsClassName}`}
+        >
+          순위
         </Link>
         <Link
           href={`/team/${teamId}/fee-payment`}

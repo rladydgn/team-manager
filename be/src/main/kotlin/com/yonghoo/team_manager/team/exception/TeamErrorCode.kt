@@ -86,7 +86,12 @@ enum class TeamErrorCode(
     TEAM_MEMBER_LINK_TARGET_NOT_FOUND(
         status = HttpStatus.NOT_FOUND,
         message = "연결할 계정 미연결 팀원을 찾을 수 없습니다.",
-    );
+    ),
+    INVALID_TEAM_SEASON_REQUEST(HttpStatus.BAD_REQUEST, "시즌 이름과 기간을 확인해주세요."),
+    INVALID_TEAM_SEASON_ORDER(HttpStatus.BAD_REQUEST, "시즌 순서 요청이 올바르지 않습니다."),
+    DUPLICATE_TEAM_SEASON_NAME(HttpStatus.CONFLICT, "같은 이름의 시즌이 이미 있습니다."),
+    TEAM_SEASON_NOT_FOUND(HttpStatus.NOT_FOUND, "시즌을 찾을 수 없습니다."),
+    TEAM_SEASON_MANAGEMENT_FORBIDDEN(HttpStatus.FORBIDDEN, "시즌은 팀장과 부관리자만 관리할 수 있습니다.");
 
     override val code: String
         get() = name

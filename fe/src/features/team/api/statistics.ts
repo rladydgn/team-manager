@@ -36,6 +36,23 @@ export type TeamAttendanceSortBy =
 
 export type SortDirection = "ASC" | "DESC";
 
+export type TeamPlayerRankingEntry = {
+  rank: number;
+  teamMemberId: number;
+  name: string;
+  value: number;
+  isCurrentUser: boolean;
+};
+
+export type TeamPlayerRankings = {
+  startDate: string;
+  endDate: string;
+  completedMatchCount: number;
+  goalRankings: TeamPlayerRankingEntry[];
+  assistRankings: TeamPlayerRankingEntry[];
+  cleanSheetRankings: TeamPlayerRankingEntry[];
+};
+
 export function getTeamAttendanceStatistics(
   teamId: number,
   startDate: string,
@@ -54,5 +71,16 @@ export function getTeamAttendanceStatistics(
 
   return getJson<TeamAttendanceStatistics>(
     `/teams/${teamId}/statistics/attendance?${searchParams.toString()}`
+  );
+}
+
+export function getTeamPlayerRankings(
+  teamId: number,
+  startDate: string,
+  endDate: string
+) {
+  const searchParams = new URLSearchParams({ startDate, endDate });
+  return getJson<TeamPlayerRankings>(
+    `/teams/${teamId}/statistics/rankings?${searchParams.toString()}`
   );
 }

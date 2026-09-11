@@ -1,7 +1,7 @@
 "use client";
 
 import Link from "next/link";
-import { FormEvent, useCallback, useEffect, useState } from "react";
+import { FormEvent, useCallback, useEffect, useRef, useState } from "react";
 import { useParams } from "next/navigation";
 import { useAuthSession } from "@/features/auth/model/auth-session";
 import {
@@ -11,6 +11,7 @@ import {
   TeamAttendanceSortBy,
 } from "@/features/team/api/statistics";
 import { getTeam, Team } from "@/features/team/api/team";
+import { getTeamSeasons, type TeamSeason } from "@/features/team/api/season";
 import { TeamDetailTabs } from "@/features/team/ui/TeamDetailTabs";
 
 type PeriodPreset = "THIS_YEAR" | "SIX_MONTHS" | "ONE_YEAR" | "CUSTOM";
@@ -89,6 +90,9 @@ export default function TeamStatisticsPage() {
   const initialRange = getThisYearRange();
   const [team, setTeam] = useState<Team | null>(null);
   const [canManageFees, setCanManageFees] = useState(false);
+  const [seasons, setSeasons] = useState<TeamSeason[]>([]);
+  const [selectedSeasonId, setSelectedSeasonId] = useState("");
+  const defaultSeasonAppliedTeamId = useRef<number | null>(null);
   const [statistics, setStatistics] = useState<TeamAttendanceStatistics | null>(null);
   const [selectedPreset, setSelectedPreset] = useState<PeriodPreset>("THIS_YEAR");
   const [startDate, setStartDate] = useState(initialRange.startDate);
@@ -122,9 +126,10 @@ export default function TeamStatisticsPage() {
     setErrorMessage("");
 
     try {
-      const [teamResponse, statisticsResponse] = await Promise.all([
+      const [teamResponse, statisticsResponse, seasonResponse] = await Promise.all([
         getTeam(teamId),
         getTeamAttendanceStatistics(teamId, startDate, endDate, page, sortBy, sortDirection),
+        getTeamSeasons(teamId),
       ]);
       setTeam(teamResponse.data?.team ?? null);
       setCanManageFees(
@@ -135,6 +140,21 @@ export default function TeamStatisticsPage() {
         ) ?? false
       );
       setStatistics(statisticsResponse.data ?? null);
+      const loadedSeasons = seasonResponse.data ?? [];
+      setSeasons(loadedSeasons);
+      if (defaultSeasonAppliedTeamId.current !== teamId) {
+        defaultSeasonAppliedTeamId.current = teamId;
+        const defaultSeason = loadedSeasons.find((season) => season.isDefault);
+        if (defaultSeason) {
+          setSelectedSeasonId(String(defaultSeason.id));
+          setSelectedPreset("CUSTOM");
+          setStartDate(defaultSeason.startDate);
+          setEndDate(defaultSeason.endDate);
+          setDraftStartDate(defaultSeason.startDate);
+          setDraftEndDate(defaultSeason.endDate);
+          setPage(0);
+        }
+      }
     } catch (error) {
       setErrorMessage(
         error instanceof Error ? error.message : "팀 통계를 불러오지 못했습니다."
@@ -159,6 +179,7 @@ export default function TeamStatisticsPage() {
   function selectPreset(preset: Exclude<PeriodPreset, "CUSTOM">) {
     const range = getPresetRange(preset);
     setSelectedPreset(preset);
+    setSelectedSeasonId("");
     setStartDate(range.startDate);
     setEndDate(range.endDate);
     setDraftStartDate(range.startDate);
@@ -175,8 +196,21 @@ export default function TeamStatisticsPage() {
     }
 
     setSelectedPreset("CUSTOM");
+    setSelectedSeasonId("");
     setStartDate(draftStartDate);
     setEndDate(draftEndDate);
+    setPage(0);
+  }
+
+  function selectSeason(seasonId: string) {
+    setSelectedSeasonId(seasonId);
+    const season = seasons.find((item) => String(item.id) === seasonId);
+    if (!season) return;
+    setSelectedPreset("CUSTOM");
+    setStartDate(season.startDate);
+    setEndDate(season.endDate);
+    setDraftStartDate(season.startDate);
+    setDraftEndDate(season.endDate);
     setPage(0);
   }
 
@@ -254,6 +288,16 @@ export default function TeamStatisticsPage() {
             </section>
 
             <section className="border-y border-[#dbe4f0] py-5">
+              <div className="mb-4 flex flex-col gap-2 sm:flex-row sm:items-end sm:justify-between">
+                <label className="grid flex-1 gap-1.5 text-sm font-semibold text-[#475569]">
+                  시즌
+                  <select value={selectedSeasonId} onChange={(event) => selectSeason(event.target.value)} className="h-11 rounded-md border border-[#c8d4e6] bg-white px-3 text-sm font-normal text-[#1f2937] outline-none focus:border-[#4f6f9f]">
+                    {seasons.map((season) => <option key={season.id} value={season.id}>{season.name}{season.isDefault ? " (기본)" : ""} · {season.startDate} ~ {season.endDate}</option>)}
+                    <option value="">기간 직접 선택</option>
+                  </select>
+                </label>
+                {canManageFees ? <Link href={`/team/${teamId}/season`} className="inline-flex h-11 items-center justify-center rounded-md border border-[#c8d4e6] bg-white px-4 text-sm font-semibold text-[#3d5b86]">시즌 설정</Link> : null}
+              </div>
               <div className="flex flex-wrap gap-2">
                 {(Object.keys(periodPresetLabels) as Exclude<PeriodPreset, "CUSTOM">[]).map((preset) => (
                   <button

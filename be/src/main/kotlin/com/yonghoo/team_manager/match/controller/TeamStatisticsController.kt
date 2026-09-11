@@ -4,6 +4,7 @@ import com.yonghoo.team_manager.common.dto.CommonResponse
 import com.yonghoo.team_manager.exception.exception.ApiException
 import com.yonghoo.team_manager.match.dto.TeamAttendanceStatisticsResponse
 import com.yonghoo.team_manager.match.dto.TeamAttendanceSortBy
+import com.yonghoo.team_manager.match.dto.TeamPlayerRankingsResponse
 import com.yonghoo.team_manager.match.dto.SortDirection
 import com.yonghoo.team_manager.match.service.MatchService
 import com.yonghoo.team_manager.user.auth.AUTHENTICATED_USER_ID_ATTRIBUTE
@@ -45,6 +46,26 @@ class TeamStatisticsController(
                     page = page,
                     sortBy = sortBy,
                     sortDirection = sortDirection,
+                ),
+            ),
+        )
+    }
+
+    @Operation(summary = "팀 선수 기록 순위 조회")
+    @GetMapping("/rankings")
+    fun getPlayerRankings(
+        @PathVariable teamId: Long,
+        @RequestParam @DateTimeFormat(iso = DateTimeFormat.ISO.DATE) startDate: LocalDate,
+        @RequestParam @DateTimeFormat(iso = DateTimeFormat.ISO.DATE) endDate: LocalDate,
+        @RequestAttribute(name = AUTHENTICATED_USER_ID_ATTRIBUTE, required = false) userId: Long?,
+    ): ResponseEntity<CommonResponse<TeamPlayerRankingsResponse>> {
+        return ResponseEntity.ok(
+            CommonResponse(
+                data = matchService.getPlayerRankings(
+                    teamId = teamId,
+                    userId = requireAuthenticatedUserId(userId),
+                    startDate = startDate,
+                    endDate = endDate,
                 ),
             ),
         )

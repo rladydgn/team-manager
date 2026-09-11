@@ -15,6 +15,8 @@ import com.yonghoo.team_manager.match.dto.MatchResponse
 import com.yonghoo.team_manager.match.dto.TeamAttendanceMemberResponse
 import com.yonghoo.team_manager.match.dto.TeamAttendanceStatisticsResponse
 import com.yonghoo.team_manager.match.dto.TeamAttendanceSortBy
+import com.yonghoo.team_manager.match.dto.TeamPlayerRankingEntryResponse
+import com.yonghoo.team_manager.match.dto.TeamPlayerRankingsResponse
 import com.yonghoo.team_manager.match.dto.SortDirection
 import com.yonghoo.team_manager.match.exception.MatchErrorCode
 import com.yonghoo.team_manager.match.domain.MatchParticipantStatus
@@ -320,6 +322,82 @@ class MatchService(
         )
     }
 
+    @Transactional(readOnly = true)
+    fun getPlayerRankings(
+        teamId: Long,
+        userId: Long,
+        startDate: LocalDate,
+        endDate: LocalDate,
+    ): TeamPlayerRankingsResponse {
+        if (startDate.isAfter(endDate)) {
+            throw ApiException(MatchErrorCode.INVALID_MATCH_STATISTICS_REQUEST)
+        }
+
+        validateTeamExists(teamId)
+        val currentMember = requireActiveTeamMember(teamId, userId)
+        val startAt = startDate.atStartOfDay()
+        val endAtExclusive = endDate.plusDays(1).atStartOfDay()
+        val completedMatches = matchRepository.selectMatchesByTeamId(teamId).filter { match ->
+            !match.isTraining &&
+                match.status != MatchStatus.CANCELED &&
+                (match.status == MatchStatus.COMPLETED ||
+                    (match.teamScore != null && match.opponentScore != null)) &&
+                !match.matchAt.isBefore(startAt) &&
+                match.matchAt.isBefore(endAtExclusive)
+        }
+        val statisticsByMemberId = matchParticipantRepository
+            .selectParticipantsByMatchIds(completedMatches.map(MatchRecord::id))
+            .groupBy { it.teamMemberId }
+        val memberTotals = teamRepository.selectMembersByTeamId(teamId).map { member ->
+            val statistics = statisticsByMemberId[member.id].orEmpty()
+            PlayerRankingTotals(
+                teamMemberId = member.id,
+                name = member.displayName,
+                goalCount = statistics.sumOf { it.goalCount },
+                assistCount = statistics.sumOf { it.assistCount },
+                cleanSheetCount = statistics.sumOf { it.cleanSheetCount },
+                isCurrentUser = member.id == currentMember.id,
+            )
+        }
+
+        return TeamPlayerRankingsResponse(
+            startDate = startDate,
+            endDate = endDate,
+            completedMatchCount = completedMatches.size,
+            goalRankings = createRankings(memberTotals) { it.goalCount },
+            assistRankings = createRankings(memberTotals) { it.assistCount },
+            cleanSheetRankings = createRankings(memberTotals) { it.cleanSheetCount },
+        )
+    }
+
+    private fun createRankings(
+        totals: List<PlayerRankingTotals>,
+        valueSelector: (PlayerRankingTotals) -> Int,
+    ): List<TeamPlayerRankingEntryResponse> {
+        val sorted = totals.sortedWith(
+            compareByDescending<PlayerRankingTotals>(valueSelector)
+                .thenBy(String.CASE_INSENSITIVE_ORDER) { it.name }
+                .thenBy { it.teamMemberId },
+        )
+        var previousValue: Int? = null
+        var currentRank = 0
+
+        return sorted.mapIndexed { index, total ->
+            val value = valueSelector(total)
+            if (value != previousValue) {
+                currentRank = index + 1
+                previousValue = value
+            }
+            TeamPlayerRankingEntryResponse(
+                rank = currentRank,
+                teamMemberId = total.teamMemberId,
+                name = total.name,
+                value = value,
+                isCurrentUser = total.isCurrentUser,
+            )
+        }
+    }
+
     fun updateMatchParticipation(
         matchId: Long,
         userId: Long,
@@ -597,6 +675,15 @@ class MatchService(
 
         return participationDeadlineAt
     }
+
+    private data class PlayerRankingTotals(
+        val teamMemberId: Long,
+        val name: String,
+        val goalCount: Int,
+        val assistCount: Int,
+        val cleanSheetCount: Int,
+        val isCurrentUser: Boolean,
+    )
 
     companion object {
         private const val OPPONENT_TEAM_NAME_MAX_LENGTH = 100
