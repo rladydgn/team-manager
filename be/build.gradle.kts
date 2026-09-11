@@ -22,6 +22,7 @@ dependencies {
 	implementation("org.springframework.boot:spring-boot-starter-webmvc")
 	implementation("org.jetbrains.kotlin:kotlin-reflect")
 	implementation("tools.jackson.module:jackson-module-kotlin")
+	implementation("com.fasterxml.jackson.datatype:jackson-datatype-jsr310:2.21.4")
 	implementation("org.jetbrains.exposed:exposed-spring-boot-starter:1.3.1")
 	implementation("org.jetbrains.exposed:exposed-java-time:1.3.1")
 	implementation("at.favre.lib:bcrypt:0.10.2")

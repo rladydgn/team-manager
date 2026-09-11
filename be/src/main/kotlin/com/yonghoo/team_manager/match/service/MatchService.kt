@@ -293,7 +293,13 @@ class MatchService(
                 )
             }
         val sortComparator = when (sortBy) {
-            TeamAttendanceSortBy.NAME -> compareBy<TeamAttendanceMemberResponse> { it.name }
+            TeamAttendanceSortBy.NAME -> compareBy<TeamAttendanceMemberResponse, String>(
+                String.CASE_INSENSITIVE_ORDER,
+            ) { it.name }
+            TeamAttendanceSortBy.ATTENDANCE_RATE -> compareBy { it.attendanceRate }
+            TeamAttendanceSortBy.TRAINING_ATTENDANCE_RATE -> compareBy { it.trainingAttendanceRate }
+            TeamAttendanceSortBy.POST_VOTE_ABSENCE_COUNT -> compareBy { it.postVoteAbsenceCount }
+            TeamAttendanceSortBy.LATE_COUNT -> compareBy { it.lateCount }
             TeamAttendanceSortBy.GOAL_COUNT -> compareBy { it.goalCount }
             TeamAttendanceSortBy.ASSIST_COUNT -> compareBy { it.assistCount }
             TeamAttendanceSortBy.CLEAN_SHEET_COUNT -> compareBy { it.cleanSheetCount }

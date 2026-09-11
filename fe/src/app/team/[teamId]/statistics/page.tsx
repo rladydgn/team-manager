@@ -29,6 +29,10 @@ const periodPresetLabels: Record<Exclude<PeriodPreset, "CUSTOM">, string> = {
 
 const statisticSortLabels: Record<TeamAttendanceSortBy, string> = {
   NAME: "이름",
+  ATTENDANCE_RATE: "경기 출석",
+  TRAINING_ATTENDANCE_RATE: "훈련 출석",
+  POST_VOTE_ABSENCE_COUNT: "투표 후 불참",
+  LATE_COUNT: "지각",
   GOAL_COUNT: "골",
   ASSIST_COUNT: "어시스트",
   CLEAN_SHEET_COUNT: "클린시트",
@@ -214,7 +218,7 @@ export default function TeamStatisticsPage() {
     setPage(0);
   }
 
-  function toggleStatisticSort(nextSortBy: Exclude<TeamAttendanceSortBy, "NAME">) {
+  function toggleStatisticSort(nextSortBy: TeamAttendanceSortBy) {
     setPage(0);
 
     if (sortBy === nextSortBy) {
@@ -226,14 +230,6 @@ export default function TeamStatisticsPage() {
 
     setSortBy(nextSortBy);
     setSortDirection("ASC");
-  }
-
-  function getSortIndicator(targetSortBy: TeamAttendanceSortBy) {
-    if (sortBy !== targetSortBy) {
-      return null;
-    }
-
-    return sortDirection === "ASC" ? "▲" : "▼";
   }
 
   const pageLabel = statistics && statistics.totalPages > 0
@@ -339,7 +335,7 @@ export default function TeamStatisticsPage() {
               ) : (
                 <>
                   <div className="flex flex-wrap gap-2 border-b border-[#e2e8f0] px-5 py-3 sm:hidden">
-                    {(["GOAL_COUNT", "ASSIST_COUNT", "CLEAN_SHEET_COUNT"] as const).map((targetSortBy) => (
+                    {(Object.keys(statisticSortLabels) as TeamAttendanceSortBy[]).map((targetSortBy) => (
                       <button
                         key={targetSortBy}
                         type="button"
@@ -347,7 +343,8 @@ export default function TeamStatisticsPage() {
                         aria-pressed={sortBy === targetSortBy}
                         className={`inline-flex h-8 items-center gap-1 rounded-md border px-2.5 text-xs font-semibold transition-colors ${sortBy === targetSortBy ? "border-[#4f6f9f] bg-[#f0f4fa] text-[#3d5b86]" : "border-[#dbe4f0] bg-white text-[#64748b]"}`}
                       >
-                        {statisticSortLabels[targetSortBy]} <span aria-hidden="true">{getSortIndicator(targetSortBy) ?? ""}</span>
+                        {statisticSortLabels[targetSortBy]}
+                        <SortArrows active={sortBy === targetSortBy} direction={sortDirection} />
                       </button>
                     ))}
                   </div>
@@ -371,24 +368,14 @@ export default function TeamStatisticsPage() {
                     <table className="w-full text-left text-sm">
                       <thead className="bg-[#f8fafc] text-xs font-semibold text-[#64748b]">
                         <tr>
-                          <th scope="col" className="px-6 py-3">선수</th>
-                          <th scope="col" className="px-5 py-3 text-right">경기 출석 (투표/전체)</th>
-                          <th scope="col" className="px-5 py-3 text-right">훈련 출석 (투표/전체)</th>
-                          <th scope="col" className="px-5 py-3 text-right">투표 후 불참</th>
-                          <th scope="col" className="px-4 py-3 text-right">지각</th>
-                          {(["GOAL_COUNT", "ASSIST_COUNT", "CLEAN_SHEET_COUNT"] as const).map((targetSortBy, index) => (
-                            <th key={targetSortBy} scope="col" className={index === 2 ? "px-6 py-3 text-right" : "px-4 py-3 text-right"}>
-                              <button
-                                type="button"
-                                onClick={() => toggleStatisticSort(targetSortBy)}
-                                aria-pressed={sortBy === targetSortBy}
-                                className={`inline-flex items-center gap-1 rounded-sm px-1 py-0.5 transition-colors ${sortBy === targetSortBy ? "text-[#3d5b86]" : "hover:text-[#3d5b86]"}`}
-                              >
-                                {statisticSortLabels[targetSortBy]}
-                                {getSortIndicator(targetSortBy) ? <span className="text-[10px]" aria-hidden="true">{getSortIndicator(targetSortBy)}</span> : null}
-                              </button>
-                            </th>
-                          ))}
+                          <SortableHeader label="선수" sortKey="NAME" activeSort={sortBy} direction={sortDirection} onSort={toggleStatisticSort} className="px-6 text-left" />
+                          <SortableHeader label="경기 출석 (투표/전체)" sortKey="ATTENDANCE_RATE" activeSort={sortBy} direction={sortDirection} onSort={toggleStatisticSort} />
+                          <SortableHeader label="훈련 출석 (투표/전체)" sortKey="TRAINING_ATTENDANCE_RATE" activeSort={sortBy} direction={sortDirection} onSort={toggleStatisticSort} />
+                          <SortableHeader label="투표 후 불참" sortKey="POST_VOTE_ABSENCE_COUNT" activeSort={sortBy} direction={sortDirection} onSort={toggleStatisticSort} />
+                          <SortableHeader label="지각" sortKey="LATE_COUNT" activeSort={sortBy} direction={sortDirection} onSort={toggleStatisticSort} />
+                          <SortableHeader label="골" sortKey="GOAL_COUNT" activeSort={sortBy} direction={sortDirection} onSort={toggleStatisticSort} />
+                          <SortableHeader label="어시스트" sortKey="ASSIST_COUNT" activeSort={sortBy} direction={sortDirection} onSort={toggleStatisticSort} />
+                          <SortableHeader label="클린시트" sortKey="CLEAN_SHEET_COUNT" activeSort={sortBy} direction={sortDirection} onSort={toggleStatisticSort} className="px-6" />
                         </tr>
                       </thead>
                       <tbody className="divide-y divide-[#e2e8f0]">
@@ -422,5 +409,68 @@ export default function TeamStatisticsPage() {
         ) : null}
       </div>
     </main>
+  );
+}
+
+function SortArrows({
+  active,
+  direction,
+}: {
+  active: boolean;
+  direction: SortDirection;
+}) {
+  if (active) {
+    return (
+      <span aria-hidden="true" className="text-sm font-black leading-none text-[#2f4d76]">
+        {direction === "ASC" ? "▲" : "▼"}
+      </span>
+    );
+  }
+
+  return (
+    <span aria-hidden="true" className="flex flex-col text-[7px] leading-[6px] text-[#a4afbe]">
+      <span>▲</span>
+      <span>▼</span>
+    </span>
+  );
+}
+
+function SortableHeader({
+  label,
+  sortKey,
+  activeSort,
+  direction,
+  onSort,
+  className = "px-4 text-right",
+}: {
+  label: string;
+  sortKey: TeamAttendanceSortBy;
+  activeSort: TeamAttendanceSortBy;
+  direction: SortDirection;
+  onSort: (sortBy: TeamAttendanceSortBy) => void;
+  className?: string;
+}) {
+  const isActive = activeSort === sortKey;
+  const nextDirection = isActive && direction === "ASC" ? "내림차순" : "오름차순";
+
+  return (
+    <th
+      scope="col"
+      aria-sort={isActive ? (direction === "ASC" ? "ascending" : "descending") : "none"}
+      className={`${className} py-3`}
+    >
+      <button
+        type="button"
+        onClick={() => onSort(sortKey)}
+        aria-pressed={isActive}
+        aria-label={`${label} ${nextDirection} 정렬`}
+        className={`inline-flex items-center gap-1.5 rounded-sm px-1 py-0.5 transition-colors ${
+          isActive ? "font-bold text-[#2f4d76]" : "font-semibold text-[#64748b] hover:text-[#3d5b86]"
+        }`}
+      >
+        {label}
+        <SortArrows active={isActive} direction={direction} />
+      </button>
+    </th>
   );
 }

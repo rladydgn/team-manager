@@ -4,6 +4,10 @@ import java.time.LocalDate
 
 enum class TeamAttendanceSortBy {
     NAME,
+    ATTENDANCE_RATE,
+    TRAINING_ATTENDANCE_RATE,
+    POST_VOTE_ABSENCE_COUNT,
+    LATE_COUNT,
     GOAL_COUNT,
     ASSIST_COUNT,
     CLEAN_SHEET_COUNT,
