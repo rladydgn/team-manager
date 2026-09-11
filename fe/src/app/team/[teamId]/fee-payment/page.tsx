@@ -30,6 +30,16 @@ const statusClassNames: Record<FeePaymentStatus, string> = {
   EXEMPT: "border-[#d6dee9] bg-[#f5f7fa] text-[#526274]",
 };
 
+const statusOptionStyles: Record<
+  FeePaymentStatus,
+  { backgroundColor: string; color: string }
+> = {
+  PAID: { backgroundColor: "#f1f8f2", color: "#36734a" },
+  UNPAID: { backgroundColor: "#fff5f4", color: "#a85450" },
+  INJURED: { backgroundColor: "#f6f5fb", color: "#695c91" },
+  EXEMPT: { backgroundColor: "#f5f7fa", color: "#526274" },
+};
+
 type MemoEditor = {
   member: TeamFeePaymentMember;
   month: number;
@@ -319,7 +329,11 @@ export default function TeamFeePaymentsPage() {
                                   className={`h-7 w-full rounded-md border px-1 text-[11px] font-semibold outline-none disabled:cursor-not-allowed ${statusClassNames[payment.status]}`}
                                   aria-label={`${member.name} ${payment.paymentMonth}월 회비 상태`}
                                 >
-                                  {(Object.keys(statusLabels) as FeePaymentStatus[]).map((status) => <option key={status} value={status}>{statusLabels[status]}</option>)}
+                                  {(Object.keys(statusLabels) as FeePaymentStatus[]).map((status) => (
+                                    <option key={status} value={status} style={statusOptionStyles[status]}>
+                                      {statusLabels[status]}
+                                    </option>
+                                  ))}
                                 </select>
                                 <button
                                   type="button"
@@ -362,7 +376,11 @@ export default function TeamFeePaymentsPage() {
                               className={`h-8 w-full rounded-md border px-1.5 text-xs font-semibold outline-none disabled:cursor-not-allowed ${statusClassNames[payment.status]}`}
                               aria-label={`${member.name} ${payment.paymentMonth}월 회비 상태`}
                             >
-                              {(Object.keys(statusLabels) as FeePaymentStatus[]).map((status) => <option key={status} value={status}>{statusLabels[status]}</option>)}
+                              {(Object.keys(statusLabels) as FeePaymentStatus[]).map((status) => (
+                                <option key={status} value={status} style={statusOptionStyles[status]}>
+                                  {statusLabels[status]}
+                                </option>
+                              ))}
                             </select>
                             <button
                               type="button"
