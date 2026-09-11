@@ -7,10 +7,10 @@ import java.time.LocalDateTime
 
 object UsersTable : LongIdTable("users") {
     val username = varchar("username", 50).uniqueIndex("uk_users_username")
-    val passwordHash = varchar("password_hash", 255)
+    val passwordHash = varchar("password_hash", 255).nullable()
     val name = varchar("name", 50)
-    val birthDate = date("birth_date")
-    val email = varchar("email", 255).uniqueIndex("uk_users_email")
+    val birthDate = date("birth_date").nullable()
+    val email = varchar("email", 255).nullable().uniqueIndex("uk_users_email")
     val status = enumerationByName("status", 20, UserStatus::class).clientDefault { UserStatus.ACTIVE }
     val lastLoginAt = datetime("last_login_at").nullable()
     val createdAt = datetime("created_at").clientDefault { LocalDateTime.now() }

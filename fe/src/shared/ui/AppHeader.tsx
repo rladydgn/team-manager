@@ -72,6 +72,14 @@ export function AppHeader() {
                   <p className="px-3 py-2 text-xs font-semibold text-[#64748b]">
                     {currentUser.username}
                   </p>
+                  <Link
+                    href="/profile"
+                    role="menuitem"
+                    onClick={() => setIsAccountMenuOpen(false)}
+                    className="flex h-10 w-full items-center rounded-sm px-3 text-sm font-semibold text-[#334155] transition-colors hover:bg-[#f0f4fa]"
+                  >
+                    프로필
+                  </Link>
                   <button
                     type="button"
                     role="menuitem"

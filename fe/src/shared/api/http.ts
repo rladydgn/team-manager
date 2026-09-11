@@ -83,6 +83,7 @@ function shouldRefreshAccessCookie(path: string) {
     "/users/sign-up",
     "/users/sign-out",
     "/users/token/refresh",
+    "/oauth/kakao/register",
   ].includes(path);
 }
 

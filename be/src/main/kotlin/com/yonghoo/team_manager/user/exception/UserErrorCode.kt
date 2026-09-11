@@ -30,6 +30,14 @@ enum class UserErrorCode(
     INVALID_REFRESH_TOKEN(
         status = HttpStatus.UNAUTHORIZED,
         message = "리프레시 토큰이 유효하지 않습니다.",
+    ),
+    KAKAO_LOGIN_FAILED(
+        status = HttpStatus.UNAUTHORIZED,
+        message = "카카오 로그인에 실패했습니다.",
+    ),
+    KAKAO_ACCOUNT_ALREADY_LINKED(
+        status = HttpStatus.CONFLICT,
+        message = "이미 다른 사용자에게 연결된 카카오 계정입니다.",
     );
 
     override val code: String

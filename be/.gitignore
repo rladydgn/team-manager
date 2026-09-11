@@ -43,3 +43,4 @@ out/
 
 ### Local config ###
 src/main/resources/application-local.yml
+src/main/resources/application-real.yml

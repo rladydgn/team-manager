@@ -90,3 +90,23 @@ ALTER TABLE matches
 
 ALTER TABLE matches
     ADD COLUMN is_training TINYINT(1) NOT NULL DEFAULT 0 AFTER match_type;
+
+-- Support provider-only users while keeping external identities separate for future account linking.
+ALTER TABLE users
+    MODIFY COLUMN password_hash VARCHAR(255) NULL,
+    MODIFY COLUMN birth_date DATE NULL,
+    MODIFY COLUMN email VARCHAR(255) NULL;
+
+CREATE TABLE user_social_accounts (
+    id BIGINT UNSIGNED NOT NULL AUTO_INCREMENT,
+    user_id BIGINT UNSIGNED NOT NULL,
+    provider ENUM('KAKAO') NOT NULL,
+    provider_user_id VARCHAR(100) NOT NULL,
+    provider_email VARCHAR(255) NULL,
+    created_at DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP,
+    updated_at DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
+    deleted_at DATETIME NULL,
+    PRIMARY KEY (id),
+    KEY idx_user_social_accounts_provider_user (provider, provider_user_id),
+    KEY idx_user_social_accounts_user_id (user_id)
+);

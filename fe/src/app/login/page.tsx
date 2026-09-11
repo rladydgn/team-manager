@@ -3,7 +3,7 @@
 import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { FormEvent, useEffect, useState } from "react";
-import { signIn } from "@/features/auth/api/auth";
+import { getKakaoAuthorizeUrl, signIn } from "@/features/auth/api/auth";
 import { useAuthSession } from "@/features/auth/model/auth-session";
 
 export default function LoginPage() {
@@ -15,9 +15,23 @@ export default function LoginPage() {
   const [isSubmitting, setIsSubmitting] = useState(false);
 
   useEffect(() => {
+    let oauthErrorTimer: number | undefined;
+
+    if (new URLSearchParams(window.location.search).get("oauthError") === "kakao") {
+      oauthErrorTimer = window.setTimeout(() => {
+        setErrorMessage("카카오 로그인에 실패했습니다. 잠시 후 다시 시도해 주세요.");
+      }, 0);
+    }
+
     if (currentUser) {
       router.replace("/team");
     }
+
+    return () => {
+      if (oauthErrorTimer !== undefined) {
+        window.clearTimeout(oauthErrorTimer);
+      }
+    };
   }, [currentUser, router]);
 
   async function handleSubmit(event: FormEvent<HTMLFormElement>) {
@@ -126,6 +140,26 @@ export default function LoginPage() {
                     {isSubmitting ? "로그인 중..." : "로그인"}
                   </button>
                 </form>
+
+                <div className="my-6 flex items-center gap-3" aria-hidden="true">
+                  <span className="h-px flex-1 bg-[#e2e8f0]" />
+                  <span className="text-xs font-medium text-[#94a3b8]">또는</span>
+                  <span className="h-px flex-1 bg-[#e2e8f0]" />
+                </div>
+
+                <a
+                  href={getKakaoAuthorizeUrl()}
+                  className="inline-flex h-12 w-full items-center justify-center gap-2 rounded-md bg-[#FEE500] px-5 text-base font-semibold text-[rgba(0,0,0,0.85)] transition-colors hover:bg-[#f5dc00]"
+                >
+                  <svg
+                    aria-hidden="true"
+                    viewBox="0 0 24 24"
+                    className="size-5 fill-current"
+                  >
+                    <path d="M12 3C6.48 3 2 6.48 2 10.78c0 2.77 1.86 5.2 4.66 6.58l-1.18 4.3a.43.43 0 0 0 .66.46l5.17-3.43c.23.02.46.02.69.02 5.52 0 10-3.48 10-7.93S17.52 3 12 3Z" />
+                  </svg>
+                  카카오로 로그인
+                </a>
 
                 <p className="mt-6 text-center text-sm text-[#64748b]">
                   아직 계정이 없나요?{" "}

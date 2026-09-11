@@ -9,6 +9,7 @@ import com.yonghoo.team_manager.user.auth.REFRESH_TOKEN_COOKIE_NAME
 import com.yonghoo.team_manager.user.dto.UserLoginRequest
 import com.yonghoo.team_manager.user.dto.UserLoginResponse
 import com.yonghoo.team_manager.user.dto.UserRegisterRequest
+import com.yonghoo.team_manager.user.dto.UserProfileResponse
 import com.yonghoo.team_manager.user.exception.UserErrorCode
 import com.yonghoo.team_manager.user.service.UserService
 import io.swagger.v3.oas.annotations.Operation
@@ -68,6 +69,15 @@ class UserController(
     ): ResponseEntity<CommonResponse<UserLoginResponse>> {
         val authenticatedUserId = userId ?: throw ApiException(UserErrorCode.UNAUTHORIZED_ACCESS)
         return ResponseEntity.ok(CommonResponse(data = userService.getCurrentUser(authenticatedUserId)))
+    }
+
+    @Operation(summary = "내 프로필 조회")
+    @GetMapping("/profile")
+    fun getProfile(
+        @RequestAttribute(name = AUTHENTICATED_USER_ID_ATTRIBUTE, required = false) userId: Long?,
+    ): ResponseEntity<CommonResponse<UserProfileResponse>> {
+        val authenticatedUserId = userId ?: throw ApiException(UserErrorCode.UNAUTHORIZED_ACCESS)
+        return ResponseEntity.ok(CommonResponse(data = userService.getProfile(authenticatedUserId)))
     }
 
     @Operation(

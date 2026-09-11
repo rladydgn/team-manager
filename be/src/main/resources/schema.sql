@@ -1,10 +1,10 @@
 CREATE TABLE users (
     id BIGINT UNSIGNED NOT NULL AUTO_INCREMENT,
     username VARCHAR(50) NOT NULL,
-    password_hash VARCHAR(255) NOT NULL,
+    password_hash VARCHAR(255) NULL,
     name VARCHAR(50) NOT NULL,
-    birth_date DATE NOT NULL,
-    email VARCHAR(255) NOT NULL,
+    birth_date DATE NULL,
+    email VARCHAR(255) NULL,
     phone_number VARCHAR(30) NULL,
     profile_image_url VARCHAR(500) NULL,
     status ENUM('ACTIVE', 'INACTIVE', 'BANNED') NOT NULL DEFAULT 'ACTIVE',
@@ -15,6 +15,20 @@ CREATE TABLE users (
     PRIMARY KEY (id),
     UNIQUE KEY uk_users_username (username),
     UNIQUE KEY uk_users_email (email)
+);
+
+CREATE TABLE user_social_accounts (
+    id BIGINT UNSIGNED NOT NULL AUTO_INCREMENT,
+    user_id BIGINT UNSIGNED NOT NULL,
+    provider ENUM('KAKAO') NOT NULL,
+    provider_user_id VARCHAR(100) NOT NULL,
+    provider_email VARCHAR(255) NULL,
+    created_at DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP,
+    updated_at DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
+    deleted_at DATETIME NULL,
+    PRIMARY KEY (id),
+    KEY idx_user_social_accounts_provider_user (provider, provider_user_id),
+    KEY idx_user_social_accounts_user_id (user_id)
 );
 
 CREATE TABLE teams (

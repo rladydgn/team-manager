@@ -9,6 +9,7 @@ import org.jetbrains.exposed.v1.core.eq
 import org.jetbrains.exposed.v1.core.inList
 import org.jetbrains.exposed.v1.core.isNull
 import org.springframework.stereotype.Repository
+import java.time.LocalDate
 import java.time.LocalDateTime
 
 @Repository
@@ -23,6 +24,22 @@ class UserRepository {
             name = request.name.trim()
             birthDate = request.birthDate
             email = request.email.trim()
+        }
+        return UserRecord.from(user)
+    }
+
+    fun createSocialUser(
+        username: String,
+        name: String,
+        birthDate: LocalDate?,
+        email: String?,
+    ): UserRecord {
+        val user = UserEntity.new {
+            this.username = username
+            this.passwordHash = null
+            this.name = name
+            this.birthDate = birthDate
+            this.email = email
         }
         return UserRecord.from(user)
     }

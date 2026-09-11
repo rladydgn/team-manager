@@ -8,9 +8,12 @@ import com.yonghoo.team_manager.user.dto.UserLoginRequest
 import com.yonghoo.team_manager.user.dto.UserLoginResponse
 import com.yonghoo.team_manager.user.dto.UserAccessTokenResult
 import com.yonghoo.team_manager.user.dto.UserRegisterRequest
+import com.yonghoo.team_manager.user.dto.UserProfileResponse
+import com.yonghoo.team_manager.user.domain.SocialProvider
 import com.yonghoo.team_manager.user.dto.UserSignInResult
 import com.yonghoo.team_manager.user.exception.UserErrorCode
 import com.yonghoo.team_manager.user.repository.UserRepository
+import com.yonghoo.team_manager.user.repository.UserSocialAccountRepository
 import org.springframework.stereotype.Service
 import org.springframework.transaction.annotation.Transactional
 import java.time.LocalDateTime
@@ -22,6 +25,7 @@ class UserService(
     private val passwordHasher: PasswordHasher,
     private val userRepository: UserRepository,
     private val jwtTokenProvider: JwtTokenProvider,
+    private val socialAccountRepository: UserSocialAccountRepository,
 ) {
     fun registerUser(request: UserRegisterRequest) {
         validateRegisterRequest(request)
@@ -46,7 +50,8 @@ class UserService(
         val user = userRepository.selectUserByUsername(request.username)
             ?: throw ApiException(UserErrorCode.LOGIN_FAILED)
 
-        if (!passwordHasher.matches(request.password, user.passwordHash)) {
+        val passwordHash = user.passwordHash
+        if (passwordHash == null || !passwordHasher.matches(request.password, passwordHash)) {
             throw ApiException(UserErrorCode.LOGIN_FAILED)
         }
 
@@ -81,6 +86,21 @@ class UserService(
         return createLoginResponse(user)
     }
 
+    @Transactional(readOnly = true)
+    fun getProfile(userId: Long): UserProfileResponse {
+        val user = userRepository.selectUserById(userId)
+            ?: throw ApiException(UserErrorCode.UNAUTHORIZED_ACCESS)
+
+        return UserProfileResponse(
+            id = user.id,
+            name = user.name,
+            username = user.username,
+            birthDate = user.birthDate?.let { "${it.year}-**-**" },
+            email = maskEmail(user.email),
+            kakaoLinked = socialAccountRepository.existsByUserId(user.id, SocialProvider.KAKAO),
+        )
+    }
+
     fun getUser(username: String): UserRecord? {
         return userRepository.selectUserByUsername(username)
     }
@@ -110,6 +130,22 @@ class UserService(
 
     private fun createLoginResponse(user: UserRecord): UserLoginResponse {
         return UserLoginResponse.from(user)
+    }
+
+    private fun maskEmail(email: String?): String? {
+        if (email.isNullOrBlank()) {
+            return null
+        }
+
+        val separatorIndex = email.indexOf('@')
+        if (separatorIndex <= 0 || separatorIndex == email.lastIndex) {
+            return "***"
+        }
+
+        val localPart = email.substring(0, separatorIndex)
+        val domain = email.substring(separatorIndex + 1)
+        val visibleLength = if (localPart.length <= 2) 1 else 2
+        return "${localPart.take(visibleLength)}***@$domain"
     }
 
     companion object {

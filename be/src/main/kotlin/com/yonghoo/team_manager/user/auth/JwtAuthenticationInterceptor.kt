@@ -88,6 +88,9 @@ class JwtAuthenticationInterceptor(
             "/users/id/check",
             "/users/email/check",
             "/users/token/refresh",
+            "/oauth/kakao/authorize",
+            "/oauth/kakao/callback",
+            "/oauth/kakao/register",
         )
     }
 }
