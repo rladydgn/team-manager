@@ -16,6 +16,7 @@ import {
   matchResultPresentation,
 } from "@/features/match/model/result";
 import { MatchParticipationButton } from "@/features/match/ui/MatchParticipationButton";
+import { MatchNotesSection } from "@/features/match/ui/MatchNotesSection";
 import { useAuthSession } from "@/features/auth/model/auth-session";
 import { getTeam, Team, TeamMember } from "@/features/team/api/team";
 
@@ -457,6 +458,10 @@ export default function MatchDetailPage() {
               </div>
             </section>
 
+            {currentUser ? (
+              <MatchNotesSection key={`${match.id}-${currentUser.id}`} matchId={match.id} />
+            ) : null}
+
             {hasMatchRecord ? (
               <section className="overflow-hidden rounded-2xl border border-[#dbe4f0] bg-white shadow-[0_8px_24px_rgba(37,55,84,0.04)]">
                 <div className="flex flex-col gap-3 border-b border-[#e2e8f0] bg-[#fbfcfe] px-5 py-5 sm:flex-row sm:items-center sm:justify-between sm:px-6">
@@ -543,7 +548,7 @@ export default function MatchDetailPage() {
                             {member.role === "OWNER"
                               ? "팀장"
                               : member.role === "SUB_MANAGER"
-                                ? "부관리자"
+                                ? "부팀장"
                                 : member.role === "GUEST"
                                   ? "게스트"
                                   : "팀원"}
@@ -644,7 +649,7 @@ export default function MatchDetailPage() {
                             {member.role === "OWNER"
                               ? "팀장"
                               : member.role === "SUB_MANAGER"
-                                ? "부관리자"
+                                ? "부팀장"
                                 : member.role === "GUEST"
                                   ? "용병"
                                   : "팀원"}

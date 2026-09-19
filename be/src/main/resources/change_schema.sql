@@ -128,3 +128,8 @@ CREATE TABLE team_seasons (
     KEY idx_team_seasons_team_order (team_id, sort_order),
     KEY idx_team_seasons_team_default (team_id, is_default)
 );
+
+-- Separate team-visible match notes from manager-only notes.
+ALTER TABLE matches
+    ADD COLUMN public_note TEXT NULL AFTER location,
+    ADD COLUMN manager_note TEXT NULL AFTER public_note;

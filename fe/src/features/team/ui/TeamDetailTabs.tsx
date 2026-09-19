@@ -47,7 +47,7 @@ export function TeamDetailTabs({
           aria-current={activeTab === "overview" ? "page" : undefined}
           className={`inline-flex h-11 items-center justify-center px-4 text-sm font-semibold transition-colors ${overviewClassName}`}
         >
-          메인
+          팀 홈
         </Link>
         <Link
           href={`/team/${teamId}/match`}

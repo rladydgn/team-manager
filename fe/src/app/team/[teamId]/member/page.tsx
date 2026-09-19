@@ -19,7 +19,7 @@ import { TeamDetailTabs } from "@/features/team/ui/TeamDetailTabs";
 
 const roleLabels: Record<TeamMember["role"], string> = {
   OWNER: "팀장",
-  SUB_MANAGER: "부관리자",
+  SUB_MANAGER: "부팀장",
   MEMBER: "팀원",
   GUEST: "용병",
 };
@@ -146,7 +146,7 @@ export default function TeamMembersPage() {
     if (
       role === "OWNER" &&
       !window.confirm(
-        `${member.name ?? "선택한 팀원"}님을 팀장으로 변경할까요?\n현재 팀장은 부관리자로 변경됩니다.`
+        `${member.name ?? "선택한 팀원"}님을 팀장으로 변경할까요?\n현재 팀장은 부팀장으로 변경됩니다.`
       )
     ) {
       return;
@@ -264,7 +264,7 @@ export default function TeamMembersPage() {
               href={`/team/${teamId}`}
               className="mt-6 inline-flex h-11 items-center justify-center rounded-md bg-[#4f6f9f] px-5 text-sm font-semibold text-white transition-colors hover:bg-[#435f88]"
             >
-              팀 메인으로 돌아가기
+              팀 홈으로 돌아가기
             </Link>
           </section>
         ) : teamDetail ? (
@@ -348,7 +348,7 @@ export default function TeamMembersPage() {
                               >
                                 <option value="MEMBER">{member.userId === null ? "팀원(비회원)" : "팀원"}</option>
                                 <option value="GUEST">용병</option>
-                                <option value="SUB_MANAGER" disabled={member.userId === null}>부관리자</option>
+                                <option value="SUB_MANAGER" disabled={member.userId === null}>부팀장</option>
                                 <option value="OWNER" disabled={member.userId === null}>팀장</option>
                               </select>
                             ) : (

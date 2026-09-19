@@ -9,7 +9,7 @@ enum class FeePaymentErrorCode(
 ) : ErrorCode {
     FEE_PAYMENT_MANAGEMENT_FORBIDDEN(
         status = HttpStatus.FORBIDDEN,
-        message = "회비 납부 현황은 팀장 또는 부관리자만 관리할 수 있습니다.",
+        message = "회비 납부 현황은 운영진만 관리할 수 있습니다.",
     ),
     TEAM_MEMBER_NOT_FOUND(
         status = HttpStatus.NOT_FOUND,

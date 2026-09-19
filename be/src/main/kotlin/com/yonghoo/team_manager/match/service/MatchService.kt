@@ -2,6 +2,9 @@ package com.yonghoo.team_manager.match.service
 
 import com.yonghoo.team_manager.exception.exception.ApiException
 import com.yonghoo.team_manager.match.domain.MatchParticipantRecord
+import com.yonghoo.team_manager.match.domain.MatchNoteVisibility
+import com.yonghoo.team_manager.match.dto.MatchNoteUpdateRequest
+import com.yonghoo.team_manager.match.dto.MatchNotesResponse
 import com.yonghoo.team_manager.match.domain.MatchStatus
 import com.yonghoo.team_manager.match.domain.MatchType
 import com.yonghoo.team_manager.match.dto.MatchCreateRequest
@@ -474,6 +477,38 @@ class MatchService(
         return toMatchResponse(updatedMatch, currentTeamMember.id, updatedParticipants)
     }
 
+    @Transactional(readOnly = true)
+    fun getMatchNotes(matchId: Long, userId: Long): MatchNotesResponse {
+        val match = getMatchAndValidateViewPermission(matchId, userId)
+        val role = requireActiveTeamMember(match.teamId, userId).role
+        return toMatchNotesResponse(match, role == TeamMemberRole.OWNER || role == TeamMemberRole.SUB_MANAGER)
+    }
+
+    fun updateMatchNote(
+        matchId: Long,
+        userId: Long,
+        visibility: MatchNoteVisibility,
+        request: MatchNoteUpdateRequest,
+    ): MatchNotesResponse {
+        val match = getMatchAndValidateViewPermission(matchId, userId)
+        validateMatchRecordManager(match.teamId, userId)
+        if (request.content.length > MATCH_NOTE_MAX_LENGTH) {
+            throw ApiException(MatchErrorCode.MATCH_NOTE_TOO_LONG)
+        }
+        val updatedMatch = matchRepository.updateMatchNote(
+            match.id,
+            visibility,
+            request.content.trim().takeIf(String::isNotBlank),
+        )
+        return toMatchNotesResponse(updatedMatch, canManage = true)
+    }
+
+    private fun toMatchNotesResponse(match: MatchRecord, canManage: Boolean) = MatchNotesResponse(
+        publicNote = match.publicNote.orEmpty(),
+        managerNote = if (canManage) match.managerNote.orEmpty() else null,
+        canManage = canManage,
+    )
+
     private fun validateTeamExists(teamId: Long) {
         if (teamRepository.selectTeamById(teamId) == null) {
             throw ApiException(TeamErrorCode.TEAM_NOT_FOUND)
@@ -696,6 +731,7 @@ class MatchService(
         private const val LOCATION_MAX_LENGTH = 255
         private const val DEFAULT_PARTICIPATION_DEADLINE_HOURS = 24L
         private const val PARTICIPATION_MEMO_MAX_LENGTH = 500
+        private const val MATCH_NOTE_MAX_LENGTH = 10_000
         private const val ATTENDANCE_STATISTICS_PAGE_SIZE = 20
         private const val MAX_MATCH_SCORE = 99
         private const val MAX_PLAYER_STATISTIC_COUNT = 99

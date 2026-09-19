@@ -31,7 +31,7 @@ export default function NewTeamSeasonPage() {
           const member = response.data?.members.find((item) => item.userId === currentUser.id);
           const allowed = member?.role === "OWNER" || member?.role === "SUB_MANAGER";
           setIsAllowed(allowed);
-          if (!allowed) setErrorMessage("팀장과 부관리자만 시즌을 생성할 수 있습니다.");
+          if (!allowed) setErrorMessage("운영진만 시즌을 생성할 수 있습니다.");
         })
         .catch((error) => setErrorMessage(error instanceof Error ? error.message : "팀 정보를 불러오지 못했습니다."));
     }, 0);

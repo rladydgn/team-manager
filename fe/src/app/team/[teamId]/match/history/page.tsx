@@ -40,7 +40,7 @@ function getMemberRole(member: TeamMember) {
     return "팀장";
   }
   if (member.role === "SUB_MANAGER") {
-    return "부관리자";
+    return "부팀장";
   }
   if (member.role === "GUEST") {
     return "용병";
@@ -271,7 +271,7 @@ export default function HistoricalMatchCreatePage() {
         ) : !canCreateMatch ? (
           <section className="rounded-lg border border-[#dbe4f0] bg-white px-5 py-12 text-center">
             <h1 className="text-xl font-bold text-[#0f172a]">경기 {isEditMode ? "수정" : "등록"} 권한이 없습니다.</h1>
-            <p className="mt-3 text-sm leading-6 text-[#64748b]">팀장과 부관리자만 이전 경기를 {isEditMode ? "수정" : "등록"}할 수 있습니다.</p>
+            <p className="mt-3 text-sm leading-6 text-[#64748b]">운영진만 이전 경기를 {isEditMode ? "수정" : "등록"}할 수 있습니다.</p>
           </section>
         ) : teamDetail ? (
           <form className="grid gap-6 rounded-lg border border-[#dbe4f0] bg-white p-5 shadow-[0_20px_60px_rgba(15,23,42,0.08)] sm:p-7" onSubmit={handleSubmit}>

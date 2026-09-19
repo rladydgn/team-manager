@@ -126,7 +126,7 @@ export default function MatchRecordPage() {
         setTeam(detail?.team ?? null);
         setTeamMembers(members);
         setRecordMembers([]);
-        setErrorMessage("경기 기록은 팀장 또는 부관리자만 관리할 수 있습니다.");
+        setErrorMessage("경기 기록은 운영진만 관리할 수 있습니다.");
         return;
       }
 
@@ -428,7 +428,7 @@ export default function MatchRecordPage() {
                     <div key={member.id} className="grid gap-3 px-5 py-4 lg:grid-cols-[minmax(0,1fr)_5.5rem_4.5rem_5rem_5rem_6rem] lg:items-center sm:px-6">
                       <div className="min-w-0">
                         <p className="truncate font-semibold text-[#1f2937]">{getPlayerName(member)}</p>
-                        <p className="mt-1 text-xs text-[#64748b]">{member.role === "OWNER" ? "팀장" : member.role === "SUB_MANAGER" ? "부관리자" : member.role === "GUEST" ? "용병" : "팀원"}</p>
+                        <p className="mt-1 text-xs text-[#64748b]">{member.role === "OWNER" ? "팀장" : member.role === "SUB_MANAGER" ? "부팀장" : member.role === "GUEST" ? "용병" : "팀원"}</p>
                       </div>
                       <label className="flex items-center gap-2 text-sm font-semibold text-[#52627b] sm:flex-col sm:gap-1 sm:text-center">
                         <input type="checkbox" checked={statistic.actualParticipated} onChange={(event) => updatePlayerParticipation(member.id, event.target.checked)} disabled={isSaving} className="size-4 accent-[#4f6f9f] disabled:cursor-not-allowed" />

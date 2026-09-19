@@ -57,7 +57,7 @@ function isFeeManager(role: TeamDetail["members"][number]["role"] | undefined) {
 
 function getMemberRoleLabel(member: TeamFeePaymentMember) {
   if (member.role === "OWNER") return "팀장";
-  if (member.role === "SUB_MANAGER") return "부관리자";
+  if (member.role === "SUB_MANAGER") return "부팀장";
   if (member.role === "GUEST") return "용병";
   return member.userId === null ? "팀원(비회원)" : "팀원";
 }
@@ -116,7 +116,7 @@ export default function TeamFeePaymentsPage() {
       if (!detail || !isFeeManager(role)) {
         setTeamDetail(detail ?? null);
         setFeePayments(null);
-        setErrorMessage("회비 납부 현황은 팀장 또는 부관리자만 볼 수 있습니다.");
+        setErrorMessage("회비 납부 현황은 운영진만 볼 수 있습니다.");
         return;
       }
 
@@ -275,7 +275,7 @@ export default function TeamFeePaymentsPage() {
               <div>
                 <p className="text-sm font-semibold text-[#4f6f9f]">FEE PAYMENT</p>
                 <h1 className="mt-2 text-3xl font-bold text-[#0f172a] sm:text-4xl">{teamDetail.team.name} 회비 납부</h1>
-                <p className="mt-3 text-sm leading-6 text-[#64748b]">팀장과 부관리자가 월별 납부 상태와 메모를 관리합니다.</p>
+                <p className="mt-3 text-sm leading-6 text-[#64748b]">운영진이 월별 납부 상태와 메모를 관리합니다.</p>
               </div>
               <label className="grid w-fit gap-1.5 text-sm font-semibold text-[#475569]">
                 조회 연도
@@ -287,7 +287,7 @@ export default function TeamFeePaymentsPage() {
 
             {noticeMessage ? <p className="rounded-md border border-[#c8d4e6] bg-[#f0f4fa] px-4 py-3 text-sm font-medium text-[#3d5b86]">{noticeMessage}</p> : null}
 
-            <section className="overflow-hidden rounded-lg border border-[#dbe4f0] bg-white">
+            <section className="overflow-clip rounded-lg border border-[#dbe4f0] bg-white">
               <div className="flex items-center justify-between gap-4 border-b border-[#e2e8f0] px-5 py-4 sm:px-6">
                 <div>
                   <h2 className="text-lg font-bold text-[#0f172a]">{feePayments.paymentYear}년 월별 납부 현황</h2>
@@ -304,8 +304,9 @@ export default function TeamFeePaymentsPage() {
                   </colgroup>
                   <thead className="bg-[#f8fafc] text-xs font-semibold text-[#64748b]">
                     <tr>
-                      <th scope="col" className="bg-[#f8fafc] px-4 py-2.5">팀원</th>
-                      {months.map((month) => <th key={month} scope="col" className="px-1 py-2.5 text-center">{month}월</th>)}
+                      {/* Keep column labels below the 4rem app header and its 1px border. */}
+                      <th scope="col" className="sticky top-[calc(4rem+1px)] z-10 bg-[#f8fafc] px-4 py-2.5 shadow-[0_1px_0_#dbe4f0]">팀원</th>
+                      {months.map((month) => <th key={month} scope="col" className="sticky top-[calc(4rem+1px)] z-10 bg-[#f8fafc] px-1 py-2.5 text-center shadow-[0_1px_0_#dbe4f0]">{month}월</th>)}
                     </tr>
                   </thead>
                   <tbody className="divide-y divide-[#e2e8f0]">

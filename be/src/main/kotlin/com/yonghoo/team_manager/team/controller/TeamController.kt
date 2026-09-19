@@ -34,7 +34,7 @@ class TeamController(
 ) {
     @Operation(
         summary = "팀 생성",
-        description = "축구 팀을 생성하고 생성자를 팀 OWNER로 등록합니다.",
+        description = "축구 팀을 생성하고 생성자를 팀장으로 등록합니다.",
     )
     @PostMapping
     fun createTeam(
@@ -109,7 +109,7 @@ class TeamController(
 
     @Operation(
         summary = "팀 수정",
-        description = "팀 OWNER 또는 SUB_MANAGER가 팀 정보를 수정하고 변경 이력을 저장합니다.",
+        description = "운영진이 팀 정보를 수정하고 변경 이력을 저장합니다.",
     )
     @PutMapping("/{teamId}")
     fun updateTeam(
@@ -130,7 +130,7 @@ class TeamController(
 
     @Operation(
         summary = "팀 삭제",
-        description = "팀 OWNER가 본인만 팀에 남아 있을 때 팀을 soft delete하고 삭제 이력을 저장합니다.",
+        description = "팀장이 본인만 팀에 남아 있을 때 팀을 soft delete하고 삭제 이력을 저장합니다.",
     )
     @DeleteMapping("/{teamId}")
     fun deleteTeam(

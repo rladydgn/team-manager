@@ -23,7 +23,7 @@ export default function TeamSeasonSettingsPage() {
       const [teamResponse, seasonResponse] = await Promise.all([getTeam(teamId), getTeamSeasons(teamId)]);
       const member = teamResponse.data?.members.find((item) => item.userId === currentUser.id);
       if (member?.role !== "OWNER" && member?.role !== "SUB_MANAGER") {
-        setErrorMessage("팀장과 부관리자만 시즌 설정을 변경할 수 있습니다.");
+        setErrorMessage("운영진만 시즌 설정을 변경할 수 있습니다.");
         return;
       }
       setTeam(teamResponse.data?.team ?? null);

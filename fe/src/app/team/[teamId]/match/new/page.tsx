@@ -192,7 +192,7 @@ export default function NewMatchPage() {
           }
           className="inline-flex w-fit text-sm font-semibold text-[#3d5b86] transition-colors hover:text-[#283f62]"
         >
-          팀 상세로 돌아가기
+          팀 홈으로 돌아가기
         </Link>
 
         {isLoading ? (
@@ -238,7 +238,7 @@ export default function NewMatchPage() {
               매치 생성 권한이 없습니다.
             </h1>
             <p className="mt-3 text-sm leading-6 text-[#64748b]">
-              팀장과 부관리자만 매치를 등록할 수 있습니다.
+              운영진만 매치를 등록할 수 있습니다.
             </p>
           </section>
         ) : teamDetail ? (

@@ -129,6 +129,8 @@ CREATE TABLE matches (
     match_at DATETIME NOT NULL,
     participation_deadline_at DATETIME NOT NULL,
     location VARCHAR(255) NULL,
+    public_note TEXT NULL,
+    manager_note TEXT NULL,
     team_score INT UNSIGNED NULL,
     unknown_goal_count INT UNSIGNED NOT NULL DEFAULT 0,
     opponent_score INT UNSIGNED NULL,

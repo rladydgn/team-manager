@@ -122,7 +122,7 @@ export default function TeamDetailPage() {
     setNoticeMessage("");
 
     if (!isSoleActiveMember) {
-      setErrorMessage("팀 삭제는 OWNER가 팀에 혼자 남아 있을 때만 할 수 있습니다.");
+      setErrorMessage("팀 삭제는 팀장이 팀에 혼자 남아 있을 때만 할 수 있습니다.");
       return;
     }
 
@@ -179,13 +179,6 @@ export default function TeamDetailPage() {
       </header>
 
       <div className="mx-auto flex w-full max-w-6xl flex-col gap-6 px-5 py-7 sm:px-6 sm:py-8 lg:px-8">
-        <Link
-          href="/team"
-          className="inline-flex w-fit text-sm font-semibold text-[#3d5b86] transition-colors hover:text-[#283f62]"
-        >
-          팀 목록으로
-        </Link>
-
         {Number.isInteger(teamId) && teamId > 0 ? (
           <TeamDetailTabs
             teamId={teamId}

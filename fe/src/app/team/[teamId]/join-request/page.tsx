@@ -143,7 +143,7 @@ export default function TeamJoinRequestsPage() {
           href={Number.isInteger(teamId) && teamId > 0 ? `/team/${teamId}` : "/team"}
           className="inline-flex w-fit text-sm font-semibold text-[#3d5b86] transition-colors hover:text-[#283f62]"
         >
-          팀 상세로 돌아가기
+          팀 홈으로 돌아가기
         </Link>
 
         {isLoading ? (

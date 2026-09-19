@@ -183,7 +183,7 @@ export default function EditTeamPage() {
           href={detailPath}
           className="inline-flex w-fit text-sm font-semibold text-[#3d5b86] transition-colors hover:text-[#283f62]"
         >
-          팀 상세로 돌아가기
+          팀 홈으로 돌아가기
         </Link>
 
         {isLoading ? (
@@ -216,7 +216,7 @@ export default function EditTeamPage() {
         ) : !canEditTeam ? (
           <section className="rounded-lg border border-[#fecaca] bg-white px-5 py-12 text-center">
             <p className="text-sm font-semibold text-[#b91c1c]">팀 수정 권한이 없습니다.</p>
-            <p className="mt-3 text-sm leading-6 text-[#64748b]">OWNER와 SUB_MANAGER만 팀 정보를 수정할 수 있습니다.</p>
+            <p className="mt-3 text-sm leading-6 text-[#64748b]">운영진만 팀 정보를 수정할 수 있습니다.</p>
           </section>
         ) : teamDetail ? (
           <section className="overflow-hidden rounded-lg border border-[#dbe4f0] bg-white shadow-[0_20px_60px_rgba(15,23,42,0.08)]">
