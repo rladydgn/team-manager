@@ -12,7 +12,7 @@ const teamHomeClassName = "inline-flex h-10 shrink-0 items-center justify-center
 function TeamHomeLabel() {
   return (
     <>
-      <svg aria-hidden="true" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8" className="size-4 shrink-0">
+      <svg aria-hidden="true" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8" className="hidden size-4 shrink-0 sm:block">
         <path strokeLinecap="round" strokeLinejoin="round" d="m3 10 9-7 9 7M5 9v11h5v-6h4v6h5V9" />
       </svg>
       <span className="whitespace-nowrap">팀 홈</span>
@@ -89,7 +89,7 @@ export function AppHeader() {
 
   return (
     <header className="app-header sticky top-0 z-30 border-b border-[#dbe4f0] bg-white/95 backdrop-blur">
-      <div className="mx-auto grid h-16 w-full max-w-6xl grid-cols-[auto_minmax(0,1fr)_auto] items-center gap-2 px-3 sm:grid-cols-[1fr_auto_1fr] sm:gap-3 sm:px-6 lg:px-8">
+      <div className="mx-auto grid h-16 w-full max-w-6xl grid-cols-[auto_minmax(0,1fr)_auto] items-center gap-2 px-3 sm:gap-3 sm:px-6 lg:grid-cols-[1fr_auto_1fr] lg:px-8">
         <Link href="/" aria-label="Team Manager 시작 페이지" className="flex min-w-0 items-center gap-3">
           <Image
             src="/team-manager-logo.png"
@@ -99,7 +99,7 @@ export function AppHeader() {
             priority
             className="size-9 shrink-0"
           />
-          <span className="hidden truncate text-base font-semibold sm:block">Team Manager</span>
+          <span className="hidden truncate text-base font-semibold lg:block">Team Manager</span>
         </Link>
 
         <nav aria-label="주요 메뉴" className="flex min-w-0 items-center justify-center gap-1 sm:gap-2">
@@ -110,6 +110,7 @@ export function AppHeader() {
           ) : null}
           <Link
             href="/team"
+            aria-label="전체 팀 목록"
             aria-current={pathname === "/team" ? "page" : undefined}
             className={`inline-flex h-10 shrink-0 items-center justify-center whitespace-nowrap rounded-md px-2 font-semibold transition-colors focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-[#4f6f9f] sm:px-3 sm:text-sm ${
               hasTeamContext
@@ -119,7 +120,19 @@ export function AppHeader() {
                   : "text-sm text-[#52627b] hover:bg-[#f0f4fa] hover:text-[#2f4d76]"
             }`}
           >
-            전체 팀 목록
+            <span className="sm:hidden">팀 목록</span>
+            <span className="hidden sm:inline">전체 팀 목록</span>
+          </Link>
+          <Link
+            href="/guide"
+            aria-current={pathname === "/guide" ? "page" : undefined}
+            className={`inline-flex h-10 shrink-0 items-center justify-center rounded-md px-2 text-xs font-semibold transition-colors focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-[#4f6f9f] sm:px-3 sm:text-sm ${
+              pathname === "/guide"
+                ? "bg-[#edf3fa] text-[#2f4d76]"
+                : "text-[#64748b] hover:bg-[#f0f4fa] hover:text-[#2f4d76]"
+            }`}
+          >
+            가이드
           </Link>
         </nav>
 

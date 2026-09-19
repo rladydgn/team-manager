@@ -179,6 +179,9 @@ export default function TeamJoinRequestsPage() {
                 <p className="mt-3 text-sm leading-6 text-[#64748b]">
                   {teamDetail.team.name}에 가입을 요청한 사용자를 확인하고 처리하세요.
                 </p>
+                <Link href="/guide#link-existing-member" className="mt-2 inline-flex min-h-10 items-center text-sm font-semibold text-[#3d5b86] hover:text-[#283f62]">
+                  가입 승인·기존 기록 연동 가이드 →
+                </Link>
               </div>
               <span className="inline-flex h-10 w-fit items-center rounded-md border border-[#b9c9df] bg-white px-3 text-sm font-semibold text-[#3d5b86]">
                 대기 {requests.length}명
