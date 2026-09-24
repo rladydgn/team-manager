@@ -1,6 +1,5 @@
 "use client";
 
-import { useRouter } from "next/navigation";
 import { useEffect, useState } from "react";
 import {
   getKakaoLinkAuthorizeUrl,
@@ -10,17 +9,12 @@ import {
 import { useAuthSession } from "@/features/auth/model/auth-session";
 
 export default function ProfilePage() {
-  const router = useRouter();
   const { currentUser, isSessionReady } = useAuthSession();
   const [profile, setProfile] = useState<UserProfileResponse | null>(null);
   const [errorMessage, setErrorMessage] = useState("");
   const [noticeMessage, setNoticeMessage] = useState("");
 
   useEffect(() => {
-    if (isSessionReady && !currentUser) {
-      router.replace("/login");
-      return;
-    }
     if (!currentUser) {
       return;
     }
@@ -58,7 +52,7 @@ export default function ProfilePage() {
     return () => {
       isMounted = false;
     };
-  }, [currentUser, isSessionReady, router]);
+  }, [currentUser, isSessionReady]);
 
   return (
     <main className="flex-1 bg-[#f5f7fb] px-5 py-8 text-[#111827] sm:px-6 lg:px-8 lg:py-12">

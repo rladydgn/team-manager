@@ -346,7 +346,7 @@ export default function TeamDetailPage() {
               <div className="rounded-md border border-[#dbe4f0] bg-white px-4 py-4">
                 <p className="text-sm font-semibold text-[#64748b]">팀원</p>
                 <p className="mt-2 text-2xl font-bold text-[#0f172a]">
-                  {teamDetail.members.length}명
+                  {teamDetail.memberCount}명
                 </p>
               </div>
             </section>

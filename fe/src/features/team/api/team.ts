@@ -67,6 +67,7 @@ export type TeamJoinRequestApprovalRequest = {
 export type TeamDetail = {
   team: Team;
   members: TeamMember[];
+  memberCount: number;
 };
 
 export function getTeams() {

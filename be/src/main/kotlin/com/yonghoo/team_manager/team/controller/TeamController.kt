@@ -221,13 +221,16 @@ class TeamController(
 
     @Operation(
         summary = "팀 단건 조회",
-        description = "팀 정보와 활성 멤버 목록을 조회합니다.",
+        description = "팀 정보를 조회합니다. 활성 팀원에게만 멤버 목록을 반환합니다.",
     )
     @GetMapping("/{teamId}")
     fun getTeam(
         @PathVariable teamId: Long,
+        @RequestAttribute(name = AUTHENTICATED_USER_ID_ATTRIBUTE, required = false) userId: Long?,
     ): ResponseEntity<CommonResponse<TeamDetailResponse>> {
-        return ResponseEntity.ok(CommonResponse(data = teamService.getTeam(teamId)))
+        return ResponseEntity.ok()
+            .header("Cache-Control", "no-store")
+            .body(CommonResponse(data = teamService.getTeam(teamId, userId)))
     }
 
     private fun requireAuthenticatedUserId(userId: Long?): Long {

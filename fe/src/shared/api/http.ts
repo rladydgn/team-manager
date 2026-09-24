@@ -1,4 +1,5 @@
 import { API_BASE_URL } from "@/shared/config/api";
+import { captureAccessFailureReporter } from "@/shared/api/access-failures";
 
 type ApiResponse<T> = {
   success: boolean;
@@ -55,6 +56,16 @@ function createHeaders(includeJsonContentType = false) {
 }
 
 async function requestWithAccessRefresh(
+  path: string,
+  init: RequestInit
+): Promise<Response> {
+  const reportAccessFailure = captureAccessFailureReporter(path);
+  const response = await fetchWithAccessRefresh(path, init);
+  if ([401, 403, 404].includes(response.status)) reportAccessFailure();
+  return response;
+}
+
+async function fetchWithAccessRefresh(
   path: string,
   init: RequestInit
 ): Promise<Response> {

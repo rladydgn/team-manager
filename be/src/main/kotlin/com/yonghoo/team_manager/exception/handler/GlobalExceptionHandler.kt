@@ -6,6 +6,7 @@ import com.yonghoo.team_manager.exception.dto.ErrorResponse
 import com.yonghoo.team_manager.exception.exception.ApiException
 import jakarta.servlet.http.HttpServletRequest
 import org.slf4j.LoggerFactory
+import org.springframework.http.HttpStatus
 import org.springframework.http.ResponseEntity
 import org.springframework.web.bind.annotation.ExceptionHandler
 import org.springframework.web.bind.annotation.RestControllerAdvice
@@ -21,6 +22,10 @@ class GlobalExceptionHandler {
         request: HttpServletRequest,
     ): ResponseEntity<ErrorResponse> {
         logException(exception, exception.errorCode, request)
+        // Keep authentication's 401 for cookie refresh; conceal inaccessible resources.
+        if (exception.errorCode.status == HttpStatus.FORBIDDEN || exception.errorCode.status == HttpStatus.NOT_FOUND) {
+            return createResponse(CommonErrorCode.RESOURCE_NOT_FOUND)
+        }
         return createResponse(exception.errorCode, exception.message)
     }
 
@@ -29,8 +34,8 @@ class GlobalExceptionHandler {
         exception: Exception,
         request: HttpServletRequest,
     ): ResponseEntity<ErrorResponse> {
-        logException(exception, CommonErrorCode.COMMON_ERROR, request)
-        return createResponse(CommonErrorCode.COMMON_ERROR)
+        logException(exception, CommonErrorCode.INTERNAL_SERVER_ERROR, request)
+        return createResponse(CommonErrorCode.INTERNAL_SERVER_ERROR)
     }
 
     private fun createResponse(

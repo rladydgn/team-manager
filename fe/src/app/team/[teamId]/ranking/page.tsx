@@ -210,7 +210,7 @@ export default function TeamRankingPage() {
     <main className="min-h-screen bg-[#f5f7fb] text-[#111827]">
       <div className="mx-auto flex w-full max-w-6xl flex-col gap-6 px-5 py-7 sm:px-6 sm:py-8 lg:px-8">
         {Number.isInteger(teamId) && teamId > 0 ? (
-          <TeamDetailTabs teamId={teamId} activeTab="rankings" />
+          <TeamDetailTabs teamId={teamId} activeTab="rankings" canAccessTeamFeatures={Boolean(team)} canManageFees={canManageSeasons} />
         ) : null}
 
         {isLoading ? (

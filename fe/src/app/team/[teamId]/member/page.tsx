@@ -70,7 +70,7 @@ export default function TeamMembersPage() {
       }
 
       setTeamDetail({
-        team: teamResponse.data.team,
+        ...teamResponse.data,
         members: membersResponse.data ?? [],
       });
     } catch (error) {

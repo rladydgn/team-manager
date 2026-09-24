@@ -289,14 +289,19 @@ class TeamService(
     }
 
     @Transactional(readOnly = true)
-    fun getTeam(teamId: Long): TeamDetailResponse {
+    fun getTeam(teamId: Long, userId: Long?): TeamDetailResponse {
         val team = teamRepository.selectTeamById(teamId)
             ?: throw ApiException(TeamErrorCode.TEAM_NOT_FOUND)
-        val members = teamRepository.selectMembersByTeamId(teamId).map(::toTeamMemberResponse)
+        val members = if (userId != null && teamRepository.existsActiveMember(teamId, userId)) {
+            teamRepository.selectMembersByTeamId(teamId).map(::toTeamMemberResponse)
+        } else {
+            emptyList()
+        }
 
         return TeamDetailResponse(
             team = TeamResponse.from(team),
             members = members,
+            memberCount = teamRepository.countActiveMembers(teamId),
         )
     }
 

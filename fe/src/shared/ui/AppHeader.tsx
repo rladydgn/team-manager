@@ -165,6 +165,22 @@ export function AppHeader() {
                   >
                     프로필
                   </Link>
+                  <Link
+                    href="/inquiries/new"
+                    role="menuitem"
+                    onClick={() => setIsAccountMenuOpen(false)}
+                    className="flex h-10 w-full items-center rounded-sm px-3 text-sm font-semibold text-[#334155] transition-colors hover:bg-[#f0f4fa]"
+                  >
+                    문의하기
+                  </Link>
+                  <Link
+                    href="/inquiries"
+                    role="menuitem"
+                    onClick={() => setIsAccountMenuOpen(false)}
+                    className="flex h-10 w-full items-center rounded-sm px-3 text-sm font-semibold text-[#334155] transition-colors hover:bg-[#f0f4fa]"
+                  >
+                    내 문의
+                  </Link>
                   <button
                     type="button"
                     role="menuitem"

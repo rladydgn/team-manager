@@ -133,3 +133,18 @@ CREATE TABLE team_seasons (
 ALTER TABLE matches
     ADD COLUMN public_note TEXT NULL AFTER location,
     ADD COLUMN manager_note TEXT NULL AFTER public_note;
+
+-- Private service inquiries, independent of team membership and roles.
+CREATE TABLE inquiries (
+    id BIGINT UNSIGNED NOT NULL AUTO_INCREMENT,
+    user_id BIGINT UNSIGNED NOT NULL,
+    category VARCHAR(20) NOT NULL,
+    title VARCHAR(100) NOT NULL,
+    content TEXT NOT NULL,
+    status VARCHAR(20) NOT NULL DEFAULT 'WAITING',
+    created_at DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP,
+    updated_at DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
+    deleted_at DATETIME NULL,
+    PRIMARY KEY (id),
+    KEY idx_inquiries_user_created (user_id, deleted_at, created_at, id)
+);
