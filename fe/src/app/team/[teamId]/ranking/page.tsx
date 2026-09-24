@@ -11,6 +11,7 @@ import {
 } from "@/features/team/api/statistics";
 import { getTeam, type Team } from "@/features/team/api/team";
 import { getTeamSeasons, type TeamSeason } from "@/features/team/api/season";
+import { PageHeading } from "@/shared/ui/PageHeading";
 import { TeamDetailTabs } from "@/features/team/ui/TeamDetailTabs";
 
 type PeriodPreset = "THIS_YEAR" | "SIX_MONTHS" | "ONE_YEAR" | "CUSTOM";
@@ -73,7 +74,7 @@ const rankingMetrics: RankingMetric[] = [
     shortLabel: "골",
     unit: "골",
     accentClassName: "text-[#315f9b]",
-    softClassName: "border-[#c8d4e6] bg-[#f0f4fa]",
+    softClassName: "border-line-strong bg-brand-soft",
   },
   {
     key: "assistRankings",
@@ -88,8 +89,8 @@ const rankingMetrics: RankingMetric[] = [
     title: "클린시트 순위",
     shortLabel: "클린시트",
     unit: "회",
-    accentClassName: "text-[#36734a]",
-    softClassName: "border-[#b8d7c1] bg-[#f1f8f2]",
+    accentClassName: "text-success",
+    softClassName: "border-success-line bg-success-soft",
   },
 ];
 
@@ -207,55 +208,47 @@ export default function TeamRankingPage() {
   }
 
   return (
-    <main className="min-h-screen bg-[#f5f7fb] text-[#111827]">
-      <div className="mx-auto flex w-full max-w-6xl flex-col gap-6 px-5 py-7 sm:px-6 sm:py-8 lg:px-8">
+    <main className="min-h-[calc(100dvh-4rem-1px)] bg-canvas text-ink">
+      <div className="mx-auto flex w-full max-w-6xl flex-col gap-7 px-5 py-8 sm:px-6 sm:py-10 lg:px-8">
         {Number.isInteger(teamId) && teamId > 0 ? (
           <TeamDetailTabs teamId={teamId} activeTab="rankings" canAccessTeamFeatures={Boolean(team)} canManageFees={canManageSeasons} />
         ) : null}
 
         {isLoading ? (
-          <section className="flex min-h-72 items-center justify-center rounded-lg border border-[#dbe4f0] bg-white">
-            <p className="text-sm font-semibold text-[#64748b]">선수 순위를 불러오는 중입니다.</p>
+          <section className="flex min-h-72 items-center justify-center rounded-xl border border-line bg-white">
+            <p className="text-sm font-semibold text-muted">선수 순위를 불러오는 중입니다.</p>
           </section>
         ) : errorMessage ? (
-          <section className="rounded-lg border border-[#fecaca] bg-white px-5 py-12 text-center">
-            <h1 className="text-xl font-bold text-[#0f172a]">순위를 불러올 수 없습니다.</h1>
-            <p className="mt-3 text-sm leading-6 text-[#b91c1c]">{errorMessage}</p>
+          <section className="rounded-xl border border-danger-line bg-white px-5 py-12 text-center">
+            <h1 className="text-xl font-semibold text-ink">순위를 불러올 수 없습니다.</h1>
+            <p className="mt-3 text-sm leading-6 text-danger">{errorMessage}</p>
             <button
               type="button"
               onClick={() => void loadRankings()}
-              className="mt-6 inline-flex h-11 items-center justify-center rounded-md bg-[#4f6f9f] px-5 text-sm font-semibold text-white transition-colors hover:bg-[#435f88]"
+              className="mt-6 inline-flex h-11 items-center justify-center rounded-lg bg-brand px-5 text-sm font-semibold text-white transition-colors hover:bg-brand-hover"
             >
               다시 시도
             </button>
           </section>
         ) : team && rankings ? (
           <>
-            <section className="flex flex-col gap-4 border-b border-[#dbe4f0] pb-6 sm:flex-row sm:items-end sm:justify-between">
-              <div>
-                <p className="text-sm font-semibold text-[#4f6f9f]">PLAYER RANKINGS</p>
-                <h1 className="mt-2 text-3xl font-bold text-[#0f172a] sm:text-4xl">
-                  {team.name} 기록 순위
-                </h1>
-                <p className="mt-3 text-sm leading-6 text-[#64748b]">
-                  선택한 기간에 완료된 정식 경기의 골, 어시스트, 클린시트 기록입니다.
-                </p>
-              </div>
-              <span className="w-fit rounded-md border border-[#c8d4e6] bg-white px-3 py-1.5 text-sm font-semibold text-[#3d5b86]">
+            <section className="flex flex-col gap-4 sm:flex-row sm:items-end sm:justify-between">
+              <PageHeading label={team.name} title="기록 순위" description="선택한 기간의 정식 경기 기록을 기준으로 집계합니다." />
+              <span className="w-fit rounded-lg border border-line-strong bg-white px-3 py-1.5 text-sm font-semibold text-brand-ink">
                 집계 경기 {rankings.completedMatchCount}회
               </span>
             </section>
 
-            <section className="border-y border-[#dbe4f0] py-5">
+            <section className="border-y border-line py-5">
               <div className="mb-4 flex flex-col gap-2 sm:flex-row sm:items-end sm:justify-between">
-                <label className="grid flex-1 gap-1.5 text-sm font-semibold text-[#475569]">
+                <label className="grid flex-1 gap-1.5 text-sm font-semibold text-secondary">
                   시즌
-                  <select value={selectedSeasonId} onChange={(event) => selectSeason(event.target.value)} className="h-11 rounded-md border border-[#c8d4e6] bg-white px-3 text-sm font-normal text-[#1f2937] outline-none focus:border-[#4f6f9f]">
+                  <select value={selectedSeasonId} onChange={(event) => selectSeason(event.target.value)} className="h-11 rounded-lg border border-line-strong bg-white px-3 text-sm font-normal text-ink outline-none focus:border-brand">
                     {seasons.map((season) => <option key={season.id} value={season.id}>{season.name}{season.isDefault ? " (기본)" : ""} · {season.startDate} ~ {season.endDate}</option>)}
                     <option value="">기간 직접 선택</option>
                   </select>
                 </label>
-                {canManageSeasons ? <Link href={`/team/${teamId}/season`} className="inline-flex h-11 items-center justify-center rounded-md border border-[#c8d4e6] bg-white px-4 text-sm font-semibold text-[#3d5b86]">시즌 설정</Link> : null}
+                {canManageSeasons ? <Link href={`/team/${teamId}/season`} className="inline-flex h-11 items-center justify-center rounded-lg border border-line-strong bg-white px-4 text-sm font-semibold text-brand-ink">시즌 설정</Link> : null}
               </div>
               <div className="flex flex-wrap gap-2">
                 {(Object.keys(periodPresetLabels) as Exclude<PeriodPreset, "CUSTOM">[]).map(
@@ -264,10 +257,10 @@ export default function TeamRankingPage() {
                       key={preset}
                       type="button"
                       onClick={() => selectPreset(preset)}
-                      className={`inline-flex h-10 items-center justify-center rounded-md border px-4 text-sm font-semibold transition-colors ${
+                      className={`inline-flex h-10 items-center justify-center rounded-lg border px-4 text-sm font-semibold transition-colors ${
                         selectedPreset === preset
-                          ? "border-[#4f6f9f] bg-[#4f6f9f] text-white"
-                          : "border-[#c8d4e6] bg-white text-[#3d5b86] hover:bg-[#f0f4fa]"
+                          ? "border-brand bg-brand text-white"
+                          : "border-line-strong bg-white text-brand-ink hover:bg-brand-soft"
                       }`}
                     >
                       {periodPresetLabels[preset]}
@@ -280,42 +273,42 @@ export default function TeamRankingPage() {
                 onSubmit={applyCustomRange}
                 className="mt-4 grid gap-3 sm:grid-cols-[minmax(0,1fr)_minmax(0,1fr)_auto] sm:items-end"
               >
-                <label className="grid gap-1.5 text-sm font-semibold text-[#475569]">
+                <label className="grid gap-1.5 text-sm font-semibold text-secondary">
                   시작일
                   <input
                     type="date"
                     value={draftStartDate}
                     onChange={(event) => setDraftStartDate(event.target.value)}
-                    className="h-10 rounded-md border border-[#c8d4e6] bg-white px-3 text-sm font-normal text-[#1f2937] outline-none focus:border-[#4f6f9f] focus:ring-4 focus:ring-[#e3eaf5]"
+                    className="h-10 rounded-lg border border-line-strong bg-white px-3 text-sm font-normal text-ink outline-none focus:border-brand focus:ring-2 focus:ring-brand-ring"
                     required
                   />
                 </label>
-                <label className="grid gap-1.5 text-sm font-semibold text-[#475569]">
+                <label className="grid gap-1.5 text-sm font-semibold text-secondary">
                   종료일
                   <input
                     type="date"
                     value={draftEndDate}
                     onChange={(event) => setDraftEndDate(event.target.value)}
-                    className="h-10 rounded-md border border-[#c8d4e6] bg-white px-3 text-sm font-normal text-[#1f2937] outline-none focus:border-[#4f6f9f] focus:ring-4 focus:ring-[#e3eaf5]"
+                    className="h-10 rounded-lg border border-line-strong bg-white px-3 text-sm font-normal text-ink outline-none focus:border-brand focus:ring-2 focus:ring-brand-ring"
                     required
                   />
                 </label>
                 <button
                   type="submit"
-                  className="inline-flex h-10 items-center justify-center rounded-md border border-[#c8d4e6] bg-[#f0f4fa] px-4 text-sm font-semibold text-[#3d5b86] transition-colors hover:bg-[#e3ecf7]"
+                  className="inline-flex h-10 items-center justify-center rounded-lg border border-line-strong bg-brand-soft px-4 text-sm font-semibold text-brand-ink transition-colors hover:bg-brand-soft"
                 >
                   기간 적용
                 </button>
               </form>
-              <p className="mt-3 text-xs font-medium text-[#64748b]">
+              <p className="mt-3 text-xs font-medium text-muted">
                 현재 집계 기간: {rankings.startDate} ~ {rankings.endDate}
               </p>
             </section>
 
             <section>
               <div className="mb-3 flex items-center justify-between gap-3">
-                <h2 className="text-lg font-bold text-[#0f172a]">나의 순위</h2>
-                <span className="text-xs font-medium text-[#64748b]">동점자는 같은 순위로 표시됩니다.</span>
+                <h2 className="text-lg font-semibold text-ink">나의 순위</h2>
+                <span className="text-xs font-medium text-muted">동점자는 같은 순위로 표시됩니다.</span>
               </div>
               <div className="grid gap-3 sm:grid-cols-3">
                 {rankingMetrics.map((metric) => {
@@ -323,14 +316,14 @@ export default function TeamRankingPage() {
                   return (
                     <article
                       key={metric.key}
-                      className={`rounded-lg border p-5 ${metric.softClassName}`}
+                      className={`rounded-xl border p-5 ${metric.softClassName}`}
                     >
-                      <p className="text-sm font-semibold text-[#52627b]">{metric.shortLabel}</p>
+                      <p className="text-sm font-semibold text-secondary">{metric.shortLabel}</p>
                       <div className="mt-3 flex items-end justify-between gap-3">
-                        <p className={`text-3xl font-bold ${metric.accentClassName}`}>
+                        <p className={`text-3xl font-semibold ${metric.accentClassName}`}>
                           {mine ? `${mine.rank}위` : "-"}
                         </p>
-                        <p className="text-sm font-semibold text-[#475569]">
+                        <p className="text-sm font-semibold text-secondary">
                           {mine ? `${mine.value}${metric.unit}` : "기록 없음"}
                         </p>
                       </div>
@@ -352,7 +345,7 @@ export default function TeamRankingPage() {
 
             <Link
               href={`/team/${teamId}/statistics`}
-              className="inline-flex w-fit text-sm font-semibold text-[#3d5b86] hover:text-[#283f62]"
+              className="inline-flex w-fit text-sm font-semibold text-brand-ink hover:text-brand-hover"
             >
               상세 통계 보기
             </Link>
@@ -371,12 +364,12 @@ function Leaderboard({
   entries: TeamPlayerRankingEntry[];
 }) {
   return (
-    <article className="overflow-hidden rounded-lg border border-[#dbe4f0] bg-white">
+    <article className="overflow-hidden rounded-xl border border-line bg-white">
       <div className={`border-b px-5 py-4 ${metric.softClassName}`}>
-        <h2 className={`text-lg font-bold ${metric.accentClassName}`}>{metric.title}</h2>
+        <h2 className={`text-lg font-semibold ${metric.accentClassName}`}>{metric.title}</h2>
       </div>
       {entries.length === 0 ? (
-        <p className="px-5 py-12 text-center text-sm text-[#64748b]">표시할 팀원이 없습니다.</p>
+        <p className="px-5 py-12 text-center text-sm text-muted">표시할 팀원이 없습니다.</p>
       ) : (
         <ol className="divide-y divide-[#edf1f6]">
           {entries.map((entry) => (
@@ -387,16 +380,16 @@ function Leaderboard({
               }`}
             >
               <span
-                className={`grid size-8 place-items-center rounded-full text-sm font-bold ${rankBadgeClassName(entry.rank)}`}
+                className={`grid size-8 place-items-center rounded-full text-sm font-semibold ${rankBadgeClassName(entry.rank)}`}
               >
                 {entry.rank}
               </span>
               <span className="min-w-0">
-                <span className="block truncate text-sm font-semibold text-[#1e293b]">
+                <span className="block truncate text-sm font-semibold text-ink">
                   {entry.name}
                 </span>
                 {entry.isCurrentUser ? (
-                  <span className="mt-0.5 block text-xs font-semibold text-[#4f6f9f]">나</span>
+                  <span className="mt-0.5 block text-xs font-semibold text-brand">나</span>
                 ) : null}
               </span>
               <strong className={`text-base ${metric.accentClassName}`}>
@@ -414,5 +407,5 @@ function rankBadgeClassName(rank: number) {
   if (rank === 1) return "bg-[#fff2b8] text-[#8a6400]";
   if (rank === 2) return "bg-[#e8edf3] text-[#526174]";
   if (rank === 3) return "bg-[#f2dfd2] text-[#8a5635]";
-  return "bg-[#f1f5f9] text-[#64748b]";
+  return "bg-[#f1f5f9] text-muted";
 }

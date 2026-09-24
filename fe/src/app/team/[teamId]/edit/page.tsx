@@ -160,79 +160,63 @@ export default function EditTeamPage() {
   const detailPath = Number.isInteger(teamId) && teamId > 0 ? `/team/${teamId}` : "/team";
 
   return (
-    <main className="min-h-screen bg-[#f5f7fb] text-[#111827]">
-      <header data-legacy-page-header className="border-b border-[#dbe4f0] bg-white/90">
-        <div className="mx-auto flex w-full max-w-6xl items-center justify-between gap-4 px-5 py-4 sm:px-6 lg:px-8">
-          <Link href="/" className="flex min-w-0 items-center gap-3">
-            <span className="grid size-9 shrink-0 place-items-center rounded-md bg-[#4f6f9f] text-sm font-bold text-white">
-              TM
-            </span>
-            <span className="truncate text-base font-semibold">Team Manager</span>
-          </Link>
-          <Link
-            href={detailPath}
-            className="inline-flex h-10 shrink-0 items-center justify-center rounded-md border border-[#c8d4e6] bg-white px-4 text-sm font-semibold text-[#3d5b86] transition-colors hover:bg-[#f0f4fa]"
-          >
-            팀 상세
-          </Link>
-        </div>
-      </header>
+    <main className="min-h-[calc(100dvh-4rem-1px)] bg-canvas text-ink">
 
-      <div className="mx-auto flex w-full max-w-6xl flex-col gap-6 px-5 py-7 sm:px-6 sm:py-8 lg:px-8">
+      <div className="mx-auto flex w-full max-w-6xl flex-col gap-7 px-5 py-8 sm:px-6 sm:py-10 lg:px-8">
         <Link
           href={detailPath}
-          className="inline-flex w-fit text-sm font-semibold text-[#3d5b86] transition-colors hover:text-[#283f62]"
+          className="inline-flex w-fit text-sm font-semibold text-brand-ink transition-colors hover:text-brand-hover"
         >
           팀 홈으로 돌아가기
         </Link>
 
         {isLoading ? (
-          <section className="flex min-h-80 items-center justify-center rounded-lg border border-[#dbe4f0] bg-white">
-            <p className="text-sm font-semibold text-[#64748b]">팀 정보를 불러오는 중입니다.</p>
+          <section className="flex min-h-80 items-center justify-center rounded-xl border border-line bg-white">
+            <p className="text-sm font-semibold text-muted">팀 정보를 불러오는 중입니다.</p>
           </section>
         ) : errorMessage && !teamDetail ? (
-          <section className="rounded-lg border border-[#fecaca] bg-white px-5 py-12 text-center">
-            <h1 className="text-xl font-bold text-[#0f172a]">팀 수정 화면을 열 수 없습니다.</h1>
-            <p className="mt-3 text-sm leading-6 text-[#b91c1c]">{errorMessage}</p>
+          <section className="rounded-xl border border-danger-line bg-white px-5 py-12 text-center">
+            <h1 className="text-xl font-semibold text-ink">팀 수정 화면을 열 수 없습니다.</h1>
+            <p className="mt-3 text-sm leading-6 text-danger">{errorMessage}</p>
             <button
               type="button"
               onClick={() => void loadTeam()}
-              className="mt-6 inline-flex h-11 items-center justify-center rounded-md bg-[#4f6f9f] px-5 text-sm font-semibold text-white transition-colors hover:bg-[#435f88]"
+              className="mt-6 inline-flex h-11 items-center justify-center rounded-lg bg-brand px-5 text-sm font-semibold text-white transition-colors hover:bg-brand-hover"
             >
               다시 시도
             </button>
           </section>
         ) : !currentUser ? (
-          <section className="rounded-lg border border-[#dbe4f0] bg-white px-5 py-12 text-center">
-            <h1 className="text-xl font-bold text-[#0f172a]">로그인이 필요합니다.</h1>
-            <p className="mt-3 text-sm leading-6 text-[#64748b]">팀 수정은 운영진만 할 수 있습니다.</p>
+          <section className="rounded-xl border border-line bg-white px-5 py-12 text-center">
+            <h1 className="text-xl font-semibold text-ink">로그인이 필요합니다.</h1>
+            <p className="mt-3 text-sm leading-6 text-muted">팀 수정은 운영진만 할 수 있습니다.</p>
             <Link
               href="/login"
-              className="mt-6 inline-flex h-11 items-center justify-center rounded-md bg-[#4f6f9f] px-5 text-sm font-semibold text-white transition-colors hover:bg-[#435f88]"
+              className="mt-6 inline-flex h-11 items-center justify-center rounded-lg bg-brand px-5 text-sm font-semibold text-white transition-colors hover:bg-brand-hover"
             >
               로그인
             </Link>
           </section>
         ) : !canEditTeam ? (
-          <section className="rounded-lg border border-[#fecaca] bg-white px-5 py-12 text-center">
-            <p className="text-sm font-semibold text-[#b91c1c]">팀 수정 권한이 없습니다.</p>
-            <p className="mt-3 text-sm leading-6 text-[#64748b]">운영진만 팀 정보를 수정할 수 있습니다.</p>
+          <section className="rounded-xl border border-danger-line bg-white px-5 py-12 text-center">
+            <p className="text-sm font-semibold text-danger">팀 수정 권한이 없습니다.</p>
+            <p className="mt-3 text-sm leading-6 text-muted">운영진만 팀 정보를 수정할 수 있습니다.</p>
           </section>
         ) : teamDetail ? (
-          <section className="overflow-hidden rounded-lg border border-[#dbe4f0] bg-white shadow-[0_20px_60px_rgba(15,23,42,0.08)]">
-            <div className="border-b border-[#e5eaf3] bg-[#f8fafc] px-5 py-5 sm:px-7">
-              <p className="text-sm font-semibold text-[#4f6f9f]">팀 운영 설정</p>
+          <section className="overflow-hidden rounded-xl border border-line bg-white shadow-card">
+            <div className="border-b border-line bg-subtle px-5 py-5 sm:px-7">
+              <p className="text-sm font-semibold text-brand">팀 운영 설정</p>
               <div className="mt-2 flex flex-col gap-2 sm:flex-row sm:items-baseline sm:justify-between">
-                <h1 className="text-2xl font-bold text-[#0f172a] sm:text-3xl">팀 정보 수정</h1>
-                <span className="text-sm font-semibold text-[#64748b]">{teamDetail.team.name}</span>
+                <h1 className="text-2xl font-semibold text-ink sm:text-3xl">팀 정보 수정</h1>
+                <span className="text-sm font-semibold text-muted">{teamDetail.team.name}</span>
               </div>
             </div>
 
             <form className="grid gap-7 p-5 sm:p-7" noValidate onSubmit={handleSubmit}>
               <section className="grid gap-5">
                 <div>
-                  <h2 className="text-base font-bold text-[#0f172a]">기본 정보</h2>
-                  <p className="mt-1 text-sm leading-6 text-[#64748b]">팀을 식별하고 소개하는 정보를 관리합니다.</p>
+                  <h2 className="text-base font-semibold text-ink">기본 정보</h2>
+                  <p className="mt-1 text-sm leading-6 text-muted">팀을 식별하고 소개하는 정보를 관리합니다.</p>
                 </div>
                 <div className="grid gap-5 md:grid-cols-2">
                   <label className="grid gap-2 text-sm font-semibold">
@@ -240,7 +224,7 @@ export default function EditTeamPage() {
                     <input
                       value={form.name}
                       onChange={(event) => updateFormField("name", event.target.value)}
-                      className="h-12 rounded-md border border-[#cbd5e1] bg-white px-4 text-base font-normal outline-none transition-colors placeholder:text-[#94a3b8] focus:border-[#4f6f9f] focus:ring-4 focus:ring-[#e3eaf5]"
+                      className="h-12 rounded-lg border border-line-strong bg-white px-4 text-base font-normal outline-none transition-colors placeholder:text-placeholder focus:border-brand focus:ring-2 focus:ring-brand-ring"
                       maxLength={100}
                       required
                     />
@@ -250,7 +234,7 @@ export default function EditTeamPage() {
                     <input
                       value={form.shortName}
                       onChange={(event) => updateFormField("shortName", event.target.value)}
-                      className="h-12 rounded-md border border-[#cbd5e1] bg-white px-4 text-base font-normal outline-none transition-colors placeholder:text-[#94a3b8] focus:border-[#4f6f9f] focus:ring-4 focus:ring-[#e3eaf5]"
+                      className="h-12 rounded-lg border border-line-strong bg-white px-4 text-base font-normal outline-none transition-colors placeholder:text-placeholder focus:border-brand focus:ring-2 focus:ring-brand-ring"
                       placeholder="WFC"
                       maxLength={30}
                     />
@@ -261,16 +245,16 @@ export default function EditTeamPage() {
                   <textarea
                     value={form.description}
                     onChange={(event) => updateFormField("description", event.target.value)}
-                    className="min-h-32 resize-y rounded-md border border-[#cbd5e1] bg-white px-4 py-3 text-base font-normal leading-7 outline-none transition-colors placeholder:text-[#94a3b8] focus:border-[#4f6f9f] focus:ring-4 focus:ring-[#e3eaf5]"
+                    className="min-h-32 resize-y rounded-lg border border-line-strong bg-white px-4 py-3 text-base font-normal leading-7 outline-none transition-colors placeholder:text-placeholder focus:border-brand focus:ring-2 focus:ring-brand-ring"
                     placeholder="팀의 성격과 활동을 간단히 소개해 주세요."
                   />
                 </label>
               </section>
 
-              <section className="grid gap-5 border-t border-[#e5eaf3] pt-7">
+              <section className="grid gap-5 border-t border-line pt-7">
                 <div>
-                  <h2 className="text-base font-bold text-[#0f172a]">활동 정보</h2>
-                  <p className="mt-1 text-sm leading-6 text-[#64748b]">팀원과 상대 팀이 참고할 운영 정보를 입력합니다.</p>
+                  <h2 className="text-base font-semibold text-ink">활동 정보</h2>
+                  <p className="mt-1 text-sm leading-6 text-muted">팀원과 상대 팀이 참고할 운영 정보를 입력합니다.</p>
                 </div>
                 <div className="grid gap-5 md:grid-cols-2">
                   <label className="grid gap-2 text-sm font-semibold">
@@ -278,7 +262,7 @@ export default function EditTeamPage() {
                     <input
                       value={form.region}
                       onChange={(event) => updateFormField("region", event.target.value)}
-                      className="h-12 rounded-md border border-[#cbd5e1] bg-white px-4 text-base font-normal outline-none transition-colors placeholder:text-[#94a3b8] focus:border-[#4f6f9f] focus:ring-4 focus:ring-[#e3eaf5]"
+                      className="h-12 rounded-lg border border-line-strong bg-white px-4 text-base font-normal outline-none transition-colors placeholder:text-placeholder focus:border-brand focus:ring-2 focus:ring-brand-ring"
                       placeholder="서울"
                       maxLength={100}
                     />
@@ -288,7 +272,7 @@ export default function EditTeamPage() {
                     <input
                       value={form.homeStadium}
                       onChange={(event) => updateFormField("homeStadium", event.target.value)}
-                      className="h-12 rounded-md border border-[#cbd5e1] bg-white px-4 text-base font-normal outline-none transition-colors placeholder:text-[#94a3b8] focus:border-[#4f6f9f] focus:ring-4 focus:ring-[#e3eaf5]"
+                      className="h-12 rounded-lg border border-line-strong bg-white px-4 text-base font-normal outline-none transition-colors placeholder:text-placeholder focus:border-brand focus:ring-2 focus:ring-brand-ring"
                       placeholder="월드컵 보조경기장"
                       maxLength={100}
                     />
@@ -298,7 +282,7 @@ export default function EditTeamPage() {
                     <input
                       value={form.foundedAt}
                       onChange={(event) => updateFormField("foundedAt", event.target.value)}
-                      className="h-12 rounded-md border border-[#cbd5e1] bg-white px-4 text-base font-normal outline-none transition-colors focus:border-[#4f6f9f] focus:ring-4 focus:ring-[#e3eaf5]"
+                      className="h-12 rounded-lg border border-line-strong bg-white px-4 text-base font-normal outline-none transition-colors focus:border-brand focus:ring-2 focus:ring-brand-ring"
                       type="date"
                     />
                   </label>
@@ -307,7 +291,7 @@ export default function EditTeamPage() {
                     <input
                       value={form.logoUrl}
                       onChange={(event) => updateFormField("logoUrl", event.target.value)}
-                      className="h-12 rounded-md border border-[#cbd5e1] bg-white px-4 text-base font-normal outline-none transition-colors placeholder:text-[#94a3b8] focus:border-[#4f6f9f] focus:ring-4 focus:ring-[#e3eaf5]"
+                      className="h-12 rounded-lg border border-line-strong bg-white px-4 text-base font-normal outline-none transition-colors placeholder:text-placeholder focus:border-brand focus:ring-2 focus:ring-brand-ring"
                       placeholder="https://example.com/team-logo.png"
                       maxLength={500}
                     />
@@ -315,25 +299,25 @@ export default function EditTeamPage() {
                 </div>
               </section>
 
-              <section className="grid gap-5 border-t border-[#e5eaf3] pt-7">
+              <section className="grid gap-5 border-t border-line pt-7">
                 <div>
-                  <h2 className="text-base font-bold text-[#0f172a]">팀 색상</h2>
-                  <p className="mt-1 text-sm leading-6 text-[#64748b]">팀을 구분하는 대표 색상을 선택할 수 있습니다.</p>
+                  <h2 className="text-base font-semibold text-ink">팀 색상</h2>
+                  <p className="mt-1 text-sm leading-6 text-muted">팀을 구분하는 대표 색상을 선택할 수 있습니다.</p>
                 </div>
                 <div className="flex flex-wrap items-center gap-3">
                   <input
                     aria-label="팀 대표 색상"
                     value={form.teamColor || "#4f6f9f"}
                     onChange={(event) => updateFormField("teamColor", event.target.value)}
-                    className="size-12 cursor-pointer rounded-md border border-[#cbd5e1] bg-white p-1"
+                    className="size-12 cursor-pointer rounded-lg border border-line-strong bg-white p-1"
                     type="color"
                   />
-                  <span className="text-sm font-semibold text-[#52627b]">{form.teamColor || "색상 미지정"}</span>
+                  <span className="text-sm font-semibold text-secondary">{form.teamColor || "색상 미지정"}</span>
                   {form.teamColor ? (
                     <button
                       type="button"
                       onClick={() => updateFormField("teamColor", "")}
-                      className="inline-flex h-10 items-center justify-center rounded-md border border-[#c8d4e6] bg-white px-4 text-sm font-semibold text-[#3d5b86] transition-colors hover:bg-[#f0f4fa]"
+                      className="inline-flex h-10 items-center justify-center rounded-lg border border-line-strong bg-white px-4 text-sm font-semibold text-brand-ink transition-colors hover:bg-brand-soft"
                     >
                       색상 제거
                     </button>
@@ -342,20 +326,20 @@ export default function EditTeamPage() {
               </section>
 
               {errorMessage ? (
-                <p className="rounded-md border border-[#fecaca] bg-[#fef2f2] px-4 py-3 text-sm font-medium text-[#b91c1c]">
+                <p className="rounded-lg border border-danger-line bg-danger-soft px-4 py-3 text-sm font-medium text-danger">
                   {errorMessage}
                 </p>
               ) : null}
 
-              <div className="flex flex-col-reverse gap-3 border-t border-[#e5eaf3] pt-6 sm:flex-row sm:justify-end">
+              <div className="flex flex-col-reverse gap-3 border-t border-line pt-6 sm:flex-row sm:justify-end">
                 <Link
                   href={detailPath}
-                  className="inline-flex h-12 items-center justify-center rounded-md border border-[#c8d4e6] bg-white px-5 text-base font-semibold text-[#3d5b86] transition-colors hover:bg-[#f0f4fa]"
+                  className="inline-flex h-12 items-center justify-center rounded-lg border border-line-strong bg-white px-5 text-base font-semibold text-brand-ink transition-colors hover:bg-brand-soft"
                 >
                   취소
                 </Link>
                 <button
-                  className="inline-flex h-12 items-center justify-center rounded-md bg-[#4f6f9f] px-5 text-base font-semibold text-white transition-colors hover:bg-[#435f88] disabled:cursor-not-allowed disabled:bg-[#a9b9d3]"
+                  className="inline-flex h-12 items-center justify-center rounded-lg bg-brand px-5 text-base font-semibold text-white transition-colors hover:bg-brand-hover disabled:cursor-not-allowed disabled:bg-brand-disabled"
                   type="submit"
                   disabled={isSaving || !form.name.trim()}
                 >

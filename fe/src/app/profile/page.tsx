@@ -55,38 +55,38 @@ export default function ProfilePage() {
   }, [currentUser, isSessionReady]);
 
   return (
-    <main className="flex-1 bg-[#f5f7fb] px-5 py-8 text-[#111827] sm:px-6 lg:px-8 lg:py-12">
+    <main className="flex-1 bg-canvas px-5 py-8 text-ink sm:px-6 lg:px-8 lg:py-12">
       <div className="mx-auto w-full max-w-3xl">
         <div className="mb-6">
-          <p className="text-sm font-semibold text-[#4f6f9f]">내 계정</p>
-          <h1 className="mt-2 text-3xl font-bold">프로필</h1>
-          <p className="mt-2 text-sm leading-6 text-[#64748b]">
+          <p className="text-sm font-semibold text-brand">내 계정</p>
+          <h1 className="mt-2 text-3xl font-semibold">프로필</h1>
+          <p className="mt-2 text-sm leading-6 text-muted">
             계정 정보와 연결된 로그인 수단을 확인할 수 있습니다.
           </p>
         </div>
 
         {noticeMessage ? (
-          <p className="mb-5 rounded-md border border-[#bbf7d0] bg-[#f0fdf4] px-4 py-3 text-sm font-medium text-[#166534]">
+          <p className="mb-5 rounded-lg border border-success-line bg-success-soft px-4 py-3 text-sm font-medium text-success">
             {noticeMessage}
           </p>
         ) : null}
         {errorMessage ? (
-          <p className="mb-5 rounded-md border border-[#fecaca] bg-[#fef2f2] px-4 py-3 text-sm font-medium text-[#b91c1c]">
+          <p className="mb-5 rounded-lg border border-danger-line bg-danger-soft px-4 py-3 text-sm font-medium text-danger">
             {errorMessage}
           </p>
         ) : null}
 
         {!profile && !errorMessage ? (
-          <div className="rounded-lg border border-[#dbe4f0] bg-white p-6 text-sm text-[#64748b]">
+          <div className="rounded-xl border border-line bg-white p-6 text-sm text-muted">
             프로필을 불러오는 중입니다...
           </div>
         ) : null}
 
         {profile ? (
           <div className="grid gap-6">
-            <section className="overflow-hidden rounded-lg border border-[#dbe4f0] bg-white">
-              <div className="border-b border-[#e5eaf3] bg-[#f8fafc] px-5 py-4 sm:px-6">
-                <h2 className="text-lg font-bold">기본 정보</h2>
+            <section className="overflow-hidden rounded-xl border border-line bg-white">
+              <div className="border-b border-line bg-subtle px-5 py-4 sm:px-6">
+                <h2 className="text-lg font-semibold">기본 정보</h2>
               </div>
               <dl className="divide-y divide-[#edf1f6] px-5 sm:px-6">
                 <ProfileRow label="이름" value={profile.name} />
@@ -96,27 +96,27 @@ export default function ProfilePage() {
               </dl>
             </section>
 
-            <section className="overflow-hidden rounded-lg border border-[#dbe4f0] bg-white">
-              <div className="border-b border-[#e5eaf3] bg-[#f8fafc] px-5 py-4 sm:px-6">
-                <h2 className="text-lg font-bold">로그인 연동</h2>
+            <section className="overflow-hidden rounded-xl border border-line bg-white">
+              <div className="border-b border-line bg-subtle px-5 py-4 sm:px-6">
+                <h2 className="text-lg font-semibold">로그인 연동</h2>
               </div>
               <div className="flex flex-col gap-4 px-5 py-5 sm:flex-row sm:items-center sm:justify-between sm:px-6">
                 <div>
                   <p className="font-semibold">카카오</p>
-                  <p className="mt-1 text-sm text-[#64748b]">
+                  <p className="mt-1 text-sm text-muted">
                     {profile.kakaoLinked
                       ? "카카오 계정으로 로그인할 수 있습니다."
                       : "기존 계정에 카카오 로그인을 연결합니다."}
                   </p>
                 </div>
                 {profile.kakaoLinked ? (
-                  <span className="inline-flex h-10 items-center justify-center rounded-md border border-[#bbf7d0] bg-[#f0fdf4] px-4 text-sm font-semibold text-[#166534]">
+                  <span className="inline-flex h-10 items-center justify-center rounded-lg border border-success-line bg-success-soft px-4 text-sm font-semibold text-success">
                     연동 완료
                   </span>
                 ) : (
                   <a
                     href={getKakaoLinkAuthorizeUrl()}
-                    className="inline-flex h-11 items-center justify-center rounded-md bg-[#FEE500] px-5 text-sm font-semibold text-[rgba(0,0,0,0.85)] transition-colors hover:bg-[#f5dc00]"
+                    className="inline-flex h-11 items-center justify-center rounded-lg bg-[#FEE500] px-5 text-sm font-semibold text-[rgba(0,0,0,0.85)] transition-colors hover:bg-[#f5dc00]"
                   >
                     카카오 연동하기
                   </a>
@@ -141,8 +141,8 @@ function ProfileRow({
 }) {
   return (
     <div className="grid gap-1 py-4 sm:grid-cols-[140px_1fr] sm:items-center sm:gap-4">
-      <dt className="text-sm font-semibold text-[#64748b]">{label}</dt>
-      <dd className={`text-sm font-medium text-[#1e293b] ${fullValue ? "break-all" : ""}`}>
+      <dt className="text-sm font-semibold text-muted">{label}</dt>
+      <dd className={`text-sm font-medium text-ink ${fullValue ? "break-all" : ""}`}>
         {value}
       </dd>
     </div>

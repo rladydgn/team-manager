@@ -66,38 +66,24 @@ export default function LoginPage() {
   }
 
   return (
-    <main className="min-h-screen bg-[#f5f7fb] px-5 py-6 text-[#111827] sm:px-6 lg:px-8">
-      <div className="mx-auto flex min-h-[calc(100vh-48px)] w-full max-w-6xl flex-col">
-        <header data-legacy-page-header className="flex items-center justify-between gap-4">
-          <Link href="/" className="flex min-w-0 items-center gap-3">
-            <span className="grid size-9 shrink-0 place-items-center rounded-md bg-[#4f6f9f] text-sm font-bold text-white">
-              TM
-            </span>
-            <span className="truncate text-base font-semibold">Team Manager</span>
-          </Link>
-          <Link
-            href="/sign-up"
-            className="inline-flex h-10 shrink-0 items-center justify-center rounded-md border border-[#c8d4e6] bg-white px-4 text-sm font-semibold text-[#3d5b86] transition-colors hover:bg-[#f0f4fa]"
-          >
-            회원가입
-          </Link>
-        </header>
+    <main className="min-h-[calc(100dvh-4rem-1px)] bg-canvas px-5 py-6 text-ink sm:px-6 lg:px-8">
+      <div className="mx-auto flex min-h-[calc(100dvh-7rem)] w-full max-w-6xl flex-col">
 
         <section className="flex flex-1 items-center justify-center py-10 lg:py-16">
           <div className="w-full max-w-md">
-            <div className="overflow-hidden rounded-lg border border-[#dbe4f0] bg-white shadow-[0_20px_60px_rgba(15,23,42,0.08)]">
-              <div className="border-b border-[#e5eaf3] bg-[#f8fafc] px-6 py-5 sm:px-8">
-                <p className="text-sm font-semibold text-[#4f6f9f]">
-                  다시 오셨네요
+            <div className="overflow-hidden rounded-xl border border-line bg-white shadow-card">
+              <div className="px-6 pt-7 sm:px-8">
+                <p className="text-sm font-semibold text-brand">
+                  Team Manager
                 </p>
-                <h1 className="mt-2 text-3xl font-bold tracking-normal">
+                <h1 className="mt-2 text-3xl font-semibold tracking-tight">
                   로그인
                 </h1>
               </div>
 
               <div className="p-6 sm:p-8">
-                <p className="mt-3 text-sm leading-6 text-[#64748b]">
-                  팀 운영 현황을 확인하려면 아이디와 비밀번호를 입력하세요.
+                <p className="text-sm leading-6 text-muted">
+                  내 팀의 일정과 소식을 확인하세요.
                 </p>
 
                 <form className="mt-8 grid gap-5" onSubmit={handleSubmit}>
@@ -106,7 +92,7 @@ export default function LoginPage() {
                     <input
                       value={username}
                       onChange={(event) => setUsername(event.target.value)}
-                      className="h-12 rounded-md border border-[#cbd5e1] bg-white px-4 text-base font-normal outline-none transition-colors placeholder:text-[#94a3b8] focus:border-[#4f6f9f] focus:ring-4 focus:ring-[#e3eaf5]"
+                      className="h-12 rounded-lg border border-line-strong bg-white px-4 text-base font-normal outline-none transition-colors placeholder:text-placeholder focus:border-brand focus:ring-2 focus:ring-brand-ring"
                       placeholder="user_01"
                       autoComplete="username"
                       required
@@ -118,7 +104,7 @@ export default function LoginPage() {
                     <input
                       value={password}
                       onChange={(event) => setPassword(event.target.value)}
-                      className="h-12 rounded-md border border-[#cbd5e1] bg-white px-4 text-base font-normal outline-none transition-colors placeholder:text-[#94a3b8] focus:border-[#4f6f9f] focus:ring-4 focus:ring-[#e3eaf5]"
+                      className="h-12 rounded-lg border border-line-strong bg-white px-4 text-base font-normal outline-none transition-colors placeholder:text-placeholder focus:border-brand focus:ring-2 focus:ring-brand-ring"
                       placeholder="비밀번호"
                       type="password"
                       autoComplete="current-password"
@@ -127,13 +113,13 @@ export default function LoginPage() {
                   </label>
 
                   {errorMessage ? (
-                    <p className="rounded-md border border-[#fecaca] bg-[#fef2f2] px-4 py-3 text-sm font-medium text-[#b91c1c]">
+                    <p className="rounded-lg border border-danger-line bg-danger-soft px-4 py-3 text-sm font-medium text-danger">
                       {errorMessage}
                     </p>
                   ) : null}
 
                   <button
-                    className="inline-flex h-12 items-center justify-center rounded-md bg-[#4f6f9f] px-5 text-base font-semibold text-white transition-colors hover:bg-[#435f88] disabled:cursor-not-allowed disabled:bg-[#a9b9d3]"
+                    className="inline-flex h-12 items-center justify-center rounded-lg bg-brand px-5 text-base font-semibold text-white transition-colors hover:bg-brand-hover disabled:cursor-not-allowed disabled:bg-brand-disabled"
                     type="submit"
                     disabled={isSubmitting}
                   >
@@ -142,14 +128,14 @@ export default function LoginPage() {
                 </form>
 
                 <div className="my-6 flex items-center gap-3" aria-hidden="true">
-                  <span className="h-px flex-1 bg-[#e2e8f0]" />
-                  <span className="text-xs font-medium text-[#94a3b8]">또는</span>
-                  <span className="h-px flex-1 bg-[#e2e8f0]" />
+                  <span className="h-px flex-1 bg-line" />
+                  <span className="text-xs font-medium text-placeholder">또는</span>
+                  <span className="h-px flex-1 bg-line" />
                 </div>
 
                 <a
                   href={getKakaoAuthorizeUrl()}
-                  className="inline-flex h-12 w-full items-center justify-center gap-2 rounded-md bg-[#FEE500] px-5 text-base font-semibold text-[rgba(0,0,0,0.85)] transition-colors hover:bg-[#f5dc00]"
+                  className="inline-flex h-12 w-full items-center justify-center gap-2 rounded-lg bg-[#FEE500] px-5 text-base font-semibold text-[rgba(0,0,0,0.85)] transition-colors hover:bg-[#f5dc00]"
                 >
                   <svg
                     aria-hidden="true"
@@ -161,11 +147,11 @@ export default function LoginPage() {
                   카카오로 로그인
                 </a>
 
-                <p className="mt-6 text-center text-sm text-[#64748b]">
+                <p className="mt-6 text-center text-sm text-muted">
                   아직 계정이 없나요?{" "}
                   <Link
                     href="/sign-up"
-                    className="font-semibold text-[#3d5b86]"
+                    className="font-semibold text-brand-ink"
                   >
                     회원가입
                   </Link>

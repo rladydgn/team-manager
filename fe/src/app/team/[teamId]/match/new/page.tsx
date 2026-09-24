@@ -111,7 +111,7 @@ export default function NewMatchPage() {
     setNoticeMessage("");
 
     if (!teamDetail || !canCreateMatch) {
-      setErrorMessage("매치를 생성할 권한이 없습니다.");
+      setErrorMessage("경기를 등록할 권한이 없습니다.");
       return;
     }
 
@@ -140,13 +140,13 @@ export default function NewMatchPage() {
       });
 
       if (!response.data) {
-        throw new Error("생성된 매치 정보를 받지 못했습니다.");
+        throw new Error("생성된 경기 정보를 받지 못했습니다.");
       }
 
       router.replace(`/match/${response.data.id}`);
     } catch (error) {
       setErrorMessage(
-        error instanceof Error ? error.message : "매치를 등록하지 못했습니다.",
+        error instanceof Error ? error.message : "경기를 등록하지 못했습니다.",
       );
     } finally {
       setIsSubmitting(false);
@@ -154,14 +154,14 @@ export default function NewMatchPage() {
   }
 
   return (
-    <main className="min-h-screen bg-[#f5f7fb] text-[#111827]">
+    <main className="min-h-[calc(100dvh-4rem-1px)] bg-canvas text-ink">
       <header
         data-legacy-page-header
-        className="border-b border-[#dbe4f0] bg-white/90"
+        className="border-b border-line bg-white/90"
       >
         <div className="mx-auto flex w-full max-w-6xl items-center justify-between gap-4 px-5 py-4 sm:px-6 lg:px-8">
           <Link href="/" className="flex min-w-0 items-center gap-3">
-            <span className="grid size-9 shrink-0 place-items-center rounded-md bg-[#4f6f9f] text-sm font-bold text-white">
+            <span className="grid size-9 shrink-0 place-items-center rounded-lg bg-brand text-sm font-semibold text-white">
               TM
             </span>
             <span className="truncate text-base font-semibold">
@@ -169,13 +169,13 @@ export default function NewMatchPage() {
             </span>
           </Link>
           {currentUser ? (
-            <span className="truncate rounded-md border border-[#c8d4e6] bg-white px-3 py-2 text-sm font-semibold text-[#3d5b86]">
+            <span className="truncate rounded-lg border border-line-strong bg-white px-3 py-2 text-sm font-semibold text-brand-ink">
               {currentUser.name}
             </span>
           ) : (
             <Link
               href="/login"
-              className="inline-flex h-10 shrink-0 items-center justify-center rounded-md border border-[#c8d4e6] bg-white px-4 text-sm font-semibold text-[#3d5b86] transition-colors hover:bg-[#f0f4fa]"
+              className="inline-flex h-10 shrink-0 items-center justify-center rounded-lg border border-line-strong bg-white px-4 text-sm font-semibold text-brand-ink transition-colors hover:bg-brand-soft"
             >
               로그인
             </Link>
@@ -183,79 +183,79 @@ export default function NewMatchPage() {
         </div>
       </header>
 
-      <div className="mx-auto flex w-full max-w-6xl flex-col gap-6 px-5 py-7 sm:px-6 sm:py-8 lg:px-8">
+      <div className="mx-auto flex w-full max-w-6xl flex-col gap-7 px-5 py-8 sm:px-6 sm:py-10 lg:px-8">
         <Link
           href={
             Number.isInteger(teamId) && teamId > 0
               ? `/team/${teamId}`
               : "/team"
           }
-          className="inline-flex w-fit text-sm font-semibold text-[#3d5b86] transition-colors hover:text-[#283f62]"
+          className="inline-flex w-fit text-sm font-semibold text-brand-ink transition-colors hover:text-brand-hover"
         >
           팀 홈으로 돌아가기
         </Link>
 
         {isLoading ? (
-          <section className="flex min-h-72 items-center justify-center rounded-lg border border-[#dbe4f0] bg-white">
-            <p className="text-sm font-semibold text-[#64748b]">
+          <section className="flex min-h-72 items-center justify-center rounded-xl border border-line bg-white">
+            <p className="text-sm font-semibold text-muted">
               팀 정보를 불러오는 중입니다.
             </p>
           </section>
         ) : errorMessage && !teamDetail ? (
-          <section className="rounded-lg border border-[#fecaca] bg-white px-5 py-12 text-center">
-            <h1 className="text-xl font-bold text-[#0f172a]">
-              매치 생성 화면을 열 수 없습니다.
+          <section className="rounded-xl border border-danger-line bg-white px-5 py-12 text-center">
+            <h1 className="text-xl font-semibold text-ink">
+              경기 등록 화면을 열 수 없습니다.
             </h1>
-            <p className="mt-3 text-sm leading-6 text-[#b91c1c]">
+            <p className="mt-3 text-sm leading-6 text-danger">
               {errorMessage}
             </p>
             <button
               type="button"
               onClick={() => void loadTeam()}
-              className="mt-6 inline-flex h-11 items-center justify-center rounded-md bg-[#4f6f9f] px-5 text-sm font-semibold text-white transition-colors hover:bg-[#435f88]"
+              className="mt-6 inline-flex h-11 items-center justify-center rounded-lg bg-brand px-5 text-sm font-semibold text-white transition-colors hover:bg-brand-hover"
             >
               다시 시도
             </button>
           </section>
         ) : !currentUser ? (
-          <section className="rounded-lg border border-[#dbe4f0] bg-white px-5 py-12 text-center">
-            <h1 className="text-xl font-bold text-[#0f172a]">
+          <section className="rounded-xl border border-line bg-white px-5 py-12 text-center">
+            <h1 className="text-xl font-semibold text-ink">
               로그인이 필요합니다.
             </h1>
-            <p className="mt-3 text-sm leading-6 text-[#64748b]">
-              매치 생성은 팀 운영진만 할 수 있습니다.
+            <p className="mt-3 text-sm leading-6 text-muted">
+              경기 등록은 팀 운영진만 할 수 있습니다.
             </p>
             <Link
               href="/login"
-              className="mt-6 inline-flex h-11 items-center justify-center rounded-md bg-[#4f6f9f] px-5 text-sm font-semibold text-white transition-colors hover:bg-[#435f88]"
+              className="mt-6 inline-flex h-11 items-center justify-center rounded-lg bg-brand px-5 text-sm font-semibold text-white transition-colors hover:bg-brand-hover"
             >
               로그인
             </Link>
           </section>
         ) : !canCreateMatch ? (
-          <section className="rounded-lg border border-[#dbe4f0] bg-white px-5 py-12 text-center">
-            <h1 className="text-xl font-bold text-[#0f172a]">
-              매치 생성 권한이 없습니다.
+          <section className="rounded-xl border border-line bg-white px-5 py-12 text-center">
+            <h1 className="text-xl font-semibold text-ink">
+              경기 등록 권한이 없습니다.
             </h1>
-            <p className="mt-3 text-sm leading-6 text-[#64748b]">
-              운영진만 매치를 등록할 수 있습니다.
+            <p className="mt-3 text-sm leading-6 text-muted">
+              운영진만 경기를 등록할 수 있습니다.
             </p>
           </section>
         ) : teamDetail ? (
-          <section className="rounded-lg border border-[#dbe4f0] bg-white shadow-[0_20px_60px_rgba(15,23,42,0.08)]">
-            <div className="border-b border-[#e5eaf3] bg-[#f8fafc] px-5 py-5 sm:px-7">
-              <p className="text-sm font-semibold text-[#4f6f9f]">
+          <section className="rounded-xl border border-line bg-white shadow-card">
+            <div className="border-b border-line bg-subtle px-5 py-5 sm:px-7">
+              <p className="text-sm font-semibold text-brand">
                 경기 일정 등록
               </p>
-              <h1 className="mt-2 text-2xl font-bold text-[#0f172a] sm:text-3xl">
-                매치 생성
+              <h1 className="mt-2 text-2xl font-semibold text-ink sm:text-3xl">
+                경기 등록
               </h1>
               <div className="mt-5 flex flex-wrap items-center gap-3 text-sm">
-                <span className="font-semibold text-[#64748b]">우리 팀</span>
-                <strong className="text-base text-[#1f2937]">
+                <span className="font-semibold text-muted">우리 팀</span>
+                <strong className="text-base text-ink">
                   {teamDetail.team.name}
                 </strong>
-                <span className="rounded-md border border-[#b9c9df] bg-white px-2.5 py-1 text-xs font-semibold text-[#3d5b86]">
+                <span className="rounded-lg border border-line-strong bg-white px-2.5 py-1 text-xs font-semibold text-brand-ink">
                   HOME
                 </span>
               </div>
@@ -264,7 +264,7 @@ export default function NewMatchPage() {
             <form className="grid gap-6 p-5 sm:p-7" onSubmit={handleSubmit}>
               <fieldset className="grid gap-3">
                 <legend className="text-sm font-semibold">매치 유형</legend>
-                <div className="grid grid-cols-2 rounded-md border border-[#cbd5e1] bg-[#f8fafc] p-1">
+                <div className="grid grid-cols-2 rounded-lg border border-line-strong bg-subtle p-1">
                   {matchTypes.map((type) => (
                     <button
                       key={type.value}
@@ -272,8 +272,8 @@ export default function NewMatchPage() {
                       onClick={() => handleMatchTypeChange(type.value)}
                       className={`h-10 rounded-sm text-sm font-semibold transition-colors ${
                         matchType === type.value
-                          ? "bg-[#4f6f9f] text-white shadow-sm"
-                          : "text-[#52627b] hover:bg-white"
+                          ? "bg-brand text-white shadow-sm"
+                          : "text-secondary hover:bg-white"
                       }`}
                     >
                       {type.label}
@@ -282,10 +282,10 @@ export default function NewMatchPage() {
                 </div>
               </fieldset>
 
-              <label className="flex flex-wrap items-center gap-x-3 gap-y-1 rounded-md border border-[#dbe4f0] bg-[#f8fafc] px-4 py-3 text-sm font-semibold text-[#475569]">
-                <input type="checkbox" checked={isTraining} onChange={(event) => setIsTraining(event.target.checked)} className="size-4 accent-[#4f6f9f]" />
+              <label className="flex flex-wrap items-center gap-x-3 gap-y-1 rounded-lg border border-line bg-subtle px-4 py-3 text-sm font-semibold text-secondary">
+                <input type="checkbox" checked={isTraining} onChange={(event) => setIsTraining(event.target.checked)} className="size-4 accent-brand" />
                 훈련으로 등록
-                <span className="font-normal text-[#64748b]">통계에서 경기 출석과 별도로 집계됩니다.</span>
+                <span className="font-normal text-muted">통계에서 경기 출석과 별도로 집계됩니다.</span>
               </label>
 
               {matchType === "EXTERNAL" ? (
@@ -296,14 +296,14 @@ export default function NewMatchPage() {
                     onChange={(event) =>
                       setOpponentTeamName(event.target.value)
                     }
-                    className="h-12 rounded-md border border-[#cbd5e1] bg-white px-4 text-base font-normal outline-none transition-colors placeholder:text-[#94a3b8] focus:border-[#4f6f9f] focus:ring-4 focus:ring-[#e3eaf5]"
+                    className="h-12 rounded-lg border border-line-strong bg-white px-4 text-base font-normal outline-none transition-colors placeholder:text-placeholder focus:border-brand focus:ring-2 focus:ring-brand-ring"
                     placeholder="강남 FC"
                     maxLength={100}
                     required
                   />
                 </label>
               ) : (
-                <p className="border-l-2 border-[#8ca4c7] bg-[#f8fafc] px-4 py-3 text-sm leading-6 text-[#52627b]">
+                <p className="border-l-2 border-[#8ca4c7] bg-subtle px-4 py-3 text-sm leading-6 text-secondary">
                   자체전은 우리 팀원을 두 팀으로 나누어 진행합니다.
                 </p>
               )}
@@ -314,7 +314,7 @@ export default function NewMatchPage() {
                   <input
                     value={matchAt}
                     onChange={(event) => handleMatchAtChange(event.target.value)}
-                    className="h-12 rounded-md border border-[#cbd5e1] bg-white px-4 text-base font-normal outline-none transition-colors focus:border-[#4f6f9f] focus:ring-4 focus:ring-[#e3eaf5]"
+                    className="h-12 rounded-lg border border-line-strong bg-white px-4 text-base font-normal outline-none transition-colors focus:border-brand focus:ring-2 focus:ring-brand-ring"
                     type="datetime-local"
                     step={600}
                     required
@@ -328,7 +328,7 @@ export default function NewMatchPage() {
                     onChange={(event) =>
                       setParticipationDeadlineAt(event.target.value)
                     }
-                    className="h-12 rounded-md border border-[#cbd5e1] bg-white px-4 text-base font-normal outline-none transition-colors focus:border-[#4f6f9f] focus:ring-4 focus:ring-[#e3eaf5]"
+                    className="h-12 rounded-lg border border-line-strong bg-white px-4 text-base font-normal outline-none transition-colors focus:border-brand focus:ring-2 focus:ring-brand-ring"
                     type="datetime-local"
                     step={600}
                     max={matchAt || undefined}
@@ -341,7 +341,7 @@ export default function NewMatchPage() {
                   <input
                     value={location}
                     onChange={(event) => setLocation(event.target.value)}
-                    className="h-12 rounded-md border border-[#cbd5e1] bg-white px-4 text-base font-normal outline-none transition-colors placeholder:text-[#94a3b8] focus:border-[#4f6f9f] focus:ring-4 focus:ring-[#e3eaf5]"
+                    className="h-12 rounded-lg border border-line-strong bg-white px-4 text-base font-normal outline-none transition-colors placeholder:text-placeholder focus:border-brand focus:ring-2 focus:ring-brand-ring"
                     placeholder="잠실 풋살장"
                     maxLength={255}
                   />
@@ -349,19 +349,19 @@ export default function NewMatchPage() {
               </div>
 
               {errorMessage ? (
-                <p className="rounded-md border border-[#fecaca] bg-[#fef2f2] px-4 py-3 text-sm font-medium text-[#b91c1c]">
+                <p className="rounded-lg border border-danger-line bg-danger-soft px-4 py-3 text-sm font-medium text-danger">
                   {errorMessage}
                 </p>
               ) : null}
 
               {noticeMessage ? (
-                <p className="rounded-md border border-[#c8d4e6] bg-[#f0f4fa] px-4 py-3 text-sm font-medium text-[#3d5b86]">
+                <p className="rounded-lg border border-line-strong bg-brand-soft px-4 py-3 text-sm font-medium text-brand-ink">
                   {noticeMessage}
                 </p>
               ) : null}
 
               <button
-                className="inline-flex h-12 items-center justify-center rounded-md bg-[#4f6f9f] px-5 text-base font-semibold text-white transition-colors hover:bg-[#435f88] disabled:cursor-not-allowed disabled:bg-[#a9b9d3]"
+                className="inline-flex h-12 items-center justify-center rounded-lg bg-brand px-5 text-base font-semibold text-white transition-colors hover:bg-brand-hover disabled:cursor-not-allowed disabled:bg-brand-disabled"
                 type="submit"
                 disabled={
                   isSubmitting ||
@@ -370,7 +370,7 @@ export default function NewMatchPage() {
                   (matchType === "EXTERNAL" && !opponentTeamName.trim())
                 }
               >
-                {isSubmitting ? "등록 중..." : "매치 등록"}
+                {isSubmitting ? "등록 중..." : "경기 등록"}
               </button>
             </form>
           </section>

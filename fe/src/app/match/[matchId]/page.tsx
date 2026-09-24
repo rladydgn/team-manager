@@ -28,9 +28,9 @@ const participationStatusLabels = {
 } as const;
 
 const participationStatusClassNames = {
-  AVAILABLE: "border-[#c8d4e6] bg-[#f0f4fa] text-[#3d5b86]",
-  UNAVAILABLE: "border-[#e2e8f0] bg-[#f8fafc] text-[#64748b]",
-  PENDING: "border-[#e2e8f0] bg-white text-[#64748b]",
+  AVAILABLE: "border-line-strong bg-brand-soft text-brand-ink",
+  UNAVAILABLE: "border-line bg-subtle text-muted",
+  PENDING: "border-line bg-white text-muted",
   INVITED: "border-[#ddd6fe] bg-[#f5f3ff] text-[#6d5c99]",
 } as const;
 
@@ -100,7 +100,7 @@ export default function MatchDetailPage() {
       const matchResponse = await getMatch(matchId);
 
       if (!matchResponse.data) {
-        throw new Error("매치 정보를 받지 못했습니다.");
+        throw new Error("경기 정보를 받지 못했습니다.");
       }
 
       const [teamResponse, participantsResponse] = await Promise.all([
@@ -124,7 +124,7 @@ export default function MatchDetailPage() {
       setErrorMessage(
         error instanceof Error
           ? error.message
-          : "매치 정보를 불러오지 못했습니다.",
+          : "경기 정보를 불러오지 못했습니다.",
       );
     } finally {
       setIsLoading(false);
@@ -223,7 +223,7 @@ export default function MatchDetailPage() {
       );
 
       if (!response.data) {
-        throw new Error("매치 참여 상태를 받지 못했습니다.");
+        throw new Error("경기 참여 상태를 받지 못했습니다.");
       }
 
       const updatedParticipant = response.data;
@@ -245,14 +245,14 @@ export default function MatchDetailPage() {
       applyParticipantUpdate(updatedParticipant);
       setNoticeMessage(
         isParticipating
-          ? "매치 참여를 취소했습니다."
-          : "매치 참여로 등록했습니다.",
+          ? "경기 참여를 취소했습니다."
+          : "경기 참여로 등록했습니다.",
       );
     } catch (error) {
       setParticipationErrorMessage(
         error instanceof Error
           ? error.message
-          : "매치 참여 상태를 변경하지 못했습니다.",
+          : "경기 참여 상태를 변경하지 못했습니다.",
       );
     } finally {
       setIsParticipationUpdating(false);
@@ -284,7 +284,7 @@ export default function MatchDetailPage() {
       );
 
       if (!response.data) {
-        throw new Error("매치 참여 메모를 받지 못했습니다.");
+        throw new Error("경기 참여 메모를 받지 못했습니다.");
       }
 
       applyParticipantUpdate(response.data);
@@ -299,14 +299,14 @@ export default function MatchDetailPage() {
   }
 
   return (
-    <main className="min-h-screen bg-[#f5f7fb] text-[#111827]">
+    <main className="min-h-[calc(100dvh-4rem-1px)] bg-canvas text-ink">
       <header
         data-legacy-page-header
-        className="border-b border-[#dbe4f0] bg-white/90"
+        className="border-b border-line bg-white/90"
       >
         <div className="mx-auto flex w-full max-w-6xl items-center justify-between gap-4 px-5 py-4 sm:px-6 lg:px-8">
           <Link href="/" className="flex min-w-0 items-center gap-3">
-            <span className="grid size-9 shrink-0 place-items-center rounded-md bg-[#4f6f9f] text-sm font-bold text-white">
+            <span className="grid size-9 shrink-0 place-items-center rounded-lg bg-brand text-sm font-semibold text-white">
               TM
             </span>
             <span className="truncate text-base font-semibold">
@@ -314,13 +314,13 @@ export default function MatchDetailPage() {
             </span>
           </Link>
           {currentUser ? (
-            <span className="truncate rounded-md border border-[#c8d4e6] bg-white px-3 py-2 text-sm font-semibold text-[#3d5b86]">
+            <span className="truncate rounded-lg border border-line-strong bg-white px-3 py-2 text-sm font-semibold text-brand-ink">
               {currentUser.name}
             </span>
           ) : (
             <Link
               href="/login"
-              className="inline-flex h-10 shrink-0 items-center justify-center rounded-md border border-[#c8d4e6] bg-white px-4 text-sm font-semibold text-[#3d5b86] transition-colors hover:bg-[#f0f4fa]"
+              className="inline-flex h-10 shrink-0 items-center justify-center rounded-lg border border-line-strong bg-white px-4 text-sm font-semibold text-brand-ink transition-colors hover:bg-brand-soft"
             >
               로그인
             </Link>
@@ -332,67 +332,67 @@ export default function MatchDetailPage() {
         {team ? (
           <Link
             href={`/team/${team.id}/match`}
-            className="inline-flex w-fit text-sm font-semibold text-[#3d5b86] transition-colors hover:text-[#283f62]"
+            className="inline-flex w-fit text-sm font-semibold text-brand-ink transition-colors hover:text-brand-hover"
           >
             경기 일정으로 돌아가기
           </Link>
         ) : null}
 
         {isLoading ? (
-          <section className="flex min-h-80 items-center justify-center rounded-lg border border-[#dbe4f0] bg-white">
-            <p className="text-sm font-semibold text-[#64748b]">
-              매치 정보를 불러오는 중입니다.
+          <section className="flex min-h-80 items-center justify-center rounded-xl border border-line bg-white">
+            <p className="text-sm font-semibold text-muted">
+              경기 정보를 불러오는 중입니다.
             </p>
           </section>
         ) : errorMessage ? (
-          <section className="rounded-lg border border-[#fecaca] bg-white px-5 py-12 text-center">
-            <h1 className="text-xl font-bold text-[#0f172a]">
-              매치 정보를 불러올 수 없습니다.
+          <section className="rounded-xl border border-danger-line bg-white px-5 py-12 text-center">
+            <h1 className="text-xl font-semibold text-ink">
+              경기 정보를 불러올 수 없습니다.
             </h1>
-            <p className="mt-3 text-sm leading-6 text-[#b91c1c]">
+            <p className="mt-3 text-sm leading-6 text-danger">
               {errorMessage}
             </p>
             <button
               type="button"
               onClick={() => void loadMatch()}
-              className="mt-6 inline-flex h-11 items-center justify-center rounded-md bg-[#4f6f9f] px-5 text-sm font-semibold text-white transition-colors hover:bg-[#435f88]"
+              className="mt-6 inline-flex h-11 items-center justify-center rounded-lg bg-brand px-5 text-sm font-semibold text-white transition-colors hover:bg-brand-hover"
             >
               다시 시도
             </button>
           </section>
         ) : match && team ? (
           <>
-            <section className="overflow-hidden rounded-2xl border border-[#c8d4e6] bg-white shadow-[0_14px_32px_rgba(37,55,84,0.08)]">
+            <section className="overflow-hidden rounded-2xl border border-line-strong bg-white shadow-card">
               <div className="border-b border-[#d6e0ee] bg-[linear-gradient(135deg,#edf3fa_0%,#e3edf8_100%)] px-5 py-7 text-center sm:px-8 sm:py-10">
-              <span className="rounded-md border border-[#b9c9df] bg-white/80 px-2.5 py-1 text-xs font-semibold text-[#3d5b86]">
+              <span className="rounded-lg border border-line-strong bg-white/80 px-2.5 py-1 text-xs font-semibold text-brand-ink">
                 {match.matchType === "INTERNAL" ? "자체전" : "외부전"}
               </span>
-              <p className="mt-5 text-sm font-semibold text-[#4f6f9f]">
+              <p className="mt-5 text-sm font-semibold text-brand">
                 {formatMatchAt(match.matchAt)}
               </p>
               {matchResult ? (
                 <span
-                  className={`mt-3 inline-flex rounded-md border px-3 py-1 text-sm font-bold ${matchResultPresentation[matchResult].className}`}
+                  className={`mt-3 inline-flex rounded-lg border px-3 py-1 text-sm font-semibold ${matchResultPresentation[matchResult].className}`}
                 >
                   {matchResultPresentation[matchResult].label}
                 </span>
               ) : null}
               <div className="mt-4 grid grid-cols-[minmax(0,1fr)_auto_minmax(0,1fr)] items-center gap-3 sm:gap-6">
-                <strong className="break-words text-xl text-[#0f172a] sm:text-3xl">
+                <strong className="break-words text-xl text-ink sm:text-3xl">
                   {team.name}
                 </strong>
-                <span className="text-sm font-bold text-[#64748b] sm:text-base">
+                <span className="text-sm font-semibold text-muted sm:text-base">
                   {hasMatchRecord
                     ? `${match.teamScore} : ${match.opponentScore}`
                     : "VS"}
                 </span>
-                <strong className="break-words text-xl text-[#0f172a] sm:text-3xl">
+                <strong className="break-words text-xl text-ink sm:text-3xl">
                   {opponentLabel}
                 </strong>
               </div>
               </div>
               <div className="flex flex-col items-center justify-center gap-3 px-5 py-5 sm:flex-row sm:px-8">
-                <span className="rounded-md border border-[#c8d4e6] bg-white/80 px-2.5 py-1 text-xs font-semibold text-[#3d5b86]">
+                <span className="rounded-lg border border-line-strong bg-white/80 px-2.5 py-1 text-xs font-semibold text-brand-ink">
                   {match.availableParticipantCount}명 참여
                 </span>
                 {canUpdateMatchParticipation(match) ? (
@@ -405,7 +405,7 @@ export default function MatchDetailPage() {
                 {canManageMatchRecord ? (
                   <Link
                     href={`/match/${match.id}/record`}
-                    className="inline-flex h-10 items-center justify-center rounded-md border border-[#c8d4e6] bg-white px-4 text-sm font-semibold text-[#3d5b86] transition-colors hover:bg-[#f0f4fa]"
+                    className="inline-flex h-10 items-center justify-center rounded-lg border border-line-strong bg-white px-4 text-sm font-semibold text-brand-ink transition-colors hover:bg-brand-soft"
                   >
                     경기 기록 관리
                   </Link>
@@ -414,41 +414,41 @@ export default function MatchDetailPage() {
             </section>
 
             {noticeMessage ? (
-              <p className="rounded-md border border-[#c8d4e6] bg-[#f0f4fa] px-4 py-3 text-sm font-medium text-[#3d5b86]">
+              <p className="rounded-lg border border-line-strong bg-brand-soft px-4 py-3 text-sm font-medium text-brand-ink">
                 {noticeMessage}
               </p>
             ) : null}
 
             {participationErrorMessage ? (
-              <p className="rounded-md border border-[#fecaca] bg-[#fef2f2] px-4 py-3 text-sm font-medium text-[#b91c1c]">
+              <p className="rounded-lg border border-danger-line bg-danger-soft px-4 py-3 text-sm font-medium text-danger">
                 {participationErrorMessage}
               </p>
             ) : null}
 
-            <section className="grid divide-y divide-[#e2e8f0] overflow-hidden rounded-2xl border border-[#dbe4f0] bg-white shadow-[0_8px_24px_rgba(37,55,84,0.04)] [&>div]:p-5 sm:grid-cols-2 sm:divide-y-0 sm:[&>div:nth-child(odd)]:border-r sm:[&>div]:p-6 lg:grid-cols-4 lg:[&>div]:border-r lg:[&>div:nth-child(odd)]:border-r lg:[&>div:last-child]:border-r-0 lg:[&>div]:p-7">
+            <section className="grid divide-y divide-line overflow-hidden rounded-2xl border border-line bg-white shadow-card [&>div]:p-5 sm:grid-cols-2 sm:divide-y-0 sm:[&>div:nth-child(odd)]:border-r sm:[&>div]:p-6 lg:grid-cols-4 lg:[&>div]:border-r lg:[&>div:nth-child(odd)]:border-r lg:[&>div:last-child]:border-r-0 lg:[&>div]:p-7">
               <div>
-                <p className="text-sm font-semibold text-[#64748b]">우리 팀</p>
-                <p className="mt-2 text-lg font-bold text-[#1f2937]">
+                <p className="text-sm font-semibold text-muted">우리 팀</p>
+                <p className="mt-2 text-lg font-semibold text-ink">
                   {team.name}
                 </p>
               </div>
               <div>
-                <p className="text-sm font-semibold text-[#64748b]">상대</p>
-                <p className="mt-2 text-lg font-bold text-[#1f2937]">
+                <p className="text-sm font-semibold text-muted">상대</p>
+                <p className="mt-2 text-lg font-semibold text-ink">
                   {opponentLabel}
                 </p>
               </div>
               <div>
-                <p className="text-sm font-semibold text-[#64748b]">
+                <p className="text-sm font-semibold text-muted">
                   경기 장소
                 </p>
-                <p className="mt-2 text-lg font-bold text-[#1f2937]">
+                <p className="mt-2 text-lg font-semibold text-ink">
                   {match.location || "장소 미정"}
                 </p>
               </div>
               <div>
-                <p className="text-sm font-semibold text-[#64748b]">상태</p>
-                <p className="mt-2 text-lg font-bold text-[#1f2937]">
+                <p className="text-sm font-semibold text-muted">상태</p>
+                <p className="mt-2 text-lg font-semibold text-ink">
                   {match.status === "SCHEDULED"
                     ? "예정"
                     : match.status === "COMPLETED"
@@ -463,18 +463,18 @@ export default function MatchDetailPage() {
             ) : null}
 
             {hasMatchRecord ? (
-              <section className="overflow-hidden rounded-2xl border border-[#dbe4f0] bg-white shadow-[0_8px_24px_rgba(37,55,84,0.04)]">
-                <div className="flex flex-col gap-3 border-b border-[#e2e8f0] bg-[#fbfcfe] px-5 py-5 sm:flex-row sm:items-center sm:justify-between sm:px-6">
+              <section className="overflow-hidden rounded-2xl border border-line bg-white shadow-card">
+                <div className="flex flex-col gap-3 border-b border-line bg-canvas px-5 py-5 sm:flex-row sm:items-center sm:justify-between sm:px-6">
                   <div>
-                    <h2 className="text-lg font-bold text-[#0f172a]">경기 기록</h2>
-                    <p className="mt-1 text-sm text-[#64748b]">선수별 공격 포인트와 클린시트 기록입니다.</p>
+                    <h2 className="text-lg font-semibold text-ink">경기 기록</h2>
+                    <p className="mt-1 text-sm text-muted">선수별 공격 포인트와 클린시트 기록입니다.</p>
                   </div>
-                  <p className="text-xl font-bold text-[#3d5b86]">
+                  <p className="text-xl font-semibold text-brand-ink">
                     {match.teamScore} : {match.opponentScore}
                   </p>
                   {matchResult ? (
                     <span
-                      className={`inline-flex w-fit rounded-md border px-2.5 py-1 text-xs font-bold ${matchResultPresentation[matchResult].className}`}
+                      className={`inline-flex w-fit rounded-lg border px-2.5 py-1 text-xs font-semibold ${matchResultPresentation[matchResult].className}`}
                     >
                       {matchResultPresentation[matchResult].label}
                     </span>
@@ -482,42 +482,42 @@ export default function MatchDetailPage() {
                 </div>
 
                 {playerRecords.length > 0 ? (
-                  <div className="divide-y divide-[#e2e8f0]">
+                  <div className="divide-y divide-line">
                     {playerRecords.map(({ member, participant }) => (
                       <div key={member.id} className="flex items-center justify-between gap-4 px-5 py-4 sm:px-6">
-                        <p className="min-w-0 truncate font-semibold text-[#1f2937]">
+                        <p className="min-w-0 truncate font-semibold text-ink">
                           {member.name ?? (member.userId ? "가입 팀원" : "미가입 팀원")}
                         </p>
                         <div className="flex shrink-0 items-center gap-2 text-xs font-semibold sm:text-sm">
-                          {(participant?.goalCount ?? 0) > 0 ? <span className="rounded-md border border-[#c8d4e6] bg-[#f0f4fa] px-2.5 py-1 text-[#3d5b86]">골 {participant?.goalCount}</span> : null}
-                          {(participant?.assistCount ?? 0) > 0 ? <span className="rounded-md border border-[#d8d4e9] bg-[#f6f5fb] px-2.5 py-1 text-[#695c91]">도움 {participant?.assistCount}</span> : null}
-                          {(participant?.cleanSheetCount ?? 0) > 0 ? <span className="rounded-md border border-[#b8d7c1] bg-[#f1f8f2] px-2.5 py-1 text-[#36734a]">클린시트 {participant?.cleanSheetCount}</span> : null}
+                          {(participant?.goalCount ?? 0) > 0 ? <span className="rounded-lg border border-line-strong bg-brand-soft px-2.5 py-1 text-brand-ink">골 {participant?.goalCount}</span> : null}
+                          {(participant?.assistCount ?? 0) > 0 ? <span className="rounded-lg border border-[#d8d4e9] bg-[#f6f5fb] px-2.5 py-1 text-[#695c91]">도움 {participant?.assistCount}</span> : null}
+                          {(participant?.cleanSheetCount ?? 0) > 0 ? <span className="rounded-lg border border-success-line bg-success-soft px-2.5 py-1 text-success">클린시트 {participant?.cleanSheetCount}</span> : null}
                         </div>
                       </div>
                     ))}
                   </div>
                 ) : (
-                  <p className="px-5 py-6 text-sm text-[#64748b] sm:px-6">등록된 선수 기록이 없습니다.</p>
+                  <p className="px-5 py-6 text-sm text-muted sm:px-6">등록된 선수 기록이 없습니다.</p>
                 )}
               </section>
             ) : null}
 
-            <section className="overflow-hidden rounded-2xl border border-[#dbe4f0] bg-white shadow-[0_8px_24px_rgba(37,55,84,0.04)]">
-              <div className="flex flex-col gap-3 border-b border-[#e2e8f0] bg-[#fbfcfe] px-5 py-5 sm:flex-row sm:items-center sm:justify-between sm:px-6">
+            <section className="overflow-hidden rounded-2xl border border-line bg-white shadow-card">
+              <div className="flex flex-col gap-3 border-b border-line bg-canvas px-5 py-5 sm:flex-row sm:items-center sm:justify-between sm:px-6">
                 <div>
-                  <h2 className="text-lg font-bold text-[#0f172a]">
+                  <h2 className="text-lg font-semibold text-ink">
                     팀원 참여 현황
                   </h2>
-                  <p className="mt-1 text-sm text-[#64748b]">
-                    매치 참여 여부를 팀원별로 확인할 수 있습니다.
+                  <p className="mt-1 text-sm text-muted">
+                    경기 참여 여부를 팀원별로 확인할 수 있습니다.
                   </p>
                 </div>
-                <span className="w-fit rounded-md border border-[#c8d4e6] bg-[#f0f4fa] px-2.5 py-1 text-xs font-semibold text-[#3d5b86]">
+                <span className="w-fit rounded-lg border border-line-strong bg-brand-soft px-2.5 py-1 text-xs font-semibold text-brand-ink">
                   {match.availableParticipantCount}명 참여
                 </span>
               </div>
 
-              <div className="divide-y divide-[#e2e8f0] md:hidden">
+              <div className="divide-y divide-line md:hidden">
                 {matchTeamMembers.map((member) => {
                   const participant = participants.find(
                     (item) => item.teamMemberId === member.id,
@@ -534,17 +534,17 @@ export default function MatchDetailPage() {
                       <div className="flex items-start justify-between gap-3">
                         <div className="min-w-0">
                           <div className="flex flex-wrap items-center gap-2">
-                            <h3 className="truncate font-bold text-[#1f2937]">
+                            <h3 className="truncate font-semibold text-ink">
                               {member.name ??
                                 (member.userId ? "가입 팀원" : "미가입 팀원")}
                             </h3>
                             {isCurrentUser ? (
-                              <span className="rounded border border-[#c8d4e6] bg-[#f0f4fa] px-1.5 py-0.5 text-[11px] font-bold text-[#3d5b86]">
+                              <span className="rounded border border-line-strong bg-brand-soft px-1.5 py-0.5 text-[11px] font-semibold text-brand-ink">
                                 나
                               </span>
                             ) : null}
                           </div>
-                          <p className="mt-1 text-xs text-[#64748b]">
+                          <p className="mt-1 text-xs text-muted">
                             {member.role === "OWNER"
                               ? "팀장"
                               : member.role === "SUB_MANAGER"
@@ -555,24 +555,24 @@ export default function MatchDetailPage() {
                           </p>
                         </div>
                         <span
-                          className={`shrink-0 rounded-md border px-2.5 py-1 text-xs font-semibold ${participationStatusClassNames[participationStatus]}`}
+                          className={`shrink-0 rounded-lg border px-2.5 py-1 text-xs font-semibold ${participationStatusClassNames[participationStatus]}`}
                         >
                           {participationStatusLabels[participationStatus]}
                         </span>
                       </div>
 
-                      <dl className="mt-4 grid grid-cols-2 gap-3 rounded-lg bg-[#f8fafc] p-3 text-xs">
+                      <dl className="mt-4 grid grid-cols-2 gap-3 rounded-xl bg-subtle p-3 text-xs">
                         <div>
-                          <dt className="font-medium text-[#94a3b8]">응답 시간</dt>
-                          <dd className="mt-1 leading-5 text-[#52627b]">
+                          <dt className="font-medium text-placeholder">응답 시간</dt>
+                          <dd className="mt-1 leading-5 text-secondary">
                             {formatParticipationRespondedAt(
                               participant?.respondedAt ?? null,
                             )}
                           </dd>
                         </div>
                         <div>
-                          <dt className="font-medium text-[#94a3b8]">메모</dt>
-                          <dd className="mt-1 break-words leading-5 text-[#52627b]">
+                          <dt className="font-medium text-placeholder">메모</dt>
+                          <dd className="mt-1 break-words leading-5 text-secondary">
                             {isCurrentUser ? memoDraft || "메모 없음" : participant?.memo || "메모 없음"}
                           </dd>
                         </div>
@@ -587,14 +587,14 @@ export default function MatchDetailPage() {
                             maxLength={500}
                             disabled={!canUpdateMatchParticipation(match) || isMemoSaving}
                             placeholder="불참 사유 등 메모를 남겨주세요"
-                            aria-label="매치 참여 메모"
-                            className="h-10 min-w-0 flex-1 rounded-md border border-[#c8d4e6] bg-white px-3 text-sm text-[#1f2937] outline-none placeholder:text-[#94a3b8] focus:border-[#4f6f9f] disabled:cursor-not-allowed disabled:bg-[#f8fafc]"
+                            aria-label="경기 참여 메모"
+                            className="h-10 min-w-0 flex-1 rounded-lg border border-line-strong bg-white px-3 text-sm text-ink outline-none placeholder:text-placeholder focus:border-brand disabled:cursor-not-allowed disabled:bg-subtle"
                           />
                           <button
                             type="button"
                             onClick={() => void handleMemoSave()}
                             disabled={!canSaveMemo || isMemoSaving}
-                            className="inline-flex h-10 shrink-0 items-center justify-center rounded-md border border-[#c8d4e6] bg-[#f0f4fa] px-3 text-xs font-semibold text-[#3d5b86] transition-colors hover:bg-[#e3ecf7] disabled:cursor-not-allowed disabled:border-[#dbe4f0] disabled:bg-[#f8fafc] disabled:text-[#94a3b8]"
+                            className="inline-flex h-10 shrink-0 items-center justify-center rounded-lg border border-line-strong bg-brand-soft px-3 text-xs font-semibold text-brand-ink transition-colors hover:bg-brand-soft disabled:cursor-not-allowed disabled:border-line disabled:bg-subtle disabled:text-placeholder"
                           >
                             {isMemoSaving ? "저장 중" : "저장"}
                           </button>
@@ -607,7 +607,7 @@ export default function MatchDetailPage() {
 
               <div className="hidden overflow-x-auto md:block">
                 <table className="w-full min-w-[52rem] text-left text-sm">
-                  <thead className="bg-[#f8fafc] text-xs font-semibold text-[#64748b]">
+                  <thead className="bg-subtle text-xs font-semibold text-muted">
                     <tr>
                       <th scope="col" className="px-5 py-3 sm:px-6">
                         팀원
@@ -626,7 +626,7 @@ export default function MatchDetailPage() {
                       </th>
                     </tr>
                   </thead>
-                  <tbody className="divide-y divide-[#e2e8f0] [&>tr]:transition-colors [&>tr:hover]:bg-[#fbfcfe]">
+                  <tbody className="divide-y divide-line [&>tr]:transition-colors [&>tr:hover]:bg-canvas">
                     {matchTeamMembers.map((member) => {
                       const participant = participants.find(
                         (participant) => participant.teamMemberId === member.id,
@@ -641,11 +641,11 @@ export default function MatchDetailPage() {
 
                       return (
                         <tr key={member.id}>
-                          <td className="px-5 py-4 font-semibold text-[#1f2937] sm:px-6">
+                          <td className="px-5 py-4 font-semibold text-ink sm:px-6">
                             {member.name ??
                               (member.userId ? "가입 팀원" : "미가입 팀원")}
                           </td>
-                          <td className="px-5 py-4 text-[#64748b]">
+                          <td className="px-5 py-4 text-muted">
                             {member.role === "OWNER"
                               ? "팀장"
                               : member.role === "SUB_MANAGER"
@@ -654,12 +654,12 @@ export default function MatchDetailPage() {
                                   ? "용병"
                                   : "팀원"}
                           </td>
-                          <td className="whitespace-nowrap px-5 py-4 text-[#64748b]">
+                          <td className="whitespace-nowrap px-5 py-4 text-muted">
                             {formatParticipationRespondedAt(
                               participant?.respondedAt ?? null,
                             )}
                           </td>
-                          <td className="px-5 py-4 text-[#64748b]">
+                          <td className="px-5 py-4 text-muted">
                             {isCurrentUser ? (
                               <div className="flex min-w-64 items-center gap-2">
                                 <input
@@ -672,14 +672,14 @@ export default function MatchDetailPage() {
                                     isMemoSaving
                                   }
                                   placeholder="불참 사유 등을 남겨주세요"
-                                  aria-label="매치 참여 메모"
-                                  className="h-9 min-w-0 flex-1 rounded-md border border-[#c8d4e6] bg-white px-3 text-sm text-[#1f2937] outline-none placeholder:text-[#94a3b8] focus:border-[#4f6f9f] disabled:cursor-not-allowed disabled:bg-[#f8fafc]"
+                                  aria-label="경기 참여 메모"
+                                  className="h-9 min-w-0 flex-1 rounded-lg border border-line-strong bg-white px-3 text-sm text-ink outline-none placeholder:text-placeholder focus:border-brand disabled:cursor-not-allowed disabled:bg-subtle"
                                 />
                                 <button
                                   type="button"
                                   onClick={() => void handleMemoSave()}
                                   disabled={!canSaveMemo || isMemoSaving}
-                                  className="inline-flex h-9 shrink-0 items-center justify-center rounded-md border border-[#c8d4e6] bg-[#f0f4fa] px-3 text-xs font-semibold text-[#3d5b86] transition-colors hover:bg-[#e3ecf7] disabled:cursor-not-allowed disabled:border-[#dbe4f0] disabled:bg-[#f8fafc] disabled:text-[#94a3b8]"
+                                  className="inline-flex h-9 shrink-0 items-center justify-center rounded-lg border border-line-strong bg-brand-soft px-3 text-xs font-semibold text-brand-ink transition-colors hover:bg-brand-soft disabled:cursor-not-allowed disabled:border-line disabled:bg-subtle disabled:text-placeholder"
                                 >
                                   {isMemoSaving ? "저장 중" : "저장"}
                                 </button>
@@ -692,7 +692,7 @@ export default function MatchDetailPage() {
                           </td>
                           <td className="px-5 py-4 text-right sm:px-6">
                             <span
-                              className={`inline-flex rounded-md border px-2.5 py-1 text-xs font-semibold ${participationStatusClassNames[participationStatus]}`}
+                              className={`inline-flex rounded-lg border px-2.5 py-1 text-xs font-semibold ${participationStatusClassNames[participationStatus]}`}
                             >
                               {participationStatusLabels[participationStatus]}
                             </span>

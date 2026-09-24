@@ -12,7 +12,7 @@ import { subscribeToAccessFailures } from "@/shared/api/access-failures";
 import { NotFoundPage } from "@/shared/ui/NotFoundPage";
 
 function LoadingAccess() {
-  return <main className="flex-1 px-5 py-20 text-center text-sm text-[#64748b]" role="status">페이지를 확인하고 있습니다.</main>;
+  return <main className="flex-1 px-5 py-20 text-center text-sm text-muted" role="status">페이지를 확인하고 있습니다.</main>;
 }
 
 export function PageAccessBoundary({ children }: { children: ReactNode }) {
@@ -59,8 +59,8 @@ function CheckedPage({ children, pathname, userId }: { children: ReactNode; path
   if (state === "loading") return <LoadingAccess />;
   if (state === "error") return (
     <main className="flex-1 px-5 py-20 text-center">
-      <p className="text-sm text-[#64748b]">페이지를 불러오지 못했습니다. 잠시 후 다시 시도해 주세요.</p>
-      <button type="button" onClick={() => { setState("loading"); setAttempt((value) => value + 1); }} className="mt-5 min-h-11 rounded-md border border-[#c8d4e6] px-5 text-sm font-semibold text-[#3d5b86]">다시 시도</button>
+      <p className="text-sm text-muted">페이지를 불러오지 못했습니다. 잠시 후 다시 시도해 주세요.</p>
+      <button type="button" onClick={() => { setState("loading"); setAttempt((value) => value + 1); }} className="mt-5 min-h-11 rounded-lg border border-line-strong px-5 text-sm font-semibold text-brand-ink">다시 시도</button>
     </main>
   );
   return children;

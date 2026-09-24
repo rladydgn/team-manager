@@ -18,10 +18,10 @@ export function MatchParticipationButton({
       type="button"
       onClick={onClick}
       disabled={isUpdating}
-      className={`inline-flex min-h-12 w-full items-center justify-center gap-2 rounded-lg border px-5 text-sm font-bold shadow-sm transition-all focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-[#4f6f9f] disabled:cursor-not-allowed disabled:border-[#dbe4f0] disabled:bg-[#f8fafc] disabled:text-[#94a3b8] sm:w-auto ${
+      className={`inline-flex min-h-12 w-full items-center justify-center gap-2 rounded-xl border px-5 text-sm font-semibold shadow-sm transition-all focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-brand disabled:cursor-not-allowed disabled:border-line disabled:bg-subtle disabled:text-placeholder sm:w-auto ${
         isParticipating
-          ? "border-[#c8d4e6] bg-white text-[#52627b] hover:border-[#aebfd5] hover:bg-[#f8fafc]"
-          : "border-[#435f88] bg-[#4f6f9f] text-white shadow-[0_8px_18px_rgba(79,111,159,0.22)] hover:-translate-y-0.5 hover:bg-[#435f88] hover:shadow-[0_10px_22px_rgba(79,111,159,0.28)]"
+          ? "border-line-strong bg-white text-secondary hover:border-[#aebfd5] hover:bg-subtle"
+          : "border-brand-hover bg-brand text-white shadow-card hover:-translate-y-0.5 hover:bg-brand-hover hover:shadow-card"
       }`}
     >
       {isUpdating ? (

@@ -1,6 +1,5 @@
 "use client";
 
-import Link from "next/link";
 import { useParams } from "next/navigation";
 import { useCallback, useEffect, useMemo, useState } from "react";
 import { useAuthSession } from "@/features/auth/model/auth-session";
@@ -12,6 +11,7 @@ import {
   updateTeamFeePayment,
 } from "@/features/team/api/fee-payment";
 import { getTeam, TeamDetail } from "@/features/team/api/team";
+import { PageHeading } from "@/shared/ui/PageHeading";
 import { TeamDetailTabs } from "@/features/team/ui/TeamDetailTabs";
 
 const months = Array.from({ length: 12 }, (_, index) => index + 1);
@@ -24,7 +24,7 @@ const statusLabels: Record<FeePaymentStatus, string> = {
 };
 
 const statusClassNames: Record<FeePaymentStatus, string> = {
-  PAID: "border-[#b8d7c1] bg-[#f1f8f2] text-[#36734a]",
+  PAID: "border-success-line bg-success-soft text-success",
   UNPAID: "border-[#f1d3d1] bg-[#fff5f4] text-[#a85450]",
   INJURED: "border-[#d8d4e9] bg-[#f6f5fb] text-[#695c91]",
   EXEMPT: "border-[#d6dee9] bg-[#f5f7fa] text-[#526274]",
@@ -234,22 +234,9 @@ export default function TeamFeePaymentsPage() {
   }
 
   return (
-    <main className="min-h-screen bg-[#f5f7fb] text-[#111827]">
-      <header data-legacy-page-header className="border-b border-[#dbe4f0] bg-white/90">
-        <div className="mx-auto flex w-full max-w-6xl items-center justify-between gap-4 px-5 py-4 sm:px-6 lg:px-8">
-          <Link href="/" className="flex min-w-0 items-center gap-3">
-            <span className="grid size-9 shrink-0 place-items-center rounded-md bg-[#4f6f9f] text-sm font-bold text-white">TM</span>
-            <span className="truncate text-base font-semibold">Team Manager</span>
-          </Link>
-          {currentUser ? (
-            <span className="truncate rounded-md border border-[#c8d4e6] bg-white px-3 py-2 text-sm font-semibold text-[#3d5b86]">{currentUser.name}</span>
-          ) : (
-            <Link href="/login" className="inline-flex h-10 shrink-0 items-center justify-center rounded-md border border-[#c8d4e6] bg-white px-4 text-sm font-semibold text-[#3d5b86] transition-colors hover:bg-[#f0f4fa]">로그인</Link>
-          )}
-        </div>
-      </header>
+    <main className="min-h-[calc(100dvh-4rem-1px)] bg-canvas text-ink">
 
-      <div className="mx-auto flex w-full max-w-6xl flex-col gap-6 px-5 py-7 sm:px-6 sm:py-8 lg:px-8">
+      <div className="mx-auto flex w-full max-w-6xl flex-col gap-7 px-5 py-8 sm:px-6 sm:py-10 lg:px-8">
         {Number.isInteger(teamId) && teamId > 0 ? (
           <TeamDetailTabs
             teamId={teamId}
@@ -260,40 +247,36 @@ export default function TeamFeePaymentsPage() {
         ) : null}
 
         {isLoading ? (
-          <section className="flex min-h-72 items-center justify-center rounded-lg border border-[#dbe4f0] bg-white">
-            <p className="text-sm font-semibold text-[#64748b]">회비 납부 현황을 불러오는 중입니다.</p>
+          <section className="flex min-h-72 items-center justify-center rounded-xl border border-line bg-white">
+            <p className="text-sm font-semibold text-muted">회비 납부 현황을 불러오는 중입니다.</p>
           </section>
         ) : errorMessage ? (
-          <section className="rounded-lg border border-[#fecaca] bg-white px-5 py-12 text-center">
-            <h1 className="text-xl font-bold text-[#0f172a]">회비 납부 현황을 불러올 수 없습니다.</h1>
-            <p className="mt-3 text-sm leading-6 text-[#b91c1c]">{errorMessage}</p>
-            {canManageFees ? <button type="button" onClick={() => void loadFeePayments()} className="mt-6 inline-flex h-11 items-center justify-center rounded-md bg-[#4f6f9f] px-5 text-sm font-semibold text-white transition-colors hover:bg-[#435f88]">다시 시도</button> : null}
+          <section className="rounded-xl border border-danger-line bg-white px-5 py-12 text-center">
+            <h1 className="text-xl font-semibold text-ink">회비 납부 현황을 불러올 수 없습니다.</h1>
+            <p className="mt-3 text-sm leading-6 text-danger">{errorMessage}</p>
+            {canManageFees ? <button type="button" onClick={() => void loadFeePayments()} className="mt-6 inline-flex h-11 items-center justify-center rounded-lg bg-brand px-5 text-sm font-semibold text-white transition-colors hover:bg-brand-hover">다시 시도</button> : null}
           </section>
         ) : teamDetail && feePayments ? (
           <>
-            <section className="flex flex-col gap-4 border-b border-[#dbe4f0] pb-6 sm:flex-row sm:items-end sm:justify-between">
-              <div>
-                <p className="text-sm font-semibold text-[#4f6f9f]">FEE PAYMENT</p>
-                <h1 className="mt-2 text-3xl font-bold text-[#0f172a] sm:text-4xl">{teamDetail.team.name} 회비 납부</h1>
-                <p className="mt-3 text-sm leading-6 text-[#64748b]">운영진이 월별 납부 상태와 메모를 관리합니다.</p>
-              </div>
-              <label className="grid w-fit gap-1.5 text-sm font-semibold text-[#475569]">
+            <section className="flex flex-col gap-4 sm:flex-row sm:items-end sm:justify-between">
+              <PageHeading label={teamDetail.team.name} title="회비 납부" description="월별 납부 상태와 메모를 관리하세요." />
+              <label className="grid w-fit gap-1.5 text-sm font-semibold text-secondary">
                 조회 연도
-                <select value={paymentYear} onChange={(event) => setPaymentYear(Number(event.target.value))} className="h-10 rounded-md border border-[#c8d4e6] bg-white px-3 text-sm font-semibold text-[#1f2937] outline-none focus:border-[#4f6f9f] focus:ring-4 focus:ring-[#e3eaf5]">
+                <select value={paymentYear} onChange={(event) => setPaymentYear(Number(event.target.value))} className="h-10 rounded-lg border border-line-strong bg-white px-3 text-sm font-semibold text-ink outline-none focus:border-brand focus:ring-2 focus:ring-brand-ring">
                   {availableYears.map((year) => <option key={year} value={year}>{year}년</option>)}
                 </select>
               </label>
             </section>
 
-            {noticeMessage ? <p className="rounded-md border border-[#c8d4e6] bg-[#f0f4fa] px-4 py-3 text-sm font-medium text-[#3d5b86]">{noticeMessage}</p> : null}
+            {noticeMessage ? <p className="rounded-lg border border-line-strong bg-brand-soft px-4 py-3 text-sm font-medium text-brand-ink">{noticeMessage}</p> : null}
 
-            <section className="overflow-clip rounded-lg border border-[#dbe4f0] bg-white">
-              <div className="flex items-center justify-between gap-4 border-b border-[#e2e8f0] px-5 py-4 sm:px-6">
+            <section className="overflow-clip rounded-xl border border-line bg-white">
+              <div className="flex items-center justify-between gap-4 border-b border-line px-5 py-4 sm:px-6">
                 <div>
-                  <h2 className="text-lg font-bold text-[#0f172a]">{feePayments.paymentYear}년 월별 납부 현황</h2>
-                  <p className="mt-1 text-sm text-[#64748b]">각 월의 상태를 변경하고 메모를 남길 수 있습니다.</p>
+                  <h2 className="text-lg font-semibold text-ink">{feePayments.paymentYear}년 월별 납부 현황</h2>
+                  <p className="mt-1 text-sm text-muted">각 월의 상태를 변경하고 메모를 남길 수 있습니다.</p>
                 </div>
-                <span className="shrink-0 text-sm font-semibold text-[#3d5b86]">총 {feePayments.members.length}명</span>
+                <span className="shrink-0 text-sm font-semibold text-brand-ink">총 {feePayments.members.length}명</span>
               </div>
 
               <div className="hidden lg:block">
@@ -302,19 +285,19 @@ export default function TeamFeePaymentsPage() {
                     <col className="w-32" />
                     <col span={12} />
                   </colgroup>
-                  <thead className="bg-[#f8fafc] text-xs font-semibold text-[#64748b]">
+                  <thead className="bg-subtle text-xs font-semibold text-muted">
                     <tr>
                       {/* Keep column labels below the 4rem app header and its 1px border. */}
-                      <th scope="col" className="sticky top-[calc(4rem+1px)] z-10 bg-[#f8fafc] px-4 py-2.5 shadow-[0_1px_0_#dbe4f0]">팀원</th>
-                      {months.map((month) => <th key={month} scope="col" className="sticky top-[calc(4rem+1px)] z-10 bg-[#f8fafc] px-1 py-2.5 text-center shadow-[0_1px_0_#dbe4f0]">{month}월</th>)}
+                      <th scope="col" className="sticky top-[calc(4rem+1px)] z-10 bg-subtle px-4 py-2.5 shadow-[0_1px_0_var(--color-line)]">팀원</th>
+                      {months.map((month) => <th key={month} scope="col" className="sticky top-[calc(4rem+1px)] z-10 bg-subtle px-1 py-2.5 text-center shadow-[0_1px_0_var(--color-line)]">{month}월</th>)}
                     </tr>
                   </thead>
-                  <tbody className="divide-y divide-[#e2e8f0]">
+                  <tbody className="divide-y divide-line">
                     {feePayments.members.map((member) => (
                       <tr key={member.teamMemberId}>
                         <td className="bg-white px-4 py-3">
-                          <p className="font-semibold text-[#1f2937]">{member.name}</p>
-                          <p className="mt-0.5 text-[11px] text-[#64748b]">{getMemberRoleLabel(member)}</p>
+                          <p className="font-semibold text-ink">{member.name}</p>
+                          <p className="mt-0.5 text-[11px] text-muted">{getMemberRoleLabel(member)}</p>
                         </td>
                         {member.payments.map((payment) => {
                           const paymentKey = `${member.teamMemberId}-${payment.paymentMonth}`;
@@ -327,7 +310,7 @@ export default function TeamFeePaymentsPage() {
                                   value={payment.status}
                                   disabled={isUpdating}
                                   onChange={(event) => void savePayment(member, payment.paymentMonth, event.target.value as FeePaymentStatus, payment.memo ?? "")}
-                                  className={`h-7 w-full rounded-md border px-1 text-[11px] font-semibold outline-none disabled:cursor-not-allowed ${statusClassNames[payment.status]}`}
+                                  className={`h-7 w-full rounded-lg border px-1 text-[11px] font-semibold outline-none disabled:cursor-not-allowed ${statusClassNames[payment.status]}`}
                                   aria-label={`${member.name} ${payment.paymentMonth}월 회비 상태`}
                                 >
                                   {(Object.keys(statusLabels) as FeePaymentStatus[]).map((status) => (
@@ -341,7 +324,7 @@ export default function TeamFeePaymentsPage() {
                                   onClick={() => setMemoEditor({ member, month: payment.paymentMonth, status: payment.status, memo: payment.memo ?? "" })}
                                   title={payment.memo ?? "메모 작성"}
                                   aria-label={`${member.name} ${payment.paymentMonth}월 메모 ${payment.memo ? "수정" : "작성"}`}
-                                  className={`h-6 w-full truncate text-left text-[11px] font-semibold transition-colors ${payment.memo ? "text-[#3d5b86] hover:text-[#283f62]" : "text-[#94a3b8] hover:text-[#64748b]"}`}
+                                  className={`h-6 w-full truncate text-left text-[11px] font-semibold transition-colors ${payment.memo ? "text-brand-ink hover:text-brand-hover" : "text-placeholder hover:text-muted"}`}
                                 >
                                   {payment.memo || "메모"}
                                 </button>
@@ -355,12 +338,12 @@ export default function TeamFeePaymentsPage() {
                 </table>
               </div>
 
-              <div className="divide-y divide-[#e2e8f0] lg:hidden">
+              <div className="divide-y divide-line lg:hidden">
                 {feePayments.members.map((member) => (
                   <section key={member.teamMemberId} className="px-4 py-4 sm:px-5">
                     <div className="mb-3 flex items-baseline justify-between gap-3">
-                      <p className="font-semibold text-[#1f2937]">{member.name}</p>
-                      <p className="text-xs text-[#64748b]">{getMemberRoleLabel(member)}</p>
+                      <p className="font-semibold text-ink">{member.name}</p>
+                      <p className="text-xs text-muted">{getMemberRoleLabel(member)}</p>
                     </div>
                     <div className="grid grid-cols-3 gap-x-2 gap-y-3 sm:grid-cols-4">
                       {member.payments.map((payment) => {
@@ -369,12 +352,12 @@ export default function TeamFeePaymentsPage() {
 
                         return (
                           <div key={payment.paymentMonth} className="min-w-0">
-                            <p className="mb-1 text-[11px] font-semibold text-[#64748b]">{payment.paymentMonth}월</p>
+                            <p className="mb-1 text-[11px] font-semibold text-muted">{payment.paymentMonth}월</p>
                             <select
                               value={payment.status}
                               disabled={isUpdating}
                               onChange={(event) => void savePayment(member, payment.paymentMonth, event.target.value as FeePaymentStatus, payment.memo ?? "")}
-                              className={`h-8 w-full rounded-md border px-1.5 text-xs font-semibold outline-none disabled:cursor-not-allowed ${statusClassNames[payment.status]}`}
+                              className={`h-8 w-full rounded-lg border px-1.5 text-xs font-semibold outline-none disabled:cursor-not-allowed ${statusClassNames[payment.status]}`}
                               aria-label={`${member.name} ${payment.paymentMonth}월 회비 상태`}
                             >
                               {(Object.keys(statusLabels) as FeePaymentStatus[]).map((status) => (
@@ -388,7 +371,7 @@ export default function TeamFeePaymentsPage() {
                               onClick={() => setMemoEditor({ member, month: payment.paymentMonth, status: payment.status, memo: payment.memo ?? "" })}
                               title={payment.memo ?? "메모 작성"}
                               aria-label={`${member.name} ${payment.paymentMonth}월 메모 ${payment.memo ? "수정" : "작성"}`}
-                              className={`mt-1 h-6 w-full truncate text-left text-xs font-semibold transition-colors ${payment.memo ? "text-[#3d5b86] hover:text-[#283f62]" : "text-[#94a3b8] hover:text-[#64748b]"}`}
+                              className={`mt-1 h-6 w-full truncate text-left text-xs font-semibold transition-colors ${payment.memo ? "text-brand-ink hover:text-brand-hover" : "text-placeholder hover:text-muted"}`}
                             >
                               {payment.memo || "메모"}
                             </button>
@@ -405,21 +388,21 @@ export default function TeamFeePaymentsPage() {
       </div>
 
       {memoEditor ? (
-        <div className="fixed inset-0 z-50 flex items-end bg-[#0f172a]/30 p-4 sm:items-center sm:justify-center" role="dialog" aria-modal="true" aria-labelledby="fee-memo-title">
-          <section className="w-full max-w-md rounded-lg bg-white p-5 shadow-xl sm:p-6">
+        <div className="fixed inset-0 z-50 flex items-end bg-ink/30 p-4 sm:items-center sm:justify-center" role="dialog" aria-modal="true" aria-labelledby="fee-memo-title">
+          <section className="w-full max-w-md rounded-xl bg-white p-5 shadow-xl sm:p-6">
             <div className="flex items-start justify-between gap-4">
               <div>
-                <h2 id="fee-memo-title" className="text-lg font-bold text-[#0f172a]">{memoEditor.member.name} · {memoEditor.month}월 메모</h2>
-                <p className="mt-1 text-sm text-[#64748b]">납부 사유나 확인 내용을 남겨주세요.</p>
+                <h2 id="fee-memo-title" className="text-lg font-semibold text-ink">{memoEditor.member.name} · {memoEditor.month}월 메모</h2>
+                <p className="mt-1 text-sm text-muted">납부 사유나 확인 내용을 남겨주세요.</p>
               </div>
-              <button type="button" onClick={() => setMemoEditor(null)} disabled={isSaving} className="inline-flex size-9 items-center justify-center rounded-md border border-[#dbe4f0] text-lg text-[#64748b] transition-colors hover:bg-[#f8fafc] disabled:cursor-not-allowed" aria-label="메모 창 닫기">x</button>
+              <button type="button" onClick={() => setMemoEditor(null)} disabled={isSaving} className="inline-flex size-9 items-center justify-center rounded-lg border border-line text-lg text-muted transition-colors hover:bg-subtle disabled:cursor-not-allowed" aria-label="메모 창 닫기">x</button>
             </div>
-            <textarea value={memoEditor.memo} onChange={(event) => setMemoEditor((current) => current ? { ...current, memo: event.target.value } : null)} maxLength={500} rows={5} className="mt-5 w-full resize-y rounded-md border border-[#c8d4e6] bg-white px-3 py-2.5 text-sm text-[#1f2937] outline-none placeholder:text-[#94a3b8] focus:border-[#4f6f9f] focus:ring-4 focus:ring-[#e3eaf5]" placeholder="예: 부상 회복 중, 다음 달 납부 예정" />
+            <textarea value={memoEditor.memo} onChange={(event) => setMemoEditor((current) => current ? { ...current, memo: event.target.value } : null)} maxLength={500} rows={5} className="mt-5 w-full resize-y rounded-lg border border-line-strong bg-white px-3 py-2.5 text-sm text-ink outline-none placeholder:text-placeholder focus:border-brand focus:ring-2 focus:ring-brand-ring" placeholder="예: 부상 회복 중, 다음 달 납부 예정" />
             <div className="mt-4 flex items-center justify-between gap-4">
-              <span className="text-xs text-[#94a3b8]">{memoEditor.memo.length}/500</span>
+              <span className="text-xs text-placeholder">{memoEditor.memo.length}/500</span>
               <div className="flex gap-2">
-                <button type="button" onClick={() => setMemoEditor(null)} disabled={isSaving} className="inline-flex h-10 items-center justify-center rounded-md border border-[#c8d4e6] bg-white px-4 text-sm font-semibold text-[#52627b] transition-colors hover:bg-[#f8fafc] disabled:cursor-not-allowed">취소</button>
-                <button type="button" onClick={() => void saveMemo()} disabled={isSaving} className="inline-flex h-10 items-center justify-center rounded-md bg-[#4f6f9f] px-4 text-sm font-semibold text-white transition-colors hover:bg-[#435f88] disabled:cursor-not-allowed disabled:bg-[#a9b9d3]">{isSaving ? "저장 중" : "저장"}</button>
+                <button type="button" onClick={() => setMemoEditor(null)} disabled={isSaving} className="inline-flex h-10 items-center justify-center rounded-lg border border-line-strong bg-white px-4 text-sm font-semibold text-secondary transition-colors hover:bg-subtle disabled:cursor-not-allowed">취소</button>
+                <button type="button" onClick={() => void saveMemo()} disabled={isSaving} className="inline-flex h-10 items-center justify-center rounded-lg bg-brand px-4 text-sm font-semibold text-white transition-colors hover:bg-brand-hover disabled:cursor-not-allowed disabled:bg-brand-disabled">{isSaving ? "저장 중" : "저장"}</button>
               </div>
             </div>
           </section>

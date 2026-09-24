@@ -153,32 +153,9 @@ export default function TeamDetailPage() {
   }
 
   return (
-    <main className="min-h-screen bg-[#f5f7fb] text-[#111827]">
-      <header data-legacy-page-header className="border-b border-[#dbe4f0] bg-white/90">
-        <div className="mx-auto flex w-full max-w-6xl items-center justify-between gap-4 px-5 py-4 sm:px-6 lg:px-8">
-          <Link href="/" className="flex min-w-0 items-center gap-3">
-            <span className="grid size-9 shrink-0 place-items-center rounded-md bg-[#4f6f9f] text-sm font-bold text-white">
-              TM
-            </span>
-            <span className="truncate text-base font-semibold">Team Manager</span>
-          </Link>
+    <main className="min-h-[calc(100dvh-4rem-1px)] bg-canvas text-ink">
 
-          {currentUser ? (
-            <span className="truncate rounded-md border border-[#c8d4e6] bg-white px-3 py-2 text-sm font-semibold text-[#3d5b86]">
-              {currentUser.username}
-            </span>
-          ) : (
-            <Link
-              href="/login"
-              className="inline-flex h-10 shrink-0 items-center justify-center rounded-md border border-[#c8d4e6] bg-white px-4 text-sm font-semibold text-[#3d5b86] transition-colors hover:bg-[#f0f4fa]"
-            >
-              로그인
-            </Link>
-          )}
-        </div>
-      </header>
-
-      <div className="mx-auto flex w-full max-w-6xl flex-col gap-6 px-5 py-7 sm:px-6 sm:py-8 lg:px-8">
+      <div className="mx-auto flex w-full max-w-6xl flex-col gap-7 px-5 py-8 sm:px-6 sm:py-10 lg:px-8">
         {Number.isInteger(teamId) && teamId > 0 ? (
           <TeamDetailTabs
             teamId={teamId}
@@ -189,69 +166,61 @@ export default function TeamDetailPage() {
         ) : null}
 
         {errorMessage && !teamDetail ? (
-          <section className="flex min-h-72 flex-col items-center justify-center rounded-lg border border-[#fecaca] bg-white px-5 py-12 text-center">
-            <h1 className="text-xl font-bold text-[#0f172a]">팀 정보를 불러올 수 없습니다.</h1>
-            <p className="mt-3 text-sm leading-6 text-[#b91c1c]">{errorMessage}</p>
+          <section className="flex min-h-72 flex-col items-center justify-center rounded-xl border border-danger-line bg-white px-5 py-12 text-center">
+            <h1 className="text-xl font-semibold text-ink">팀 정보를 불러올 수 없습니다.</h1>
+            <p className="mt-3 text-sm leading-6 text-danger">{errorMessage}</p>
             <button
               type="button"
               onClick={() => void loadTeam()}
-              className="mt-6 inline-flex h-11 items-center justify-center rounded-md bg-[#4f6f9f] px-5 text-sm font-semibold text-white transition-colors hover:bg-[#435f88]"
+              className="mt-6 inline-flex h-11 items-center justify-center rounded-lg bg-brand px-5 text-sm font-semibold text-white transition-colors hover:bg-brand-hover"
             >
               다시 시도
             </button>
           </section>
         ) : isLoading ? (
-          <section className="flex min-h-80 items-center justify-center rounded-lg border border-[#dbe4f0] bg-white">
-            <p className="text-sm font-semibold text-[#64748b]">팀 정보를 불러오는 중입니다.</p>
+          <section className="flex min-h-80 items-center justify-center rounded-xl border border-line bg-white">
+            <p className="text-sm font-semibold text-muted">팀 정보를 불러오는 중입니다.</p>
           </section>
         ) : teamDetail ? (
           <>
-            <section className="rounded-lg border border-[#cdd9ea] bg-[#eaf0f8] p-5 sm:p-7">
-              <div className="flex flex-col gap-6 lg:flex-row lg:items-end lg:justify-between">
+            <section className="surface-card p-5 sm:p-7">
+              <div className="flex flex-col gap-6 lg:flex-row lg:items-start lg:justify-between">
                 <div className="flex min-w-0 items-start gap-4 sm:gap-5">
-                  <span className="grid size-14 shrink-0 place-items-center rounded-md bg-[#4f6f9f] text-lg font-bold text-white sm:size-16">
+                  <span className="grid size-12 shrink-0 place-items-center rounded-xl bg-brand-soft text-base font-semibold text-brand-ink">
                     {getInitials(teamDetail.team.shortName || teamDetail.team.name)}
                   </span>
                   <div className="min-w-0 flex-1">
-                    <p className="text-sm font-semibold text-[#3d5b86]">
-                      {teamDetail.team.shortName || "FOOTBALL TEAM"}
+                    <p className="text-sm font-semibold text-brand-ink">
+                      {teamDetail.team.shortName || "우리 팀"}
                     </p>
                     <div className="mt-2 flex flex-wrap items-center gap-3">
-                      <h1 className="break-words text-3xl font-bold tracking-normal text-[#0f172a] sm:text-4xl">
+                      <h1 className="break-words page-title">
                         {teamDetail.team.name}
                       </h1>
-                      <span className="rounded-md border border-[#b9c9df] bg-white/80 px-2.5 py-1 text-xs font-semibold text-[#3d5b86]">
+                      <span className="rounded-lg border border-line-strong bg-white/80 px-2.5 py-1 text-xs font-semibold text-brand-ink">
                         {teamDetail.team.status === "ACTIVE" ? "운영 중" : "비활성"}
                       </span>
                     </div>
-                    <p className="mt-3 max-w-2xl break-words text-sm leading-6 text-[#52627b] sm:text-base">
-                      {teamDetail.team.description || "아직 등록된 팀 소개가 없습니다."}
+                    <p className="mt-3 max-w-2xl break-words text-sm leading-6 text-secondary sm:text-base">
+                      {teamDetail.team.region || "활동 지역 미등록"} · 팀원 {teamDetail.memberCount}명
                     </p>
                   </div>
                 </div>
 
-                <div className="flex w-full flex-col gap-2 sm:w-auto sm:flex-row">
+                <div className="flex w-full flex-wrap gap-2 lg:max-w-md lg:justify-end">
                   {canEditTeam ? (
                     <Link
                       href={`/team/${teamDetail.team.id}/edit`}
-                      className="inline-flex h-11 w-full items-center justify-center rounded-md border border-[#b9c9df] bg-white px-5 text-sm font-semibold text-[#3d5b86] transition-colors hover:bg-[#f0f4fa] sm:w-auto"
+                      className="inline-flex h-11 w-full items-center justify-center rounded-lg border border-line-strong bg-white px-5 text-sm font-semibold text-brand-ink transition-colors hover:bg-brand-soft sm:w-auto"
                     >
                       팀 수정
                     </Link>
                   ) : null}
-                  {isOwner ? (
-                    <button
-                      type="button"
-                      onClick={openDeleteConfirmation}
-                      className="inline-flex h-11 w-full items-center justify-center rounded-md border border-[#fca5a5] bg-white px-5 text-sm font-semibold text-[#b91c1c] transition-colors hover:bg-[#fef2f2] sm:w-auto"
-                    >
-                      팀 삭제
-                    </button>
-                  ) : null}
+
                   {canEditTeam ? (
                     <Link
                       href={`/team/${teamDetail.team.id}/join-request`}
-                      className="inline-flex h-11 w-full items-center justify-center rounded-md border border-[#b9c9df] bg-white px-5 text-sm font-semibold text-[#3d5b86] transition-colors hover:bg-[#f0f4fa] sm:w-auto"
+                      className="inline-flex h-11 w-full items-center justify-center rounded-lg border border-line-strong bg-white px-5 text-sm font-semibold text-brand-ink transition-colors hover:bg-brand-soft sm:w-auto"
                     >
                       가입 신청 관리
                     </Link>
@@ -259,20 +228,20 @@ export default function TeamDetailPage() {
                   {canCreateMatch ? (
                     <Link
                       href={`/team/${teamDetail.team.id}/match/new`}
-                      className="inline-flex h-11 w-full items-center justify-center rounded-md bg-[#4f6f9f] px-5 text-sm font-semibold text-white shadow-sm transition-colors hover:bg-[#435f88] sm:w-auto"
+                      className="inline-flex h-11 w-full items-center justify-center rounded-lg bg-brand px-5 text-sm font-semibold text-white shadow-sm transition-colors hover:bg-brand-hover sm:w-auto"
                     >
                       경기 등록
                     </Link>
                   ) : isOwner ? (
-                    <span className="inline-flex h-11 w-full items-center justify-center rounded-md border border-[#b9c9df] bg-white px-4 text-sm font-semibold text-[#3d5b86] sm:w-auto">
+                    <span className="inline-flex h-11 w-full items-center justify-center rounded-lg border border-line-strong bg-white px-4 text-sm font-semibold text-brand-ink sm:w-auto">
                       가입 완료
                     </span>
                   ) : isMember ? (
-                    <span className="inline-flex h-11 w-full items-center justify-center rounded-md border border-[#b9c9df] bg-white px-4 text-sm font-semibold text-[#3d5b86] sm:w-auto">
+                    <span className="inline-flex h-11 w-full items-center justify-center rounded-lg border border-line-strong bg-white px-4 text-sm font-semibold text-brand-ink sm:w-auto">
                       가입 완료
                     </span>
                   ) : isJoinRequestPending ? (
-                    <span className="inline-flex h-11 w-full items-center justify-center rounded-md border border-[#b9c9df] bg-white px-4 text-sm font-semibold text-[#3d5b86] sm:w-auto">
+                    <span className="inline-flex h-11 w-full items-center justify-center rounded-lg border border-line-strong bg-white px-4 text-sm font-semibold text-brand-ink sm:w-auto">
                       가입 신청 대기 중
                     </span>
                   ) : (
@@ -280,7 +249,7 @@ export default function TeamDetailPage() {
                       type="button"
                       onClick={() => void handleJoin()}
                       disabled={isJoining || !currentUser}
-                      className="inline-flex h-11 w-full items-center justify-center rounded-md bg-[#4f6f9f] px-5 text-sm font-semibold text-white shadow-sm transition-colors hover:bg-[#435f88] disabled:cursor-not-allowed disabled:bg-[#e1e8f2] disabled:text-[#52627b] sm:w-auto"
+                      className="inline-flex h-11 w-full items-center justify-center rounded-lg bg-brand px-5 text-sm font-semibold text-white shadow-sm transition-colors hover:bg-brand-hover disabled:cursor-not-allowed disabled:bg-subtle disabled:text-secondary sm:w-auto"
                     >
                       {isJoining ? "신청 중..." : "가입 신청"}
                     </button>
@@ -290,9 +259,9 @@ export default function TeamDetailPage() {
             </section>
 
             {!currentUser ? (
-              <section className="rounded-lg border border-[#dbe4f0] bg-white px-5 py-4 text-sm leading-6 text-[#64748b]">
+              <section className="rounded-xl border border-line bg-white px-5 py-4 text-sm leading-6 text-muted">
                 이 팀에 가입하려면{" "}
-                <Link href="/login" className="font-semibold text-[#3d5b86]">
+                <Link href="/login" className="font-semibold text-brand-ink">
                   로그인
                 </Link>
                 해 주세요.
@@ -300,22 +269,79 @@ export default function TeamDetailPage() {
             ) : null}
 
             {errorMessage ? (
-              <p className="rounded-md border border-[#fecaca] bg-[#fef2f2] px-4 py-3 text-sm font-medium text-[#b91c1c]">
+              <p className="rounded-lg border border-danger-line bg-danger-soft px-4 py-3 text-sm font-medium text-danger">
                 {errorMessage}
               </p>
             ) : null}
 
             {noticeMessage ? (
-              <p className="rounded-md border border-[#c8d4e6] bg-[#f0f4fa] px-4 py-3 text-sm font-medium text-[#3d5b86]">
+              <p className="rounded-lg border border-line-strong bg-brand-soft px-4 py-3 text-sm font-medium text-brand-ink">
                 {noticeMessage}
               </p>
             ) : null}
 
+
+
+
+
+            <div className="grid gap-6 lg:grid-cols-[minmax(0,1fr)_18rem]">
+              <section className="rounded-xl border border-line bg-white">
+                <div className="border-b border-line px-5 py-4 sm:px-6">
+                  <div>
+                    <h2 className="text-lg font-semibold text-ink">팀 소개</h2>
+                  </div>
+                </div>
+                <p className="whitespace-pre-wrap break-words px-5 py-6 text-sm leading-7 text-secondary sm:px-6 sm:py-7 sm:text-base">
+                  {teamDetail.team.description || "아직 등록된 팀 소개가 없습니다."}
+                </p>
+              </section>
+
+              <aside className="rounded-xl border border-line bg-white p-5 sm:p-6">
+                <h2 className="text-lg font-semibold text-ink">팀 정보</h2>
+                <dl className="mt-5 grid gap-5 text-sm">
+                  <div>
+                    <dt className="font-semibold text-muted">활동 지역</dt>
+                    <dd className="mt-1 break-words font-semibold text-ink">
+                      {teamDetail.team.region || "미등록"}
+                    </dd>
+                  </div>
+                  <div>
+                    <dt className="font-semibold text-muted">홈 구장</dt>
+                    <dd className="mt-1 break-words font-semibold text-ink">
+                      {teamDetail.team.homeStadium || "미등록"}
+                    </dd>
+                  </div>
+                  <div>
+                    <dt className="font-semibold text-muted">창단일</dt>
+                    <dd className="mt-1 font-semibold text-ink">
+                      {formatDate(teamDetail.team.foundedAt)}
+                    </dd>
+                  </div>
+                  <div>
+                    <dt className="font-semibold text-muted">팀 등록일</dt>
+                    <dd className="mt-1 font-semibold text-ink">
+                      {formatDate(teamDetail.team.createdAt)}
+                    </dd>
+                  </div>
+                </dl>
+              </aside>
+            </div>
+            <div className="flex justify-end">
+                  {isOwner ? (
+                    <button
+                      type="button"
+                      onClick={openDeleteConfirmation}
+                      className="btn-quiet text-muted hover:text-danger"
+                    >
+                      팀 삭제
+                    </button>
+                  ) : null}
+            </div>
             {isDeleteConfirmOpen ? (
-              <section className="border border-[#fecaca] bg-[#fff7f7] px-5 py-5 sm:px-6">
+              <section className="border border-danger-line bg-danger-soft px-5 py-5 sm:px-6">
                 <div className="flex flex-col gap-4 sm:flex-row sm:items-end sm:justify-between">
                   <div>
-                    <h2 className="text-base font-bold text-[#991b1b]">팀을 삭제할까요?</h2>
+                    <h2 className="text-base font-semibold text-danger">팀을 삭제할까요?</h2>
                     <p className="mt-2 text-sm leading-6 text-[#7f1d1d]">
                       팀은 삭제되며 복구할 수 없습니다. 이 작업은 팀에 본인만 남아 있을 때만 가능합니다.
                     </p>
@@ -325,7 +351,7 @@ export default function TeamDetailPage() {
                       type="button"
                       onClick={() => setIsDeleteConfirmOpen(false)}
                       disabled={isDeleting}
-                      className="inline-flex h-10 items-center justify-center rounded-md border border-[#fecaca] bg-white px-4 text-sm font-semibold text-[#991b1b] transition-colors hover:bg-[#fef2f2] disabled:cursor-not-allowed"
+                      className="inline-flex h-10 items-center justify-center rounded-lg border border-danger-line bg-white px-4 text-sm font-semibold text-danger transition-colors hover:bg-danger-soft disabled:cursor-not-allowed"
                     >
                       취소
                     </button>
@@ -333,7 +359,7 @@ export default function TeamDetailPage() {
                       type="button"
                       onClick={() => void handleDelete()}
                       disabled={isDeleting}
-                      className="inline-flex h-10 items-center justify-center rounded-md bg-[#b91c1c] px-4 text-sm font-semibold text-white transition-colors hover:bg-[#991b1b] disabled:cursor-not-allowed disabled:bg-[#fca5a5]"
+                      className="inline-flex h-10 items-center justify-center rounded-lg bg-danger px-4 text-sm font-semibold text-white transition-colors hover:bg-danger disabled:cursor-not-allowed disabled:bg-danger-line"
                     >
                       {isDeleting ? "삭제 중..." : "팀 삭제"}
                     </button>
@@ -341,59 +367,6 @@ export default function TeamDetailPage() {
                 </div>
               </section>
             ) : null}
-
-            <section>
-              <div className="rounded-md border border-[#dbe4f0] bg-white px-4 py-4">
-                <p className="text-sm font-semibold text-[#64748b]">팀원</p>
-                <p className="mt-2 text-2xl font-bold text-[#0f172a]">
-                  {teamDetail.memberCount}명
-                </p>
-              </div>
-            </section>
-
-            <div className="grid gap-6 lg:grid-cols-[minmax(0,1fr)_18rem]">
-              <section className="rounded-lg border border-[#dbe4f0] bg-white">
-                <div className="border-b border-[#e2e8f0] px-5 py-4 sm:px-6">
-                  <div>
-                    <h2 className="text-lg font-bold text-[#0f172a]">팀 소개</h2>
-                    <p className="mt-1 text-sm text-[#64748b]">팀의 활동 방향과 운영 정보를 확인하세요.</p>
-                  </div>
-                </div>
-                <p className="whitespace-pre-wrap break-words px-5 py-6 text-sm leading-7 text-[#475569] sm:px-6 sm:py-7 sm:text-base">
-                  {teamDetail.team.description || "아직 등록된 팀 소개가 없습니다."}
-                </p>
-              </section>
-
-              <aside className="rounded-lg border border-[#dbe4f0] bg-white p-5 sm:p-6">
-                <h2 className="text-lg font-bold text-[#0f172a]">팀 정보</h2>
-                <dl className="mt-5 grid gap-5 text-sm">
-                  <div>
-                    <dt className="font-semibold text-[#64748b]">활동 지역</dt>
-                    <dd className="mt-1 break-words font-semibold text-[#1f2937]">
-                      {teamDetail.team.region || "미등록"}
-                    </dd>
-                  </div>
-                  <div>
-                    <dt className="font-semibold text-[#64748b]">홈 구장</dt>
-                    <dd className="mt-1 break-words font-semibold text-[#1f2937]">
-                      {teamDetail.team.homeStadium || "미등록"}
-                    </dd>
-                  </div>
-                  <div>
-                    <dt className="font-semibold text-[#64748b]">창단일</dt>
-                    <dd className="mt-1 font-semibold text-[#1f2937]">
-                      {formatDate(teamDetail.team.foundedAt)}
-                    </dd>
-                  </div>
-                  <div>
-                    <dt className="font-semibold text-[#64748b]">팀 등록일</dt>
-                    <dd className="mt-1 font-semibold text-[#1f2937]">
-                      {formatDate(teamDetail.team.createdAt)}
-                    </dd>
-                  </div>
-                </dl>
-              </aside>
-            </div>
           </>
         ) : null}
       </div>

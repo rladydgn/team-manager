@@ -16,6 +16,7 @@ import {
 import { MatchParticipationButton } from "@/features/match/ui/MatchParticipationButton";
 import { useAuthSession } from "@/features/auth/model/auth-session";
 import { getTeam, TeamDetail } from "@/features/team/api/team";
+import { PageHeading } from "@/shared/ui/PageHeading";
 import { TeamDetailTabs } from "@/features/team/ui/TeamDetailTabs";
 
 function formatMatchAt(value: string) {
@@ -40,14 +41,14 @@ function getMatchProgress(match: Match) {
   if (match.status === "CANCELED") {
     return {
       label: "취소됨",
-      className: "border-[#fecaca] bg-[#fef2f2] text-[#b91c1c]",
+      className: "border-danger-line bg-danger-soft text-danger",
     };
   }
 
   if (new Date(match.matchAt).getTime() > Date.now()) {
     return {
       label: "매치 전",
-      className: "border-[#cfe5d5] bg-[#f1f8f2] text-[#36734a]",
+      className: "border-[#cfe5d5] bg-success-soft text-success",
     };
   }
 
@@ -136,12 +137,12 @@ export default function TeamMatchesPage() {
     try {
       await updateMatchParticipation(match.id, nextStatus);
       setNoticeMessage(
-        isParticipating ? "매치 참여를 취소했습니다." : "매치 참여로 등록했습니다."
+        isParticipating ? "경기 참여를 취소했습니다." : "경기 참여로 등록했습니다."
       );
       await loadMatches();
     } catch (error) {
       setParticipationErrorMessage(
-        error instanceof Error ? error.message : "매치 참여 상태를 변경하지 못했습니다."
+        error instanceof Error ? error.message : "경기 참여 상태를 변경하지 못했습니다."
       );
     } finally {
       setUpdatingMatchId(null);
@@ -149,22 +150,9 @@ export default function TeamMatchesPage() {
   }
 
   return (
-    <main className="min-h-screen bg-[#f5f7fb] text-[#111827]">
-      <header data-legacy-page-header className="border-b border-[#dbe4f0] bg-white/90">
-        <div className="mx-auto flex w-full max-w-6xl items-center justify-between gap-4 px-5 py-4 sm:px-6 lg:px-8">
-          <Link href="/" className="flex min-w-0 items-center gap-3">
-            <span className="grid size-9 shrink-0 place-items-center rounded-md bg-[#4f6f9f] text-sm font-bold text-white">TM</span>
-            <span className="truncate text-base font-semibold">Team Manager</span>
-          </Link>
-          {currentUser ? (
-            <span className="truncate rounded-md border border-[#c8d4e6] bg-white px-3 py-2 text-sm font-semibold text-[#3d5b86]">{currentUser.name}</span>
-          ) : (
-            <Link href="/login" className="inline-flex h-10 shrink-0 items-center justify-center rounded-md border border-[#c8d4e6] bg-white px-4 text-sm font-semibold text-[#3d5b86] transition-colors hover:bg-[#f0f4fa]">로그인</Link>
-          )}
-        </div>
-      </header>
+    <main className="min-h-[calc(100dvh-4rem-1px)] bg-canvas text-ink">
 
-      <div className="mx-auto flex w-full max-w-6xl flex-col gap-6 px-5 py-7 sm:px-6 sm:py-8 lg:px-8">
+      <div className="mx-auto flex w-full max-w-6xl flex-col gap-7 px-5 py-8 sm:px-6 sm:py-10 lg:px-8">
         {Number.isInteger(teamId) && teamId > 0 ? (
           <TeamDetailTabs
             teamId={teamId}
@@ -175,29 +163,25 @@ export default function TeamMatchesPage() {
         ) : null}
 
         {isLoading ? (
-          <section className="flex min-h-72 items-center justify-center rounded-lg border border-[#dbe4f0] bg-white">
-            <p className="text-sm font-semibold text-[#64748b]">경기 일정을 불러오는 중입니다.</p>
+          <section className="flex min-h-72 items-center justify-center rounded-xl border border-line bg-white">
+            <p className="text-sm font-semibold text-muted">경기 일정을 불러오는 중입니다.</p>
           </section>
         ) : errorMessage ? (
-          <section className="rounded-lg border border-[#fecaca] bg-white px-5 py-12 text-center">
-            <h1 className="text-xl font-bold text-[#0f172a]">경기 일정을 불러올 수 없습니다.</h1>
-            <p className="mt-3 text-sm leading-6 text-[#b91c1c]">{errorMessage}</p>
-            <button type="button" onClick={() => void loadMatches()} className="mt-6 inline-flex h-11 items-center justify-center rounded-md bg-[#4f6f9f] px-5 text-sm font-semibold text-white transition-colors hover:bg-[#435f88]">다시 시도</button>
+          <section className="rounded-xl border border-danger-line bg-white px-5 py-12 text-center">
+            <h1 className="text-xl font-semibold text-ink">경기 일정을 불러올 수 없습니다.</h1>
+            <p className="mt-3 text-sm leading-6 text-danger">{errorMessage}</p>
+            <button type="button" onClick={() => void loadMatches()} className="mt-6 inline-flex h-11 items-center justify-center rounded-lg bg-brand px-5 text-sm font-semibold text-white transition-colors hover:bg-brand-hover">다시 시도</button>
           </section>
         ) : teamDetail ? (
           <>
-            <section className="flex flex-col gap-5 border-b border-[#dbe4f0] pb-6 sm:flex-row sm:items-end sm:justify-between">
-              <div>
-                <p className="text-sm font-semibold text-[#4f6f9f]">{teamDetail.team.shortName || "MATCH SCHEDULE"}</p>
-                <h1 className="mt-2 text-3xl font-bold text-[#0f172a] sm:text-4xl">{teamDetail.team.name} 경기 일정</h1>
-                <p className="mt-3 text-sm leading-6 text-[#64748b]">등록된 매치를 시간순으로 확인할 수 있습니다.</p>
-              </div>
+            <section className="flex flex-col gap-5 sm:flex-row sm:items-end sm:justify-between">
+              <PageHeading label={teamDetail.team.name} title="경기 일정" description="경기 일정을 확인하고 참석 여부를 알려주세요." />
               {canCreateMatch ? (
                 <div className="flex flex-wrap gap-2">
-                  <Link href={`/team/${teamId}/match/history`} className="inline-flex h-11 items-center justify-center rounded-md border border-[#c8d4e6] bg-white px-4 text-sm font-semibold text-[#3d5b86] transition-colors hover:bg-[#f0f4fa]">
+                  <Link href={`/team/${teamId}/match/history`} className="inline-flex h-11 items-center justify-center rounded-lg border border-line-strong bg-white px-4 text-sm font-semibold text-brand-ink transition-colors hover:bg-brand-soft">
                     이전 경기 등록
                   </Link>
-                  <Link href={`/team/${teamId}/match/new`} className="inline-flex h-11 items-center justify-center rounded-md bg-[#4f6f9f] px-5 text-sm font-semibold text-white transition-colors hover:bg-[#435f88]">
+                  <Link href={`/team/${teamId}/match/new`} className="inline-flex h-11 items-center justify-center rounded-lg bg-brand px-5 text-sm font-semibold text-white transition-colors hover:bg-brand-hover">
                     경기 등록
                   </Link>
                 </div>
@@ -205,26 +189,26 @@ export default function TeamMatchesPage() {
             </section>
 
             {noticeMessage ? (
-              <p className="rounded-md border border-[#c8d4e6] bg-[#f0f4fa] px-4 py-3 text-sm font-medium text-[#3d5b86]">
+              <p className="rounded-lg border border-line-strong bg-brand-soft px-4 py-3 text-sm font-medium text-brand-ink">
                 {noticeMessage}
               </p>
             ) : null}
 
             {participationErrorMessage ? (
-              <p className="rounded-md border border-[#fecaca] bg-[#fef2f2] px-4 py-3 text-sm font-medium text-[#b91c1c]">
+              <p className="rounded-lg border border-danger-line bg-danger-soft px-4 py-3 text-sm font-medium text-danger">
                 {participationErrorMessage}
               </p>
             ) : null}
 
             {matches.length === 0 ? (
-              <section className="flex min-h-64 items-center justify-center rounded-lg border border-dashed border-[#c8d4e6] bg-white px-5 py-12 text-center">
+              <section className="flex min-h-64 items-center justify-center rounded-xl border border-dashed border-line-strong bg-white px-5 py-12 text-center">
                 <div>
-                  <h2 className="text-xl font-bold text-[#0f172a]">등록된 매치가 없습니다.</h2>
-                  <p className="mt-3 text-sm leading-6 text-[#64748b]">다음 경기를 등록하면 이곳에서 일정과 상세 정보를 확인할 수 있습니다.</p>
+                  <h2 className="text-xl font-semibold text-ink">등록된 경기가 없습니다.</h2>
+                  <p className="mt-3 text-sm leading-6 text-muted">다음 경기를 등록하면 이곳에서 일정과 상세 정보를 확인할 수 있습니다.</p>
                 </div>
               </section>
             ) : (
-              <section className="divide-y divide-[#e2e8f0] overflow-hidden rounded-lg border border-[#dbe4f0] bg-white">
+              <section className="divide-y divide-line overflow-hidden rounded-xl border border-line bg-white">
                 {matches.map((match) => {
                   const isUpdating = updatingMatchId === match.id;
                   const matchResult = getMatchResult(match);
@@ -236,33 +220,33 @@ export default function TeamMatchesPage() {
                     >
                       <Link
                         href={`/match/${match.id}`}
-                        className="min-w-0 flex-1 transition-colors hover:text-[#3d5b86]"
+                        className="min-w-0 flex-1 transition-colors hover:text-brand-ink"
                       >
-                        <p className="text-sm font-semibold text-[#4f6f9f]">{formatMatchAt(match.matchAt)}</p>
-                        <h2 className="mt-1 truncate text-lg font-bold text-[#1f2937]">
-                          {teamDetail.team.name} <span className="mx-1 text-[#94a3b8]">vs</span> {getOpponentLabel(match)}
+                        <p className="text-sm font-semibold text-brand">{formatMatchAt(match.matchAt)}</p>
+                        <h2 className="mt-1 truncate text-lg font-semibold text-ink">
+                          {teamDetail.team.name} <span className="mx-1 text-placeholder">vs</span> {getOpponentLabel(match)}
                         </h2>
-                        <div className="mt-1 flex flex-wrap items-center gap-x-2 text-sm text-[#64748b]">
+                        <div className="mt-1 flex flex-wrap items-center gap-x-2 text-sm text-muted">
                           <span>{match.location || "장소 미정"}</span>
-                          <span aria-hidden="true" className="text-[#cbd5e1]">|</span>
-                          <span className="font-medium text-[#52627b]">{match.availableParticipantCount}명 참여</span>
+                          <span aria-hidden="true" className="text-line-strong">|</span>
+                          <span className="font-medium text-secondary">{match.availableParticipantCount}명 참여</span>
                         </div>
                       </Link>
                       <div className="flex flex-wrap items-center gap-2 lg:justify-end">
                         {matchResult ? (
                           <>
-                            <span className="rounded-md bg-[#0f172a] px-2.5 py-1 text-sm font-bold tabular-nums text-white">
+                            <span className="rounded-lg bg-ink px-2.5 py-1 text-sm font-semibold tabular-nums text-white">
                               {match.teamScore} : {match.opponentScore}
                             </span>
                             <span
-                              className={`rounded-md border px-2.5 py-1 text-xs font-bold ${matchResultPresentation[matchResult].className}`}
+                              className={`rounded-lg border px-2.5 py-1 text-xs font-semibold ${matchResultPresentation[matchResult].className}`}
                             >
                               {matchResultPresentation[matchResult].label}
                             </span>
                           </>
                         ) : null}
-                        <span className={`rounded-md border px-2.5 py-1 text-xs font-semibold ${getMatchProgress(match).className}`}>{getMatchProgress(match).label}</span>
-                        <span className="rounded-md border border-[#dbe4f0] bg-[#f8fafc] px-2.5 py-1 text-xs font-semibold text-[#3d5b86]">{match.matchType === "INTERNAL" ? "자체전" : "외부전"}</span>
+                        <span className={`rounded-lg border px-2.5 py-1 text-xs font-semibold ${getMatchProgress(match).className}`}>{getMatchProgress(match).label}</span>
+                        <span className="rounded-lg border border-line bg-subtle px-2.5 py-1 text-xs font-semibold text-brand-ink">{match.matchType === "INTERNAL" ? "자체전" : "외부전"}</span>
                         {canUpdateMatchParticipation(match) ? (
                           <MatchParticipationButton
                             status={match.myVoteStatus}

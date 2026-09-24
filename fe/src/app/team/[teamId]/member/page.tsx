@@ -15,6 +15,7 @@ import {
   updateTeamMemberMemo,
   updateTeamMemberRole,
 } from "@/features/team/api/team";
+import { PageHeading } from "@/shared/ui/PageHeading";
 import { TeamDetailTabs } from "@/features/team/ui/TeamDetailTabs";
 
 const roleLabels: Record<TeamMember["role"], string> = {
@@ -204,29 +205,9 @@ export default function TeamMembersPage() {
   }
 
   return (
-    <main className="min-h-screen bg-[#f5f7fb] text-[#111827]">
-      <header data-legacy-page-header className="border-b border-[#dbe4f0] bg-white/90">
-        <div className="mx-auto flex w-full max-w-6xl items-center justify-between gap-4 px-5 py-4 sm:px-6 lg:px-8">
-          <Link href="/" className="flex min-w-0 items-center gap-3">
-            <span className="grid size-9 shrink-0 place-items-center rounded-md bg-[#4f6f9f] text-sm font-bold text-white">TM</span>
-            <span className="truncate text-base font-semibold">Team Manager</span>
-          </Link>
-          {currentUser ? (
-            <span className="truncate rounded-md border border-[#c8d4e6] bg-white px-3 py-2 text-sm font-semibold text-[#3d5b86]">
-              {currentUser.name}
-            </span>
-          ) : (
-            <Link
-              href="/login"
-              className="inline-flex h-10 shrink-0 items-center justify-center rounded-md border border-[#c8d4e6] bg-white px-4 text-sm font-semibold text-[#3d5b86] transition-colors hover:bg-[#f0f4fa]"
-            >
-              로그인
-            </Link>
-          )}
-        </div>
-      </header>
+    <main className="min-h-[calc(100dvh-4rem-1px)] bg-canvas text-ink">
 
-      <div className="mx-auto flex w-full max-w-6xl flex-col gap-6 px-5 py-7 sm:px-6 sm:py-8 lg:px-8">
+      <div className="mx-auto flex w-full max-w-6xl flex-col gap-7 px-5 py-8 sm:px-6 sm:py-10 lg:px-8">
         {Number.isInteger(teamId) && teamId > 0 ? (
           <TeamDetailTabs
             teamId={teamId}
@@ -237,81 +218,73 @@ export default function TeamMembersPage() {
         ) : null}
 
         {isLoading ? (
-          <section className="flex min-h-72 items-center justify-center rounded-lg border border-[#dbe4f0] bg-white">
-            <p className="text-sm font-semibold text-[#64748b]">팀원 목록을 불러오는 중입니다.</p>
+          <section className="flex min-h-72 items-center justify-center rounded-xl border border-line bg-white">
+            <p className="text-sm font-semibold text-muted">팀원 목록을 불러오는 중입니다.</p>
           </section>
         ) : errorMessage ? (
-          <section className="rounded-lg border border-[#fecaca] bg-white px-5 py-12 text-center">
-            <h1 className="text-xl font-bold text-[#0f172a]">팀원 목록을 불러올 수 없습니다.</h1>
-            <p className="mt-3 text-sm leading-6 text-[#b91c1c]">{errorMessage}</p>
+          <section className="rounded-xl border border-danger-line bg-white px-5 py-12 text-center">
+            <h1 className="text-xl font-semibold text-ink">팀원 목록을 불러올 수 없습니다.</h1>
+            <p className="mt-3 text-sm leading-6 text-danger">{errorMessage}</p>
             <button
               type="button"
               onClick={() => void loadTeam()}
-              className="mt-6 inline-flex h-11 cursor-pointer items-center justify-center rounded-md bg-[#4f6f9f] px-5 text-sm font-semibold text-white transition-colors hover:bg-[#435f88]"
+              className="mt-6 inline-flex h-11 cursor-pointer items-center justify-center rounded-lg bg-brand px-5 text-sm font-semibold text-white transition-colors hover:bg-brand-hover"
             >
               다시 시도
             </button>
           </section>
         ) : teamDetail && !isTeamMember ? (
-          <section className="rounded-lg border border-[#dbe4f0] bg-white px-5 py-12 text-center">
-            <h1 className="text-xl font-bold text-[#0f172a]">
+          <section className="rounded-xl border border-line bg-white px-5 py-12 text-center">
+            <h1 className="text-xl font-semibold text-ink">
               팀 가입 후 이용할 수 있습니다.
             </h1>
-            <p className="mt-3 text-sm leading-6 text-[#64748b]">
+            <p className="mt-3 text-sm leading-6 text-muted">
               팀원 목록은 가입이 승인된 팀원에게만 제공됩니다.
             </p>
             <Link
               href={`/team/${teamId}`}
-              className="mt-6 inline-flex h-11 items-center justify-center rounded-md bg-[#4f6f9f] px-5 text-sm font-semibold text-white transition-colors hover:bg-[#435f88]"
+              className="mt-6 inline-flex h-11 items-center justify-center rounded-lg bg-brand px-5 text-sm font-semibold text-white transition-colors hover:bg-brand-hover"
             >
               팀 홈으로 돌아가기
             </Link>
           </section>
         ) : teamDetail ? (
           <>
-            <section className="flex flex-col gap-3 border-b border-[#dbe4f0] pb-6 sm:flex-row sm:items-end sm:justify-between">
-              <div>
-                <p className="text-sm font-semibold text-[#4f6f9f]">TEAM MEMBERS</p>
-                <h1 className="mt-2 text-3xl font-bold text-[#0f172a] sm:text-4xl">
-                  {teamDetail.team.name} 팀원
-                </h1>
-                <p className="mt-3 text-sm leading-6 text-[#64748b]">
-                  현재 활동 중인 팀원의 역할과 가입일을 확인할 수 있습니다.
-                </p>
-              </div>
-              <span className="w-fit rounded-md border border-[#c8d4e6] bg-[#f0f4fa] px-3 py-1.5 text-sm font-semibold text-[#3d5b86]">
+            <section className="flex flex-col gap-3 sm:flex-row sm:items-end sm:justify-between">
+              <PageHeading label={teamDetail.team.name} title="팀원" description="활동 중인 팀원의 역할과 가입 정보를 확인하세요." />
+              <span className="w-fit rounded-lg border border-line-strong bg-brand-soft px-3 py-1.5 text-sm font-semibold text-brand-ink">
                 총 {members.length}명
               </span>
             </section>
 
             {canManageFees ? (
-              <form onSubmit={handleAddMember} className="grid gap-3 rounded-lg border border-[#dbe4f0] bg-white p-4 sm:grid-cols-[minmax(0,1fr)_auto_auto] sm:items-end">
-                <label className="grid gap-1.5 text-sm font-semibold text-[#475569]">
+              <form onSubmit={handleAddMember} className="grid gap-3 rounded-xl border border-line bg-white p-4 sm:grid-cols-[minmax(0,1fr)_auto_auto] sm:items-end">
+                <label className="grid gap-1.5 text-sm font-semibold text-secondary">
                   용병·비회원 이름
-                  <input value={displayName} onChange={(event) => setDisplayName(event.target.value)} maxLength={50} required placeholder="표시할 이름" className="h-10 rounded-md border border-[#c8d4e6] px-3 font-normal outline-none focus:border-[#4f6f9f] focus:ring-4 focus:ring-[#e3eaf5]" />
+                  <input value={displayName} onChange={(event) => setDisplayName(event.target.value)} maxLength={50} required placeholder="표시할 이름" className="h-10 rounded-lg border border-line-strong px-3 font-normal outline-none focus:border-brand focus:ring-2 focus:ring-brand-ring" />
                 </label>
-                <label className="grid gap-1.5 text-sm font-semibold text-[#475569]">
+                <label className="grid gap-1.5 text-sm font-semibold text-secondary">
                   구분
-                  <select value={memberRole} onChange={(event) => setMemberRole(event.target.value as "MEMBER" | "GUEST")} className="h-10 rounded-md border border-[#c8d4e6] bg-white px-3 font-normal outline-none focus:border-[#4f6f9f]">
+                  <select value={memberRole} onChange={(event) => setMemberRole(event.target.value as "MEMBER" | "GUEST")} className="h-10 rounded-lg border border-line-strong bg-white px-3 font-normal outline-none focus:border-brand">
                     <option value="GUEST">용병</option>
                     <option value="MEMBER">비회원 팀원</option>
                   </select>
                 </label>
-                <button type="submit" disabled={isAddingMember || !displayName.trim()} className="inline-flex h-10 items-center justify-center rounded-md bg-[#4f6f9f] px-4 text-sm font-semibold text-white transition-colors hover:bg-[#435f88] disabled:cursor-not-allowed disabled:bg-[#a9b9d3]">
+                <button type="submit" disabled={isAddingMember || !displayName.trim()} className="inline-flex h-10 items-center justify-center rounded-lg bg-brand px-4 text-sm font-semibold text-white transition-colors hover:bg-brand-hover disabled:cursor-not-allowed disabled:bg-brand-disabled">
                   {isAddingMember ? "추가 중..." : "팀원 추가"}
                 </button>
               </form>
             ) : null}
 
-            <section className="overflow-hidden rounded-lg border border-[#dbe4f0] bg-white">
+            <section className="overflow-hidden rounded-xl border border-line bg-white">
               {members.length === 0 ? (
-                <div className="px-5 py-16 text-center text-sm text-[#64748b]">
+                <div className="px-5 py-16 text-center text-sm text-muted">
                   아직 등록된 팀원이 없습니다.
                 </div>
               ) : (
                 <div className="overflow-x-auto">
                   <table className="w-full min-w-[50rem] text-left text-sm">
-                    <thead className="bg-[#f8fafc] text-xs font-semibold text-[#64748b]">
+                    <thead className="bg-subtle text-xs font-semibold text-muted">
                       <tr>
                         <th scope="col" className="px-5 py-3 sm:px-6">이름</th>
                         <th scope="col" className="px-5 py-3">가입일</th>
@@ -320,16 +293,16 @@ export default function TeamMembersPage() {
                         {canManageFees ? <th scope="col" className="px-5 py-3 text-right">관리</th> : null}
                       </tr>
                     </thead>
-                    <tbody className="divide-y divide-[#e2e8f0]">
+                    <tbody className="divide-y divide-line">
                       {members.map((member) => (
                         <tr key={member.id}>
-                          <td className="px-5 py-4 font-semibold text-[#1f2937] sm:px-6">
+                          <td className="px-5 py-4 font-semibold text-ink sm:px-6">
                             {member.name ?? (member.userId ? "가입 팀원" : "미가입 팀원")}
                           </td>
-                          <td className="px-5 py-4 text-[#64748b]">
+                          <td className="px-5 py-4 text-muted">
                             {formatJoinedAt(member.joinedAt)}
                           </td>
-                          <td className="max-w-64 px-5 py-4 text-[#64748b]">
+                          <td className="max-w-64 px-5 py-4 text-muted">
                             <p className="truncate">{member.memo || "메모 없음"}</p>
                           </td>
                           <td className="px-5 py-4 text-right sm:px-6">
@@ -344,7 +317,7 @@ export default function TeamMembersPage() {
                                   )
                                 }
                                 aria-label={`${member.name ?? "팀원"} 역할`}
-                                className="h-8 rounded-md border border-[#c8d4e6] bg-white px-2 text-xs font-semibold text-[#3d5b86] outline-none focus:border-[#4f6f9f] disabled:cursor-not-allowed disabled:bg-[#f8fafc]"
+                                className="h-8 rounded-lg border border-line-strong bg-white px-2 text-xs font-semibold text-brand-ink outline-none focus:border-brand disabled:cursor-not-allowed disabled:bg-subtle"
                               >
                                 <option value="MEMBER">{member.userId === null ? "팀원(비회원)" : "팀원"}</option>
                                 <option value="GUEST">용병</option>
@@ -352,7 +325,7 @@ export default function TeamMembersPage() {
                                 <option value="OWNER" disabled={member.userId === null}>팀장</option>
                               </select>
                             ) : (
-                              <span className="inline-flex rounded-md border border-[#dbe4f0] bg-[#f8fafc] px-2.5 py-1 text-xs font-semibold text-[#3d5b86]">
+                              <span className="inline-flex rounded-lg border border-line bg-subtle px-2.5 py-1 text-xs font-semibold text-brand-ink">
                                 {member.role === "GUEST"
                                   ? "용병"
                                   : member.userId === null
@@ -364,11 +337,11 @@ export default function TeamMembersPage() {
                           {canManageFees ? (
                             <td className="px-5 py-4 text-right">
                               <div className="flex justify-end gap-2">
-                                <button type="button" onClick={() => void handleMemo(member)} disabled={removingMemberId === member.id} className="rounded-md border border-[#c8d4e6] bg-[#f0f4fa] px-2.5 py-1 text-xs font-semibold text-[#3d5b86] hover:bg-[#e3ecf7] disabled:cursor-not-allowed disabled:opacity-60">
+                                <button type="button" onClick={() => void handleMemo(member)} disabled={removingMemberId === member.id} className="rounded-lg border border-line-strong bg-brand-soft px-2.5 py-1 text-xs font-semibold text-brand-ink hover:bg-brand-soft disabled:cursor-not-allowed disabled:opacity-60">
                                   메모 관리
                                 </button>
                                 {canRemoveMember(member) ? (
-                                  <button type="button" onClick={() => void handleRemoveMember(member)} disabled={removingMemberId === member.id} className="rounded-md border border-[#fecaca] bg-white px-2.5 py-1 text-xs font-semibold text-[#b91c1c] transition-colors hover:bg-[#fef2f2] disabled:cursor-not-allowed disabled:opacity-60">
+                                  <button type="button" onClick={() => void handleRemoveMember(member)} disabled={removingMemberId === member.id} className="rounded-lg border border-danger-line bg-white px-2.5 py-1 text-xs font-semibold text-danger transition-colors hover:bg-danger-soft disabled:cursor-not-allowed disabled:opacity-60">
                                     {removingMemberId === member.id ? "내보내는 중" : "내보내기"}
                                   </button>
                                 ) : null}

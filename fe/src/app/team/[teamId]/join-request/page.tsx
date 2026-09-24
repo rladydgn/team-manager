@@ -137,76 +137,76 @@ export default function TeamJoinRequestsPage() {
   }
 
   return (
-    <main className="min-h-screen bg-[#f5f7fb] text-[#111827]">
-      <div className="mx-auto flex w-full max-w-6xl flex-col gap-6 px-5 py-7 sm:px-6 sm:py-8 lg:px-8">
+    <main className="min-h-[calc(100dvh-4rem-1px)] bg-canvas text-ink">
+      <div className="mx-auto flex w-full max-w-6xl flex-col gap-7 px-5 py-8 sm:px-6 sm:py-10 lg:px-8">
         <Link
           href={Number.isInteger(teamId) && teamId > 0 ? `/team/${teamId}` : "/team"}
-          className="inline-flex w-fit text-sm font-semibold text-[#3d5b86] transition-colors hover:text-[#283f62]"
+          className="inline-flex w-fit text-sm font-semibold text-brand-ink transition-colors hover:text-brand-hover"
         >
           팀 홈으로 돌아가기
         </Link>
 
         {isLoading ? (
-          <section className="flex min-h-72 items-center justify-center rounded-lg border border-[#dbe4f0] bg-white">
-            <p className="text-sm font-semibold text-[#64748b]">
+          <section className="flex min-h-72 items-center justify-center rounded-xl border border-line bg-white">
+            <p className="text-sm font-semibold text-muted">
               가입 신청 목록을 불러오는 중입니다.
             </p>
           </section>
         ) : errorMessage ? (
-          <section className="rounded-lg border border-[#fecaca] bg-white px-5 py-12 text-center">
-            <h1 className="text-xl font-bold text-[#0f172a]">
+          <section className="rounded-xl border border-danger-line bg-white px-5 py-12 text-center">
+            <h1 className="text-xl font-semibold text-ink">
               가입 신청 목록을 볼 수 없습니다.
             </h1>
-            <p className="mt-3 text-sm leading-6 text-[#b91c1c]">{errorMessage}</p>
+            <p className="mt-3 text-sm leading-6 text-danger">{errorMessage}</p>
             <button
               type="button"
               onClick={() => void loadJoinRequests()}
-              className="mt-6 inline-flex h-11 items-center justify-center rounded-md bg-[#4f6f9f] px-5 text-sm font-semibold text-white transition-colors hover:bg-[#435f88]"
+              className="mt-6 inline-flex h-11 items-center justify-center rounded-lg bg-brand px-5 text-sm font-semibold text-white transition-colors hover:bg-brand-hover"
             >
               다시 시도
             </button>
           </section>
         ) : teamDetail && canManageJoinRequests ? (
           <>
-            <section className="flex flex-col gap-4 border-b border-[#dbe4f0] pb-6 sm:flex-row sm:items-end sm:justify-between">
+            <section className="flex flex-col gap-4 border-b border-line pb-6 sm:flex-row sm:items-end sm:justify-between">
               <div>
-                <p className="text-sm font-semibold text-[#4f6f9f]">
-                  {teamDetail.team.shortName || "JOIN REQUESTS"}
+                <p className="text-sm font-semibold text-brand">
+                  {teamDetail.team.shortName || "가입 신청"}
                 </p>
-                <h1 className="mt-2 text-3xl font-bold text-[#0f172a] sm:text-4xl">
+                <h1 className="mt-2 page-title">
                   가입 신청 관리
                 </h1>
-                <p className="mt-3 text-sm leading-6 text-[#64748b]">
+                <p className="mt-3 text-sm leading-6 text-muted">
                   {teamDetail.team.name}에 가입을 요청한 사용자를 확인하고 처리하세요.
                 </p>
-                <Link href="/guide#link-existing-member" className="mt-2 inline-flex min-h-10 items-center text-sm font-semibold text-[#3d5b86] hover:text-[#283f62]">
+                <Link href="/guide#link-existing-member" className="mt-2 inline-flex min-h-10 items-center text-sm font-semibold text-brand-ink hover:text-brand-hover">
                   가입 승인·기존 기록 연동 가이드 →
                 </Link>
               </div>
-              <span className="inline-flex h-10 w-fit items-center rounded-md border border-[#b9c9df] bg-white px-3 text-sm font-semibold text-[#3d5b86]">
+              <span className="inline-flex h-10 w-fit items-center rounded-lg border border-line-strong bg-white px-3 text-sm font-semibold text-brand-ink">
                 대기 {requests.length}명
               </span>
             </section>
 
             {noticeMessage ? (
-              <p className="rounded-md border border-[#c8d4e6] bg-[#f0f4fa] px-4 py-3 text-sm font-medium text-[#3d5b86]">
+              <p className="rounded-lg border border-line-strong bg-brand-soft px-4 py-3 text-sm font-medium text-brand-ink">
                 {noticeMessage}
               </p>
             ) : null}
 
             {requests.length === 0 ? (
-              <section className="flex min-h-64 items-center justify-center rounded-lg border border-dashed border-[#c8d4e6] bg-white px-5 py-12 text-center">
+              <section className="flex min-h-64 items-center justify-center rounded-xl border border-dashed border-line-strong bg-white px-5 py-12 text-center">
                 <div>
-                  <h2 className="text-xl font-bold text-[#0f172a]">
+                  <h2 className="text-xl font-semibold text-ink">
                     대기 중인 가입 신청이 없습니다.
                   </h2>
-                  <p className="mt-3 text-sm leading-6 text-[#64748b]">
+                  <p className="mt-3 text-sm leading-6 text-muted">
                     새 신청이 들어오면 이 화면에서 바로 승인하거나 거부할 수 있습니다.
                   </p>
                 </div>
               </section>
             ) : (
-              <section className="divide-y divide-[#e2e8f0] overflow-hidden rounded-lg border border-[#dbe4f0] bg-white">
+              <section className="divide-y divide-line overflow-hidden rounded-xl border border-line bg-white">
                 {requests.map((request) => {
                   const isProcessing = processingMemberId === request.id;
                   const unlinkedMembers = teamDetail.members.filter(
@@ -219,14 +219,14 @@ export default function TeamJoinRequestsPage() {
                       className="flex flex-col gap-4 px-5 py-5 sm:flex-row sm:items-center sm:justify-between sm:px-6"
                     >
                       <div className="min-w-0">
-                        <h2 className="truncate text-lg font-bold text-[#1f2937]">
+                        <h2 className="truncate text-lg font-semibold text-ink">
                           {request.name ?? "이름 없는 신청자"}
                         </h2>
-                        <p className="mt-1 text-sm text-[#64748b]">
+                        <p className="mt-1 text-sm text-muted">
                           신청 시각 {formatRequestedAt(request.requestedAt)}
                         </p>
                         {unlinkedMembers.length > 0 ? (
-                          <label className="mt-3 grid max-w-sm gap-1.5 text-sm font-semibold text-[#475569]">
+                          <label className="mt-3 grid max-w-sm gap-1.5 text-sm font-semibold text-secondary">
                             기존 기록 연결 (선택)
                             <select
                               value={existingMemberIdByRequestId[request.id] ?? ""}
@@ -235,7 +235,7 @@ export default function TeamJoinRequestsPage() {
                                 [request.id]: event.target.value,
                               }))}
                               disabled={isProcessing}
-                              className="h-9 rounded-md border border-[#c8d4e6] bg-white px-2.5 text-sm font-normal text-[#1f2937] outline-none focus:border-[#4f6f9f] focus:ring-4 focus:ring-[#e3eaf5] disabled:cursor-not-allowed"
+                              className="h-9 rounded-lg border border-line-strong bg-white px-2.5 text-sm font-normal text-ink outline-none focus:border-brand focus:ring-2 focus:ring-brand-ring disabled:cursor-not-allowed"
                             >
                               <option value="">새 팀원으로 승인</option>
                               {unlinkedMembers.map((member) => (
@@ -244,7 +244,7 @@ export default function TeamJoinRequestsPage() {
                                 </option>
                               ))}
                             </select>
-                            <span className="text-xs font-normal text-[#64748b]">선택하면 기존 경기·회비 기록을 유지한 채 계정만 연결합니다.</span>
+                            <span className="text-xs font-normal text-muted">선택하면 기존 경기·회비 기록을 유지한 채 계정만 연결합니다.</span>
                           </label>
                         ) : null}
                       </div>
@@ -253,7 +253,7 @@ export default function TeamJoinRequestsPage() {
                           type="button"
                           onClick={() => void handleJoinRequest(request, "reject")}
                           disabled={isProcessing}
-                          className="inline-flex h-10 items-center justify-center rounded-md border border-[#fecaca] bg-white px-4 text-sm font-semibold text-[#b91c1c] transition-colors hover:bg-[#fef2f2] disabled:cursor-not-allowed disabled:bg-[#fff7f7]"
+                          className="inline-flex h-10 items-center justify-center rounded-lg border border-danger-line bg-white px-4 text-sm font-semibold text-danger transition-colors hover:bg-danger-soft disabled:cursor-not-allowed disabled:bg-danger-soft"
                         >
                           거부
                         </button>
@@ -261,7 +261,7 @@ export default function TeamJoinRequestsPage() {
                           type="button"
                           onClick={() => void handleJoinRequest(request, "approve")}
                           disabled={isProcessing}
-                          className="inline-flex h-10 items-center justify-center rounded-md bg-[#4f6f9f] px-4 text-sm font-semibold text-white transition-colors hover:bg-[#435f88] disabled:cursor-not-allowed disabled:bg-[#a9b9d3]"
+                          className="inline-flex h-10 items-center justify-center rounded-lg bg-brand px-4 text-sm font-semibold text-white transition-colors hover:bg-brand-hover disabled:cursor-not-allowed disabled:bg-brand-disabled"
                         >
                           {isProcessing ? "처리 중..." : "승인"}
                         </button>

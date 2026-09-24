@@ -22,7 +22,7 @@ export default async function RootLayout({
       <body className="min-h-full flex flex-col">
         <AuthSessionProvider initialUser={initialUser}>
           <AppHeader />
-          <PageAccessBoundary>{children}</PageAccessBoundary>
+          <div id="main-content" tabIndex={-1} className="flex flex-1 flex-col outline-none"><PageAccessBoundary>{children}</PageAccessBoundary></div>
         </AuthSessionProvider>
       </body>
     </html>

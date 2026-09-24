@@ -18,14 +18,14 @@ export function TeamDetailTabs({ teamId, activeTab, canAccessTeamFeatures = fals
   ];
 
   return (
-    <nav aria-label="팀 상세 메뉴" className="overflow-x-auto border-b border-[#dbe4f0]">
-      <div className="flex min-w-max items-center gap-1">
+    <nav aria-label="팀 상세 메뉴" className="rounded-xl border border-line bg-white p-1.5">
+      <div className="flex flex-wrap items-center gap-1">
         {tabs.filter((tab) => tab.visible).map((tab) => (
           <Link key={tab.key} href={`/team/${teamId}${tab.path}`}
             aria-current={activeTab === tab.key ? "page" : undefined}
-            className={`inline-flex h-11 items-center justify-center border-b-2 px-4 text-sm font-semibold transition-colors ${activeTab === tab.key
-              ? "border-[#4f6f9f] text-[#2f4d76]"
-              : "border-transparent text-[#64748b] hover:border-[#c8d4e6] hover:text-[#3d5b86]"}`}>
+            className={`inline-flex min-h-10 flex-[1_0_28%] items-center justify-center whitespace-nowrap rounded-lg px-3 text-sm font-medium transition-colors sm:flex-none sm:px-4 ${activeTab === tab.key
+              ? "bg-brand-soft text-brand-ink"
+              : "text-muted hover:bg-subtle hover:text-ink"}`}>
             {tab.label}
           </Link>
         ))}

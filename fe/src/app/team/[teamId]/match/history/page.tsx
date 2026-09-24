@@ -219,7 +219,7 @@ export default function HistoricalMatchCreatePage() {
           });
 
       if (!response.data) {
-        throw new Error("등록된 매치 정보를 받지 못했습니다.");
+        throw new Error("경기 정보를 받지 못했습니다.");
       }
 
       router.replace(`/match/${isEditMode ? historicalMatchId : response.data.id}/record`);
@@ -233,114 +233,101 @@ export default function HistoricalMatchCreatePage() {
   }
 
   return (
-    <main className="min-h-screen bg-[#f5f7fb] text-[#111827]">
-      <header data-legacy-page-header className="border-b border-[#dbe4f0] bg-white/90">
-        <div className="mx-auto flex w-full max-w-6xl items-center justify-between gap-4 px-5 py-4 sm:px-6 lg:px-8">
-          <Link href="/" className="flex min-w-0 items-center gap-3">
-            <span className="grid size-9 shrink-0 place-items-center rounded-md bg-[#4f6f9f] text-sm font-bold text-white">TM</span>
-            <span className="truncate text-base font-semibold">Team Manager</span>
-          </Link>
-          {currentUser ? (
-            <span className="truncate rounded-md border border-[#c8d4e6] bg-white px-3 py-2 text-sm font-semibold text-[#3d5b86]">{currentUser.name}</span>
-          ) : (
-            <Link href="/login" className="inline-flex h-10 shrink-0 items-center justify-center rounded-md border border-[#c8d4e6] bg-white px-4 text-sm font-semibold text-[#3d5b86] transition-colors hover:bg-[#f0f4fa]">로그인</Link>
-          )}
-        </div>
-      </header>
+    <main className="min-h-[calc(100dvh-4rem-1px)] bg-canvas text-ink">
 
-      <div className="mx-auto flex w-full max-w-6xl flex-col gap-6 px-5 py-7 sm:px-6 sm:py-8 lg:px-8">
-        <Link href={isEditMode ? `/match/${historicalMatchId}/record` : Number.isInteger(teamId) && teamId > 0 ? `/team/${teamId}/match` : "/team"} className="inline-flex w-fit text-sm font-semibold text-[#3d5b86] transition-colors hover:text-[#283f62]">
+      <div className="mx-auto flex w-full max-w-6xl flex-col gap-7 px-5 py-8 sm:px-6 sm:py-10 lg:px-8">
+        <Link href={isEditMode ? `/match/${historicalMatchId}/record` : Number.isInteger(teamId) && teamId > 0 ? `/team/${teamId}/match` : "/team"} className="inline-flex w-fit text-sm font-semibold text-brand-ink transition-colors hover:text-brand-hover">
           {isEditMode ? "경기 기록으로 돌아가기" : "경기 일정으로 돌아가기"}
         </Link>
 
         {isLoading ? (
-          <section className="flex min-h-72 items-center justify-center rounded-lg border border-[#dbe4f0] bg-white">
-            <p className="text-sm font-semibold text-[#64748b]">팀 정보를 불러오는 중입니다.</p>
+          <section className="flex min-h-72 items-center justify-center rounded-xl border border-line bg-white">
+            <p className="text-sm font-semibold text-muted">팀 정보를 불러오는 중입니다.</p>
           </section>
         ) : errorMessage && !teamDetail ? (
-          <section className="rounded-lg border border-[#fecaca] bg-white px-5 py-12 text-center">
-            <h1 className="text-xl font-bold text-[#0f172a]">이전 경기 {isEditMode ? "수정" : "등록"} 화면을 열 수 없습니다.</h1>
-            <p className="mt-3 text-sm leading-6 text-[#b91c1c]">{errorMessage}</p>
-            <button type="button" onClick={() => void loadTeam()} className="mt-6 inline-flex h-11 items-center justify-center rounded-md bg-[#4f6f9f] px-5 text-sm font-semibold text-white transition-colors hover:bg-[#435f88]">다시 시도</button>
+          <section className="rounded-xl border border-danger-line bg-white px-5 py-12 text-center">
+            <h1 className="text-xl font-semibold text-ink">이전 경기 {isEditMode ? "수정" : "등록"} 화면을 열 수 없습니다.</h1>
+            <p className="mt-3 text-sm leading-6 text-danger">{errorMessage}</p>
+            <button type="button" onClick={() => void loadTeam()} className="mt-6 inline-flex h-11 items-center justify-center rounded-lg bg-brand px-5 text-sm font-semibold text-white transition-colors hover:bg-brand-hover">다시 시도</button>
           </section>
         ) : !currentUser ? (
-          <section className="rounded-lg border border-[#dbe4f0] bg-white px-5 py-12 text-center">
-            <h1 className="text-xl font-bold text-[#0f172a]">로그인이 필요합니다.</h1>
-            <Link href="/login" className="mt-6 inline-flex h-11 items-center justify-center rounded-md bg-[#4f6f9f] px-5 text-sm font-semibold text-white transition-colors hover:bg-[#435f88]">로그인</Link>
+          <section className="rounded-xl border border-line bg-white px-5 py-12 text-center">
+            <h1 className="text-xl font-semibold text-ink">로그인이 필요합니다.</h1>
+            <Link href="/login" className="mt-6 inline-flex h-11 items-center justify-center rounded-lg bg-brand px-5 text-sm font-semibold text-white transition-colors hover:bg-brand-hover">로그인</Link>
           </section>
         ) : !canCreateMatch ? (
-          <section className="rounded-lg border border-[#dbe4f0] bg-white px-5 py-12 text-center">
-            <h1 className="text-xl font-bold text-[#0f172a]">경기 {isEditMode ? "수정" : "등록"} 권한이 없습니다.</h1>
-            <p className="mt-3 text-sm leading-6 text-[#64748b]">운영진만 이전 경기를 {isEditMode ? "수정" : "등록"}할 수 있습니다.</p>
+          <section className="rounded-xl border border-line bg-white px-5 py-12 text-center">
+            <h1 className="text-xl font-semibold text-ink">경기 {isEditMode ? "수정" : "등록"} 권한이 없습니다.</h1>
+            <p className="mt-3 text-sm leading-6 text-muted">운영진만 이전 경기를 {isEditMode ? "수정" : "등록"}할 수 있습니다.</p>
           </section>
         ) : teamDetail ? (
-          <form className="grid gap-6 rounded-lg border border-[#dbe4f0] bg-white p-5 shadow-[0_20px_60px_rgba(15,23,42,0.08)] sm:p-7" onSubmit={handleSubmit}>
-            <div className="border-b border-[#e5eaf3] pb-5">
-              <p className="text-sm font-semibold text-[#4f6f9f]">HISTORICAL MATCH</p>
-              <h1 className="mt-2 text-2xl font-bold text-[#0f172a] sm:text-3xl">이전 경기 {isEditMode ? "참가 명단 수정" : "등록"}</h1>
-              <p className="mt-2 text-sm text-[#64748b]">{teamDetail.team.name}</p>
+          <form className="grid gap-6 rounded-xl border border-line bg-white p-5 shadow-card sm:p-7" onSubmit={handleSubmit}>
+            <div className="border-b border-line pb-5">
+              <p className="text-sm font-semibold text-brand">지난 경기</p>
+              <h1 className="mt-2 text-2xl font-semibold text-ink sm:text-3xl">이전 경기 {isEditMode ? "참가 명단 수정" : "등록"}</h1>
+              <p className="mt-2 text-sm text-muted">{teamDetail.team.name}</p>
             </div>
 
             <fieldset className="grid gap-3">
               <legend className="text-sm font-semibold">매치 유형</legend>
-              <div className="grid grid-cols-2 rounded-md border border-[#cbd5e1] bg-[#f8fafc] p-1">
+              <div className="grid grid-cols-2 rounded-lg border border-line-strong bg-subtle p-1">
                 {matchTypes.map((type) => (
-                  <button key={type.value} type="button" onClick={() => setMatchType(type.value)} disabled={isEditMode} className={`h-10 rounded-sm text-sm font-semibold transition-colors disabled:cursor-not-allowed ${matchType === type.value ? "bg-[#4f6f9f] text-white shadow-sm" : "text-[#52627b] hover:bg-white"}`}>
+                  <button key={type.value} type="button" onClick={() => setMatchType(type.value)} disabled={isEditMode} className={`h-10 rounded-sm text-sm font-semibold transition-colors disabled:cursor-not-allowed ${matchType === type.value ? "bg-brand text-white shadow-sm" : "text-secondary hover:bg-white"}`}>
                     {type.label}
                   </button>
                 ))}
               </div>
             </fieldset>
 
-            <label className="flex flex-wrap items-center gap-x-3 gap-y-1 rounded-md border border-[#dbe4f0] bg-[#f8fafc] px-4 py-3 text-sm font-semibold text-[#475569]">
-              <input type="checkbox" checked={isTraining} onChange={(event) => setIsTraining(event.target.checked)} disabled={isEditMode} className="size-4 accent-[#4f6f9f] disabled:cursor-not-allowed" />
+            <label className="flex flex-wrap items-center gap-x-3 gap-y-1 rounded-lg border border-line bg-subtle px-4 py-3 text-sm font-semibold text-secondary">
+              <input type="checkbox" checked={isTraining} onChange={(event) => setIsTraining(event.target.checked)} disabled={isEditMode} className="size-4 accent-brand disabled:cursor-not-allowed" />
               훈련으로 등록
-              <span className="font-normal text-[#64748b]">통계에서 경기 출석과 별도로 집계됩니다.</span>
+              <span className="font-normal text-muted">통계에서 경기 출석과 별도로 집계됩니다.</span>
             </label>
 
             {matchType === "EXTERNAL" ? (
               <label className="grid gap-2 text-sm font-semibold">
                 상대 팀명
-                <input value={opponentTeamName} onChange={(event) => setOpponentTeamName(event.target.value)} maxLength={100} required disabled={isEditMode} className="h-12 rounded-md border border-[#cbd5e1] bg-white px-4 text-base font-normal outline-none focus:border-[#4f6f9f] focus:ring-4 focus:ring-[#e3eaf5] disabled:cursor-not-allowed disabled:bg-[#f8fafc]" placeholder="강남 FC" />
+                <input value={opponentTeamName} onChange={(event) => setOpponentTeamName(event.target.value)} maxLength={100} required disabled={isEditMode} className="h-12 rounded-lg border border-line-strong bg-white px-4 text-base font-normal outline-none focus:border-brand focus:ring-2 focus:ring-brand-ring disabled:cursor-not-allowed disabled:bg-subtle" placeholder="강남 FC" />
               </label>
             ) : null}
 
             <div className="grid gap-5 sm:grid-cols-2">
               <label className="grid gap-2 text-sm font-semibold">
                 경기 일시
-                <input value={matchAt} onChange={(event) => setMatchAt(event.target.value)} max={toDateTimeLocalValue(new Date())} type="datetime-local" step={600} required disabled={isEditMode} className="h-12 rounded-md border border-[#cbd5e1] bg-white px-4 text-base font-normal outline-none focus:border-[#4f6f9f] focus:ring-4 focus:ring-[#e3eaf5] disabled:cursor-not-allowed disabled:bg-[#f8fafc]" />
+                <input value={matchAt} onChange={(event) => setMatchAt(event.target.value)} max={toDateTimeLocalValue(new Date())} type="datetime-local" step={600} required disabled={isEditMode} className="h-12 rounded-lg border border-line-strong bg-white px-4 text-base font-normal outline-none focus:border-brand focus:ring-2 focus:ring-brand-ring disabled:cursor-not-allowed disabled:bg-subtle" />
               </label>
               <label className="grid gap-2 text-sm font-semibold">
                 경기 장소
-                <input value={location} onChange={(event) => setLocation(event.target.value)} maxLength={255} disabled={isEditMode} className="h-12 rounded-md border border-[#cbd5e1] bg-white px-4 text-base font-normal outline-none focus:border-[#4f6f9f] focus:ring-4 focus:ring-[#e3eaf5] disabled:cursor-not-allowed disabled:bg-[#f8fafc]" placeholder="잠실 풋살장" />
+                <input value={location} onChange={(event) => setLocation(event.target.value)} maxLength={255} disabled={isEditMode} className="h-12 rounded-lg border border-line-strong bg-white px-4 text-base font-normal outline-none focus:border-brand focus:ring-2 focus:ring-brand-ring disabled:cursor-not-allowed disabled:bg-subtle" placeholder="잠실 풋살장" />
               </label>
             </div>
 
-            <section className="overflow-hidden rounded-md border border-[#dbe4f0]">
-              <div className="flex flex-col gap-3 border-b border-[#e2e8f0] bg-[#f8fafc] px-4 py-4 sm:flex-row sm:items-center sm:justify-between sm:px-5">
+            <section className="overflow-hidden rounded-lg border border-line">
+              <div className="flex flex-col gap-3 border-b border-line bg-subtle px-4 py-4 sm:flex-row sm:items-center sm:justify-between sm:px-5">
                 <div>
-                  <h2 className="font-bold text-[#0f172a]">통계 대상 팀원</h2>
-                  <p className="mt-1 text-sm text-[#64748b]">{selectedMemberCount}명 선택</p>
+                  <h2 className="font-semibold text-ink">통계 대상 팀원</h2>
+                  <p className="mt-1 text-sm text-muted">{selectedMemberCount}명 선택</p>
                 </div>
-                <label className="inline-flex w-fit items-center gap-2 text-sm font-semibold text-[#3d5b86]">
-                  <input type="checkbox" checked={areAllMembersSelected} onChange={(event) => toggleAllMembers(event.target.checked)} className="size-4 accent-[#4f6f9f]" />
+                <label className="inline-flex w-fit items-center gap-2 text-sm font-semibold text-brand-ink">
+                  <input type="checkbox" checked={areAllMembersSelected} onChange={(event) => toggleAllMembers(event.target.checked)} className="size-4 accent-brand" />
                   전체 선택
                 </label>
               </div>
-              <div className="divide-y divide-[#e2e8f0]">
+              <div className="divide-y divide-line">
                 {members.map((member) => {
                   const voteStatus = participantStatusByMemberId[member.id];
                   const isSelected = voteStatus !== undefined;
                   return (
                     <div key={member.id} className="grid gap-3 px-4 py-3 sm:grid-cols-[minmax(0,1fr)_9rem] sm:items-center sm:px-5">
                       <label className="flex min-w-0 items-center gap-3">
-                        <input type="checkbox" checked={isSelected} onChange={(event) => toggleMember(member.id, event.target.checked)} className="size-4 shrink-0 accent-[#4f6f9f]" />
+                        <input type="checkbox" checked={isSelected} onChange={(event) => toggleMember(member.id, event.target.checked)} className="size-4 shrink-0 accent-brand" />
                         <span className="min-w-0">
-                          <span className="block truncate font-semibold text-[#1f2937]">{getMemberName(member)}</span>
-                          <span className="mt-0.5 block text-xs text-[#64748b]">{getMemberRole(member)}</span>
+                          <span className="block truncate font-semibold text-ink">{getMemberName(member)}</span>
+                          <span className="mt-0.5 block text-xs text-muted">{getMemberRole(member)}</span>
                         </span>
                       </label>
-                      <select value={voteStatus ?? "AVAILABLE"} onChange={(event) => updateMemberStatus(member.id, event.target.value as HistoricalParticipantStatus)} disabled={!isSelected} className="h-10 rounded-md border border-[#c8d4e6] bg-white px-3 text-sm font-semibold text-[#3d5b86] outline-none focus:border-[#4f6f9f] disabled:cursor-not-allowed disabled:bg-[#f8fafc] disabled:text-[#94a3b8]">
+                      <select value={voteStatus ?? "AVAILABLE"} onChange={(event) => updateMemberStatus(member.id, event.target.value as HistoricalParticipantStatus)} disabled={!isSelected} className="h-10 rounded-lg border border-line-strong bg-white px-3 text-sm font-semibold text-brand-ink outline-none focus:border-brand disabled:cursor-not-allowed disabled:bg-subtle disabled:text-placeholder">
                         <option value="AVAILABLE">참여</option>
                         <option value="UNAVAILABLE">불참</option>
                       </select>
@@ -350,9 +337,9 @@ export default function HistoricalMatchCreatePage() {
               </div>
             </section>
 
-            {errorMessage ? <p className="rounded-md border border-[#fecaca] bg-[#fef2f2] px-4 py-3 text-sm font-medium text-[#b91c1c]">{errorMessage}</p> : null}
+            {errorMessage ? <p className="rounded-lg border border-danger-line bg-danger-soft px-4 py-3 text-sm font-medium text-danger">{errorMessage}</p> : null}
 
-            <button type="submit" disabled={isSubmitting || !matchAt || selectedMemberCount === 0 || (matchType === "EXTERNAL" && !opponentTeamName.trim())} className="inline-flex h-12 items-center justify-center rounded-md bg-[#4f6f9f] px-5 text-base font-semibold text-white transition-colors hover:bg-[#435f88] disabled:cursor-not-allowed disabled:bg-[#a9b9d3]">
+            <button type="submit" disabled={isSubmitting || !matchAt || selectedMemberCount === 0 || (matchType === "EXTERNAL" && !opponentTeamName.trim())} className="inline-flex h-12 items-center justify-center rounded-lg bg-brand px-5 text-base font-semibold text-white transition-colors hover:bg-brand-hover disabled:cursor-not-allowed disabled:bg-brand-disabled">
               {isSubmitting ? (isEditMode ? "수정 중..." : "등록 중...") : isEditMode ? "참가 명단 저장" : "경기 기록 입력으로 이동"}
             </button>
           </form>

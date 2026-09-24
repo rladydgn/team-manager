@@ -12,6 +12,7 @@ import {
 } from "@/features/team/api/statistics";
 import { getTeam, Team } from "@/features/team/api/team";
 import { getTeamSeasons, type TeamSeason } from "@/features/team/api/season";
+import { PageHeading } from "@/shared/ui/PageHeading";
 import { TeamDetailTabs } from "@/features/team/ui/TeamDetailTabs";
 
 type PeriodPreset = "THIS_YEAR" | "SIX_MONTHS" | "ONE_YEAR" | "CUSTOM";
@@ -237,22 +238,9 @@ export default function TeamStatisticsPage() {
     : "0 / 0";
 
   return (
-    <main className="min-h-screen bg-[#f5f7fb] text-[#111827]">
-      <header data-legacy-page-header className="border-b border-[#dbe4f0] bg-white/90">
-        <div className="mx-auto flex w-full max-w-6xl items-center justify-between gap-4 px-5 py-4 sm:px-6 lg:px-8">
-          <Link href="/" className="flex min-w-0 items-center gap-3">
-            <span className="grid size-9 shrink-0 place-items-center rounded-md bg-[#4f6f9f] text-sm font-bold text-white">TM</span>
-            <span className="truncate text-base font-semibold">Team Manager</span>
-          </Link>
-          {currentUser ? (
-            <span className="truncate rounded-md border border-[#c8d4e6] bg-white px-3 py-2 text-sm font-semibold text-[#3d5b86]">{currentUser.name}</span>
-          ) : (
-            <Link href="/login" className="inline-flex h-10 shrink-0 items-center justify-center rounded-md border border-[#c8d4e6] bg-white px-4 text-sm font-semibold text-[#3d5b86] transition-colors hover:bg-[#f0f4fa]">로그인</Link>
-          )}
-        </div>
-      </header>
+    <main className="min-h-[calc(100dvh-4rem-1px)] bg-canvas text-ink">
 
-      <div className="mx-auto flex w-full max-w-6xl flex-col gap-6 px-5 py-7 sm:px-6 sm:py-8 lg:px-8">
+      <div className="mx-auto flex w-full max-w-6xl flex-col gap-7 px-5 py-8 sm:px-6 sm:py-10 lg:px-8">
         {Number.isInteger(teamId) && teamId > 0 ? (
           <TeamDetailTabs
             teamId={teamId}
@@ -263,36 +251,32 @@ export default function TeamStatisticsPage() {
         ) : null}
 
         {isLoading ? (
-          <section className="flex min-h-72 items-center justify-center rounded-lg border border-[#dbe4f0] bg-white">
-            <p className="text-sm font-semibold text-[#64748b]">팀 통계를 불러오는 중입니다.</p>
+          <section className="flex min-h-72 items-center justify-center rounded-xl border border-line bg-white">
+            <p className="text-sm font-semibold text-muted">팀 통계를 불러오는 중입니다.</p>
           </section>
         ) : errorMessage ? (
-          <section className="rounded-lg border border-[#fecaca] bg-white px-5 py-12 text-center">
-            <h1 className="text-xl font-bold text-[#0f172a]">팀 통계를 불러올 수 없습니다.</h1>
-            <p className="mt-3 text-sm leading-6 text-[#b91c1c]">{errorMessage}</p>
-            <button type="button" onClick={() => void loadStatistics()} className="mt-6 inline-flex h-11 items-center justify-center rounded-md bg-[#4f6f9f] px-5 text-sm font-semibold text-white transition-colors hover:bg-[#435f88]">다시 시도</button>
+          <section className="rounded-xl border border-danger-line bg-white px-5 py-12 text-center">
+            <h1 className="text-xl font-semibold text-ink">팀 통계를 불러올 수 없습니다.</h1>
+            <p className="mt-3 text-sm leading-6 text-danger">{errorMessage}</p>
+            <button type="button" onClick={() => void loadStatistics()} className="mt-6 inline-flex h-11 items-center justify-center rounded-lg bg-brand px-5 text-sm font-semibold text-white transition-colors hover:bg-brand-hover">다시 시도</button>
           </section>
         ) : team && statistics ? (
           <>
-            <section className="flex flex-col gap-3 border-b border-[#dbe4f0] pb-6 sm:flex-row sm:items-end sm:justify-between">
-              <div>
-                <p className="text-sm font-semibold text-[#4f6f9f]">TEAM STATISTICS</p>
-                <h1 className="mt-2 text-3xl font-bold text-[#0f172a] sm:text-4xl">{team.name} 선수 통계</h1>
-                <p className="mt-3 text-sm leading-6 text-[#64748b]">참여현황과 경기 기록을 기준으로 출석, 골, 어시스트, 클린시트를 확인합니다.</p>
-              </div>
-              <span className="w-fit rounded-md border border-[#c8d4e6] bg-[#f0f4fa] px-3 py-1.5 text-sm font-semibold text-[#3d5b86]">기간 내 경기 {statistics.totalMatchCount}회 · 훈련 {statistics.totalTrainingCount}회</span>
+            <section className="flex flex-col gap-3 sm:flex-row sm:items-end sm:justify-between">
+              <PageHeading label={team.name} title="선수 통계" description="기간별 출석과 경기 기록을 확인하세요." />
+              <span className="w-fit rounded-lg border border-line-strong bg-brand-soft px-3 py-1.5 text-sm font-semibold text-brand-ink">기간 내 경기 {statistics.totalMatchCount}회 · 훈련 {statistics.totalTrainingCount}회</span>
             </section>
 
-            <section className="border-y border-[#dbe4f0] py-5">
+            <section className="border-y border-line py-5">
               <div className="mb-4 flex flex-col gap-2 sm:flex-row sm:items-end sm:justify-between">
-                <label className="grid flex-1 gap-1.5 text-sm font-semibold text-[#475569]">
+                <label className="grid flex-1 gap-1.5 text-sm font-semibold text-secondary">
                   시즌
-                  <select value={selectedSeasonId} onChange={(event) => selectSeason(event.target.value)} className="h-11 rounded-md border border-[#c8d4e6] bg-white px-3 text-sm font-normal text-[#1f2937] outline-none focus:border-[#4f6f9f]">
+                  <select value={selectedSeasonId} onChange={(event) => selectSeason(event.target.value)} className="h-11 rounded-lg border border-line-strong bg-white px-3 text-sm font-normal text-ink outline-none focus:border-brand">
                     {seasons.map((season) => <option key={season.id} value={season.id}>{season.name}{season.isDefault ? " (기본)" : ""} · {season.startDate} ~ {season.endDate}</option>)}
                     <option value="">기간 직접 선택</option>
                   </select>
                 </label>
-                {canManageFees ? <Link href={`/team/${teamId}/season`} className="inline-flex h-11 items-center justify-center rounded-md border border-[#c8d4e6] bg-white px-4 text-sm font-semibold text-[#3d5b86]">시즌 설정</Link> : null}
+                {canManageFees ? <Link href={`/team/${teamId}/season`} className="inline-flex h-11 items-center justify-center rounded-lg border border-line-strong bg-white px-4 text-sm font-semibold text-brand-ink">시즌 설정</Link> : null}
               </div>
               <div className="flex flex-wrap gap-2">
                 {(Object.keys(periodPresetLabels) as Exclude<PeriodPreset, "CUSTOM">[]).map((preset) => (
@@ -300,7 +284,7 @@ export default function TeamStatisticsPage() {
                     key={preset}
                     type="button"
                     onClick={() => selectPreset(preset)}
-                    className={`inline-flex h-10 items-center justify-center rounded-md border px-4 text-sm font-semibold transition-colors ${selectedPreset === preset ? "border-[#4f6f9f] bg-[#4f6f9f] text-white" : "border-[#c8d4e6] bg-white text-[#3d5b86] hover:bg-[#f0f4fa]"}`}
+                    className={`inline-flex h-10 items-center justify-center rounded-lg border px-4 text-sm font-semibold transition-colors ${selectedPreset === preset ? "border-brand bg-brand text-white" : "border-line-strong bg-white text-brand-ink hover:bg-brand-soft"}`}
                   >
                     {periodPresetLabels[preset]}
                   </button>
@@ -308,65 +292,65 @@ export default function TeamStatisticsPage() {
               </div>
 
               <form onSubmit={applyCustomRange} className="mt-4 grid gap-3 sm:grid-cols-[minmax(0,1fr)_minmax(0,1fr)_auto] sm:items-end">
-                <label className="grid gap-1.5 text-sm font-semibold text-[#475569]">
+                <label className="grid gap-1.5 text-sm font-semibold text-secondary">
                   시작일
-                  <input type="date" value={draftStartDate} onChange={(event) => setDraftStartDate(event.target.value)} className="h-10 rounded-md border border-[#c8d4e6] bg-white px-3 text-sm font-normal text-[#1f2937] outline-none focus:border-[#4f6f9f] focus:ring-4 focus:ring-[#e3eaf5]" required />
+                  <input type="date" value={draftStartDate} onChange={(event) => setDraftStartDate(event.target.value)} className="h-10 rounded-lg border border-line-strong bg-white px-3 text-sm font-normal text-ink outline-none focus:border-brand focus:ring-2 focus:ring-brand-ring" required />
                 </label>
-                <label className="grid gap-1.5 text-sm font-semibold text-[#475569]">
+                <label className="grid gap-1.5 text-sm font-semibold text-secondary">
                   종료일
-                  <input type="date" value={draftEndDate} onChange={(event) => setDraftEndDate(event.target.value)} className="h-10 rounded-md border border-[#c8d4e6] bg-white px-3 text-sm font-normal text-[#1f2937] outline-none focus:border-[#4f6f9f] focus:ring-4 focus:ring-[#e3eaf5]" required />
+                  <input type="date" value={draftEndDate} onChange={(event) => setDraftEndDate(event.target.value)} className="h-10 rounded-lg border border-line-strong bg-white px-3 text-sm font-normal text-ink outline-none focus:border-brand focus:ring-2 focus:ring-brand-ring" required />
                 </label>
-                <button type="submit" className="inline-flex h-10 items-center justify-center rounded-md border border-[#c8d4e6] bg-[#f0f4fa] px-4 text-sm font-semibold text-[#3d5b86] transition-colors hover:bg-[#e3ecf7]">기간 적용</button>
+                <button type="submit" className="inline-flex h-10 items-center justify-center rounded-lg border border-line-strong bg-brand-soft px-4 text-sm font-semibold text-brand-ink transition-colors hover:bg-brand-soft">기간 적용</button>
               </form>
             </section>
 
-            <section className="overflow-hidden rounded-lg border border-[#dbe4f0] bg-white">
-              <div className="flex items-center justify-between gap-4 border-b border-[#e2e8f0] px-5 py-4 sm:px-6">
+            <section className="overflow-hidden rounded-xl border border-line bg-white">
+              <div className="flex items-center justify-between gap-4 border-b border-line px-5 py-4 sm:px-6">
                 <div>
-                  <h2 className="text-lg font-bold text-[#0f172a]">선수별 기록</h2>
-                  <p className="mt-1 text-sm text-[#64748b]">{statistics.startDate}부터 {statistics.endDate}까지</p>
-                  <p className="mt-1 text-xs font-semibold text-[#4f6f9f]">정렬: {statisticSortLabels[sortBy]} {sortDirection === "ASC" ? "오름차순" : "내림차순"}</p>
+                  <h2 className="text-lg font-semibold text-ink">선수별 기록</h2>
+                  <p className="mt-1 text-sm text-muted">{statistics.startDate}부터 {statistics.endDate}까지</p>
+                  <p className="mt-1 text-xs font-semibold text-brand">정렬: {statisticSortLabels[sortBy]} {sortDirection === "ASC" ? "오름차순" : "내림차순"}</p>
                 </div>
-                <span className="shrink-0 text-sm font-semibold text-[#3d5b86]">총 {statistics.totalElements}명</span>
+                <span className="shrink-0 text-sm font-semibold text-brand-ink">총 {statistics.totalElements}명</span>
               </div>
 
               {statistics.members.length === 0 ? (
-                <div className="px-5 py-16 text-center text-sm text-[#64748b]">표시할 팀원이 없습니다.</div>
+                <div className="px-5 py-16 text-center text-sm text-muted">표시할 팀원이 없습니다.</div>
               ) : (
                 <>
-                  <div className="flex flex-wrap gap-2 border-b border-[#e2e8f0] px-5 py-3 sm:hidden">
+                  <div className="flex flex-wrap gap-2 border-b border-line px-5 py-3 sm:hidden">
                     {(Object.keys(statisticSortLabels) as TeamAttendanceSortBy[]).map((targetSortBy) => (
                       <button
                         key={targetSortBy}
                         type="button"
                         onClick={() => toggleStatisticSort(targetSortBy)}
                         aria-pressed={sortBy === targetSortBy}
-                        className={`inline-flex h-8 items-center gap-1 rounded-md border px-2.5 text-xs font-semibold transition-colors ${sortBy === targetSortBy ? "border-[#4f6f9f] bg-[#f0f4fa] text-[#3d5b86]" : "border-[#dbe4f0] bg-white text-[#64748b]"}`}
+                        className={`inline-flex h-8 items-center gap-1 rounded-lg border px-2.5 text-xs font-semibold transition-colors ${sortBy === targetSortBy ? "border-brand bg-brand-soft text-brand-ink" : "border-line bg-white text-muted"}`}
                       >
                         {statisticSortLabels[targetSortBy]}
                         <SortArrows active={sortBy === targetSortBy} direction={sortDirection} />
                       </button>
                     ))}
                   </div>
-                  <div className="divide-y divide-[#e2e8f0] sm:hidden">
+                  <div className="divide-y divide-line sm:hidden">
                     {statistics.members.map((member) => (
                       <article key={member.teamMemberId} className="grid grid-cols-[minmax(0,1fr)_auto] gap-4 px-5 py-4">
-                        <p className="truncate font-semibold text-[#1f2937]">{member.name}</p>
-                        <p className="text-sm font-semibold text-[#3d5b86]">경기 출석 {formatAttendance(member.attendanceCount, member.eligibleMatchCount, member.attendanceRate)}</p>
-                        <p className="text-sm font-semibold text-[#36734a]">훈련 출석 {formatAttendance(member.trainingAttendanceCount, member.trainingEligibleMatchCount, member.trainingAttendanceRate)}</p>
+                        <p className="truncate font-semibold text-ink">{member.name}</p>
+                        <p className="text-sm font-semibold text-brand-ink">경기 출석 {formatAttendance(member.attendanceCount, member.eligibleMatchCount, member.attendanceRate)}</p>
+                        <p className="text-sm font-semibold text-success">훈련 출석 {formatAttendance(member.trainingAttendanceCount, member.trainingEligibleMatchCount, member.trainingAttendanceRate)}</p>
                         <p className="text-sm text-[#b45309]">투표 후 불참 {member.postVoteAbsenceCount}회</p>
                         <p className="text-sm text-[#b45309]">지각 {member.lateCount}회</p>
                         <div className="col-span-2 flex flex-wrap gap-2 text-xs font-semibold">
-                          <span className="rounded-md border border-[#c8d4e6] bg-[#f0f4fa] px-2 py-1 text-[#3d5b86]">골 {member.goalCount}</span>
-                          <span className="rounded-md border border-[#d8d4e9] bg-[#f6f5fb] px-2 py-1 text-[#695c91]">어시스트 {member.assistCount}</span>
-                          <span className="rounded-md border border-[#b8d7c1] bg-[#f1f8f2] px-2 py-1 text-[#36734a]">클린시트 {member.cleanSheetCount}</span>
+                          <span className="rounded-lg border border-line-strong bg-brand-soft px-2 py-1 text-brand-ink">골 {member.goalCount}</span>
+                          <span className="rounded-lg border border-[#d8d4e9] bg-[#f6f5fb] px-2 py-1 text-[#695c91]">어시스트 {member.assistCount}</span>
+                          <span className="rounded-lg border border-success-line bg-success-soft px-2 py-1 text-success">클린시트 {member.cleanSheetCount}</span>
                         </div>
                       </article>
                     ))}
                   </div>
                   <div className="hidden overflow-x-auto sm:block">
                     <table className="w-full text-left text-sm">
-                      <thead className="bg-[#f8fafc] text-xs font-semibold text-[#64748b]">
+                      <thead className="bg-subtle text-xs font-semibold text-muted">
                         <tr>
                           <SortableHeader label="선수" sortKey="NAME" activeSort={sortBy} direction={sortDirection} onSort={toggleStatisticSort} className="px-6 text-left" />
                           <SortableHeader label="경기 출석 (투표/전체)" sortKey="ATTENDANCE_RATE" activeSort={sortBy} direction={sortDirection} onSort={toggleStatisticSort} />
@@ -378,17 +362,17 @@ export default function TeamStatisticsPage() {
                           <SortableHeader label="클린시트" sortKey="CLEAN_SHEET_COUNT" activeSort={sortBy} direction={sortDirection} onSort={toggleStatisticSort} className="px-6" />
                         </tr>
                       </thead>
-                      <tbody className="divide-y divide-[#e2e8f0]">
+                      <tbody className="divide-y divide-line">
                         {statistics.members.map((member) => (
                           <tr key={member.teamMemberId}>
-                            <td className="px-6 py-4 font-semibold text-[#1f2937]">{member.name}</td>
-                            <td className="px-5 py-4 text-right font-semibold text-[#3d5b86]">{formatAttendance(member.attendanceCount, member.eligibleMatchCount, member.attendanceRate)}</td>
-                            <td className="px-5 py-4 text-right font-semibold text-[#36734a]">{formatAttendance(member.trainingAttendanceCount, member.trainingEligibleMatchCount, member.trainingAttendanceRate)}</td>
+                            <td className="px-6 py-4 font-semibold text-ink">{member.name}</td>
+                            <td className="px-5 py-4 text-right font-semibold text-brand-ink">{formatAttendance(member.attendanceCount, member.eligibleMatchCount, member.attendanceRate)}</td>
+                            <td className="px-5 py-4 text-right font-semibold text-success">{formatAttendance(member.trainingAttendanceCount, member.trainingEligibleMatchCount, member.trainingAttendanceRate)}</td>
                             <td className="px-5 py-4 text-right font-semibold text-[#b45309]">{member.postVoteAbsenceCount}회</td>
                             <td className="px-4 py-4 text-right font-semibold text-[#b45309]">{member.lateCount}회</td>
-                            <td className="px-4 py-4 text-right font-semibold text-[#3d5b86]">{member.goalCount}</td>
+                            <td className="px-4 py-4 text-right font-semibold text-brand-ink">{member.goalCount}</td>
                             <td className="px-4 py-4 text-right font-semibold text-[#695c91]">{member.assistCount}</td>
-                            <td className="px-6 py-4 text-right font-semibold text-[#36734a]">{member.cleanSheetCount}</td>
+                            <td className="px-6 py-4 text-right font-semibold text-success">{member.cleanSheetCount}</td>
                           </tr>
                         ))}
                       </tbody>
@@ -398,10 +382,10 @@ export default function TeamStatisticsPage() {
               )}
 
               {statistics.totalPages > 1 ? (
-                <div className="flex items-center justify-between border-t border-[#e2e8f0] px-5 py-4 sm:px-6">
-                  <button type="button" onClick={() => setPage((currentPage) => Math.max(0, currentPage - 1))} disabled={statistics.page === 0} className="inline-flex h-9 items-center justify-center rounded-md border border-[#c8d4e6] bg-white px-3 text-sm font-semibold text-[#3d5b86] transition-colors hover:bg-[#f0f4fa] disabled:cursor-not-allowed disabled:border-[#e2e8f0] disabled:text-[#94a3b8]">이전</button>
-                  <span className="text-sm font-semibold text-[#64748b]">{pageLabel}</span>
-                  <button type="button" onClick={() => setPage((currentPage) => currentPage + 1)} disabled={statistics.page >= statistics.totalPages - 1} className="inline-flex h-9 items-center justify-center rounded-md border border-[#c8d4e6] bg-white px-3 text-sm font-semibold text-[#3d5b86] transition-colors hover:bg-[#f0f4fa] disabled:cursor-not-allowed disabled:border-[#e2e8f0] disabled:text-[#94a3b8]">다음</button>
+                <div className="flex items-center justify-between border-t border-line px-5 py-4 sm:px-6">
+                  <button type="button" onClick={() => setPage((currentPage) => Math.max(0, currentPage - 1))} disabled={statistics.page === 0} className="inline-flex h-9 items-center justify-center rounded-lg border border-line-strong bg-white px-3 text-sm font-semibold text-brand-ink transition-colors hover:bg-brand-soft disabled:cursor-not-allowed disabled:border-line disabled:text-placeholder">이전</button>
+                  <span className="text-sm font-semibold text-muted">{pageLabel}</span>
+                  <button type="button" onClick={() => setPage((currentPage) => currentPage + 1)} disabled={statistics.page >= statistics.totalPages - 1} className="inline-flex h-9 items-center justify-center rounded-lg border border-line-strong bg-white px-3 text-sm font-semibold text-brand-ink transition-colors hover:bg-brand-soft disabled:cursor-not-allowed disabled:border-line disabled:text-placeholder">다음</button>
                 </div>
               ) : null}
             </section>
@@ -421,7 +405,7 @@ function SortArrows({
 }) {
   if (active) {
     return (
-      <span aria-hidden="true" className="text-sm font-black leading-none text-[#2f4d76]">
+      <span aria-hidden="true" className="text-sm font-black leading-none text-brand-ink">
         {direction === "ASC" ? "▲" : "▼"}
       </span>
     );
@@ -465,7 +449,7 @@ function SortableHeader({
         aria-pressed={isActive}
         aria-label={`${label} ${nextDirection} 정렬`}
         className={`inline-flex items-center gap-1.5 rounded-sm px-1 py-0.5 transition-colors ${
-          isActive ? "font-bold text-[#2f4d76]" : "font-semibold text-[#64748b] hover:text-[#3d5b86]"
+          isActive ? "font-semibold text-brand-ink" : "font-semibold text-muted hover:text-brand-ink"
         }`}
       >
         {label}

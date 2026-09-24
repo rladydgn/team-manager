@@ -7,11 +7,11 @@ export const inquiryCategories: Record<InquiryCategory, string> = {
   OTHER: "기타",
 };
 
-export const inquiryButtonClass = "inline-flex min-h-11 items-center justify-center rounded-md border border-[#c8d4e6] bg-white px-4 py-2 text-sm font-semibold text-[#3d5b86] transition-colors hover:bg-[#f0f4fa] disabled:cursor-not-allowed disabled:opacity-50";
+export const inquiryButtonClass = "btn-secondary";
 
 export function InquiryStatusBadge({ status }: { status: InquiryStatus }) {
   return (
-    <span className={`inline-flex shrink-0 rounded-md border px-2.5 py-1 text-xs font-semibold ${status === "ANSWERED" ? "border-[#b8d7c1] bg-[#f1f8f2] text-[#36734a]" : "border-[#c8d4e6] bg-[#edf3fa] text-[#3d5b86]"}`}>
+    <span className={`inline-flex shrink-0 rounded-full border px-2.5 py-1 text-xs font-medium ${status === "ANSWERED" ? "border-success-line bg-success-soft text-success" : "border-line-strong bg-brand-soft text-brand-ink"}`}>
       {status === "ANSWERED" ? "답변 완료" : "답변 대기"}
     </span>
   );
