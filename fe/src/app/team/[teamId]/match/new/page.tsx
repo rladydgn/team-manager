@@ -155,33 +155,6 @@ export default function NewMatchPage() {
 
   return (
     <main className="min-h-[calc(100dvh-4rem-1px)] bg-canvas text-ink">
-      <header
-        data-legacy-page-header
-        className="border-b border-line bg-white/90"
-      >
-        <div className="mx-auto flex w-full max-w-6xl items-center justify-between gap-4 px-5 py-4 sm:px-6 lg:px-8">
-          <Link href="/" className="flex min-w-0 items-center gap-3">
-            <span className="grid size-9 shrink-0 place-items-center rounded-lg bg-brand text-sm font-semibold text-white">
-              TM
-            </span>
-            <span className="truncate text-base font-semibold">
-              Team Manager
-            </span>
-          </Link>
-          {currentUser ? (
-            <span className="truncate rounded-lg border border-line-strong bg-white px-3 py-2 text-sm font-semibold text-brand-ink">
-              {currentUser.name}
-            </span>
-          ) : (
-            <Link
-              href="/login"
-              className="inline-flex h-10 shrink-0 items-center justify-center rounded-lg border border-line-strong bg-white px-4 text-sm font-semibold text-brand-ink transition-colors hover:bg-brand-soft"
-            >
-              로그인
-            </Link>
-          )}
-        </div>
-      </header>
 
       <div className="mx-auto flex w-full max-w-6xl flex-col gap-7 px-5 py-8 sm:px-6 sm:py-10 lg:px-8">
         <Link

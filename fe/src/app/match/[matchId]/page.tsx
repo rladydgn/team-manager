@@ -1,6 +1,7 @@
 "use client";
 
 import Link from "next/link";
+import { MatchTrainingBadge } from "@/features/match/ui/MatchTrainingBadge";
 import { useParams } from "next/navigation";
 import { useCallback, useEffect, useState } from "react";
 import {
@@ -300,33 +301,6 @@ export default function MatchDetailPage() {
 
   return (
     <main className="min-h-[calc(100dvh-4rem-1px)] bg-canvas text-ink">
-      <header
-        data-legacy-page-header
-        className="border-b border-line bg-white/90"
-      >
-        <div className="mx-auto flex w-full max-w-6xl items-center justify-between gap-4 px-5 py-4 sm:px-6 lg:px-8">
-          <Link href="/" className="flex min-w-0 items-center gap-3">
-            <span className="grid size-9 shrink-0 place-items-center rounded-lg bg-brand text-sm font-semibold text-white">
-              TM
-            </span>
-            <span className="truncate text-base font-semibold">
-              Team Manager
-            </span>
-          </Link>
-          {currentUser ? (
-            <span className="truncate rounded-lg border border-line-strong bg-white px-3 py-2 text-sm font-semibold text-brand-ink">
-              {currentUser.name}
-            </span>
-          ) : (
-            <Link
-              href="/login"
-              className="inline-flex h-10 shrink-0 items-center justify-center rounded-lg border border-line-strong bg-white px-4 text-sm font-semibold text-brand-ink transition-colors hover:bg-brand-soft"
-            >
-              로그인
-            </Link>
-          )}
-        </div>
-      </header>
 
       <div className="mx-auto flex w-full max-w-6xl flex-col gap-6 px-5 py-7 sm:px-6 sm:py-10 lg:px-8">
         {team ? (
@@ -363,10 +337,13 @@ export default function MatchDetailPage() {
         ) : match && team ? (
           <>
             <section className="overflow-hidden rounded-2xl border border-line-strong bg-white shadow-card">
-              <div className="border-b border-[#d6e0ee] bg-[linear-gradient(135deg,#edf3fa_0%,#e3edf8_100%)] px-5 py-7 text-center sm:px-8 sm:py-10">
+              <div className="border-b border-line bg-subtle px-5 py-7 text-center sm:px-8 sm:py-10">
+              <div className="flex flex-wrap items-center justify-center gap-2">
               <span className="rounded-lg border border-line-strong bg-white/80 px-2.5 py-1 text-xs font-semibold text-brand-ink">
                 {match.matchType === "INTERNAL" ? "자체전" : "외부전"}
               </span>
+              <MatchTrainingBadge isTraining={match.isTraining} />
+              </div>
               <p className="mt-5 text-sm font-semibold text-brand">
                 {formatMatchAt(match.matchAt)}
               </p>
@@ -377,7 +354,7 @@ export default function MatchDetailPage() {
                   {matchResultPresentation[matchResult].label}
                 </span>
               ) : null}
-              <div className="mt-4 grid grid-cols-[minmax(0,1fr)_auto_minmax(0,1fr)] items-center gap-3 sm:gap-6">
+              <h1 className="mt-4 grid grid-cols-[minmax(0,1fr)_auto_minmax(0,1fr)] items-center gap-3 sm:gap-6">
                 <strong className="break-words text-xl text-ink sm:text-3xl">
                   {team.name}
                 </strong>
@@ -389,7 +366,7 @@ export default function MatchDetailPage() {
                 <strong className="break-words text-xl text-ink sm:text-3xl">
                   {opponentLabel}
                 </strong>
-              </div>
+              </h1>
               </div>
               <div className="flex flex-col items-center justify-center gap-3 px-5 py-5 sm:flex-row sm:px-8">
                 <span className="rounded-lg border border-line-strong bg-white/80 px-2.5 py-1 text-xs font-semibold text-brand-ink">

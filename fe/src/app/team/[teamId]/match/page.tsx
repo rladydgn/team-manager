@@ -1,6 +1,7 @@
 "use client";
 
 import Link from "next/link";
+import { MatchTrainingBadge } from "@/features/match/ui/MatchTrainingBadge";
 import { useParams } from "next/navigation";
 import { useCallback, useEffect, useMemo, useState } from "react";
 import {
@@ -247,6 +248,7 @@ export default function TeamMatchesPage() {
                         ) : null}
                         <span className={`rounded-lg border px-2.5 py-1 text-xs font-semibold ${getMatchProgress(match).className}`}>{getMatchProgress(match).label}</span>
                         <span className="rounded-lg border border-line bg-subtle px-2.5 py-1 text-xs font-semibold text-brand-ink">{match.matchType === "INTERNAL" ? "자체전" : "외부전"}</span>
+                        <MatchTrainingBadge isTraining={match.isTraining} />
                         {canUpdateMatchParticipation(match) ? (
                           <MatchParticipationButton
                             status={match.myVoteStatus}

@@ -213,6 +213,10 @@ export default function TeamsClientPage({
                   />
                 </label>
 
+              </div>
+              <details className="rounded-xl border border-line p-4">
+                <summary className="text-sm font-medium text-secondary">추가 정보 <span className="ml-1 text-xs text-muted">선택</span></summary>
+                <div className="mt-4 grid gap-5 md:grid-cols-2">
                 <label className="grid gap-2 text-sm font-semibold">
                   팀 약칭
                   <input
@@ -253,9 +257,8 @@ export default function TeamsClientPage({
                     placeholder="잠실 풋살장"
                   />
                 </label>
-              </div>
 
-              <label className="grid gap-2 text-sm font-semibold">
+              <label className="grid gap-2 text-sm font-semibold md:col-span-2">
                 팀 소개
                 <textarea
                   value={description}
@@ -264,6 +267,9 @@ export default function TeamsClientPage({
                   placeholder="주말마다 함께 공을 차는 팀입니다."
                 />
               </label>
+
+                </div>
+              </details>
 
               <button
                 className="inline-flex h-12 items-center justify-center rounded-lg bg-brand px-5 text-base font-semibold text-white transition-colors hover:bg-brand-hover disabled:cursor-not-allowed disabled:bg-brand-disabled"
