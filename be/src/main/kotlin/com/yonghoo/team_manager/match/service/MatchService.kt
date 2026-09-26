@@ -212,21 +212,18 @@ class MatchService(
                 !match.matchAt.isBefore(startAt) &&
                 match.matchAt.isBefore(endAtExclusive)
         }
-        val regularMatches = matches.filterNot(MatchRecord::isTraining)
         val trainingMatches = matches.filter(MatchRecord::isTraining)
         val matchParticipants = matchParticipantRepository
             .selectParticipantsByMatchIds(matches.map(MatchRecord::id))
             .asSequence()
             .toList()
-        val regularMatchIds = regularMatches.map(MatchRecord::id).toSet()
         val trainingMatchIds = trainingMatches.map(MatchRecord::id).toSet()
-        val regularMatchParticipants = matchParticipants.filter { it.matchId in regularMatchIds }
         val trainingMatchParticipants = matchParticipants.filter { it.matchId in trainingMatchIds }
-        val eligibleMatchCountByMemberId = regularMatchParticipants
+        val eligibleMatchCountByMemberId = matchParticipants
             .asSequence()
             .groupingBy { it.teamMemberId }
             .eachCount()
-        val attendanceCountByMemberId = regularMatchParticipants
+        val attendanceCountByMemberId = matchParticipants
             .asSequence()
             .filter { it.voteStatus == MatchParticipantStatus.AVAILABLE }
             .groupingBy { it.teamMemberId }
@@ -347,8 +344,7 @@ class MatchService(
         val startAt = startDate.atStartOfDay()
         val endAtExclusive = endDate.plusDays(1).atStartOfDay()
         val completedMatches = matchRepository.selectMatchesByTeamId(teamId).filter { match ->
-            !match.isTraining &&
-                match.status != MatchStatus.CANCELED &&
+            match.status != MatchStatus.CANCELED &&
                 (match.status == MatchStatus.COMPLETED ||
                     (match.teamScore != null && match.opponentScore != null)) &&
                 !match.matchAt.isBefore(startAt) &&

@@ -233,7 +233,7 @@ export default function TeamRankingPage() {
         ) : team && rankings ? (
           <>
             <section className="flex flex-col gap-4 sm:flex-row sm:items-end sm:justify-between">
-              <PageHeading label={team.name} title="기록 순위" description="선택한 기간의 정식 경기 기록을 기준으로 집계합니다." />
+              <PageHeading label={team.name} title="기록 순위" description="훈련을 포함해, 선택한 기간에 종료됐거나 점수가 기록된 경기를 집계합니다." />
               <span className="w-fit rounded-lg border border-line-strong bg-white px-3 py-1.5 text-sm font-semibold text-brand-ink">
                 집계 경기 {rankings.completedMatchCount}회
               </span>

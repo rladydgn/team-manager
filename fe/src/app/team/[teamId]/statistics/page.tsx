@@ -264,7 +264,7 @@ export default function TeamStatisticsPage() {
           <>
             <section className="flex flex-col gap-3 sm:flex-row sm:items-end sm:justify-between">
               <PageHeading label={team.name} title="선수 통계" description="기간별 출석과 경기 기록을 확인하세요." />
-              <span className="w-fit rounded-lg border border-line-strong bg-brand-soft px-3 py-1.5 text-sm font-semibold text-brand-ink">기간 내 전체 경기 {statistics.totalMatchCount}회 · 그중 훈련 {statistics.totalTrainingCount}회</span>
+              <span className="w-fit rounded-lg border border-line-strong bg-brand-soft px-3 py-1.5 text-sm font-semibold text-brand-ink">기간 내 전체 경기 {statistics.totalMatchCount}회 · 훈련 {statistics.totalTrainingCount}회</span>
             </section>
 
             <section className="border-y border-line py-5">
@@ -309,6 +309,7 @@ export default function TeamStatisticsPage() {
                 <div>
                   <h2 className="text-lg font-semibold text-ink">선수별 기록</h2>
                   <p className="mt-1 text-sm text-muted">{statistics.startDate}부터 {statistics.endDate}까지</p>
+                  <p className="mt-1 text-xs text-muted">경기 출석은 훈련을 포함하며, 참석 투표를 기준으로 계산합니다.</p>
                   <p className="mt-1 text-xs font-semibold text-brand">정렬: {statisticSortLabels[sortBy]} {sortDirection === "ASC" ? "오름차순" : "내림차순"}</p>
                 </div>
                 <span className="shrink-0 text-sm font-semibold text-brand-ink">총 {statistics.totalElements}명</span>

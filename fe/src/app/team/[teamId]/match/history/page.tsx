@@ -282,7 +282,7 @@ export default function HistoricalMatchCreatePage() {
             <label className="flex flex-wrap items-center gap-x-3 gap-y-1 rounded-lg border border-line bg-subtle px-4 py-3 text-sm font-semibold text-secondary">
               <input type="checkbox" checked={isTraining} onChange={(event) => setIsTraining(event.target.checked)} disabled={isEditMode} className="size-4 accent-brand disabled:cursor-not-allowed" />
               훈련으로 등록
-              <span className="font-normal text-muted">통계에서 경기 출석과 별도로 집계됩니다.</span>
+              <span className="font-normal text-muted">경기 출석에 포함되며, 훈련 출석도 따로 표시됩니다.</span>
             </label>
 
             {matchType === "EXTERNAL" ? (
