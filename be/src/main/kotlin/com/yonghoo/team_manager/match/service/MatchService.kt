@@ -320,7 +320,7 @@ class MatchService(
         return TeamAttendanceStatisticsResponse(
             startDate = startDate,
             endDate = endDate,
-            totalMatchCount = regularMatches.size,
+            totalMatchCount = matches.size,
             totalTrainingCount = trainingMatches.size,
             page = page,
             pageSize = ATTENDANCE_STATISTICS_PAGE_SIZE,

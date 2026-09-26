@@ -264,7 +264,7 @@ export default function TeamStatisticsPage() {
           <>
             <section className="flex flex-col gap-3 sm:flex-row sm:items-end sm:justify-between">
               <PageHeading label={team.name} title="선수 통계" description="기간별 출석과 경기 기록을 확인하세요." />
-              <span className="w-fit rounded-lg border border-line-strong bg-brand-soft px-3 py-1.5 text-sm font-semibold text-brand-ink">기간 내 경기 {statistics.totalMatchCount}회 · 훈련 {statistics.totalTrainingCount}회</span>
+              <span className="w-fit rounded-lg border border-line-strong bg-brand-soft px-3 py-1.5 text-sm font-semibold text-brand-ink">기간 내 전체 경기 {statistics.totalMatchCount}회 · 그중 훈련 {statistics.totalTrainingCount}회</span>
             </section>
 
             <section className="border-y border-line py-5">

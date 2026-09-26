@@ -21,7 +21,9 @@ enum class SortDirection {
 data class TeamAttendanceStatisticsResponse(
     val startDate: LocalDate,
     val endDate: LocalDate,
+    /** All non-canceled matches in the selected period, including training. */
     val totalMatchCount: Int,
+    /** Training matches included in totalMatchCount. */
     val totalTrainingCount: Int,
     val page: Int,
     val pageSize: Int,
