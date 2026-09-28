@@ -1,0 +1,31 @@
+name: Server Temperature Monitor
+
+on:
+  schedule:
+    # Every hour at :07 (UTC and KST share the same minute offset).
+    - cron: "7 * * * *"
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+concurrency:
+  group: server-temperature-monitor
+  cancel-in-progress: false
+
+jobs:
+  check-temperature:
+    runs-on: ubuntu-latest
+    timeout-minutes: 5
+    steps:
+      - name: Check out source
+        uses: actions/checkout@v5
+        with:
+          persist-credentials: false
+
+      - name: Check sensors and fail on overheating
+        env:
+          SERVER_HOST: ${{ secrets.SERVER_HOST }}
+          SERVER_USER: ${{ secrets.SERVER_USER }}
+          SERVER_SSH_KEY: ${{ secrets.SERVER_SSH_KEY }}
+        run: python3 .github/scripts/server_temperature.py
