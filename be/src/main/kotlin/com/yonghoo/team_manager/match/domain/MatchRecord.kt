@@ -21,6 +21,8 @@ data class MatchRecord(
     val createdAt: LocalDateTime,
     val updatedAt: LocalDateTime,
     val deletedAt: LocalDateTime?,
+    val publicNote: String? = null,
+    val managerNote: String? = null,
 ) {
     companion object {
         fun from(match: MatchEntity): MatchRecord {
@@ -43,6 +45,8 @@ data class MatchRecord(
                 createdAt = match.createdAt,
                 updatedAt = match.updatedAt,
                 deletedAt = match.deletedAt,
+                publicNote = match.publicNote,
+                managerNote = match.managerNote,
             )
         }
     }

@@ -3,6 +3,7 @@ import "./globals.css";
 import { getServerCurrentUser } from "@/features/auth/api/server-auth";
 import { AuthSessionProvider } from "@/features/auth/model/auth-session";
 import { AppHeader } from "@/shared/ui/AppHeader";
+import { PageAccessBoundary } from "@/features/auth/ui/PageAccessBoundary";
 
 export const metadata: Metadata = {
   title: "Team Manager",
@@ -21,7 +22,7 @@ export default async function RootLayout({
       <body className="min-h-full flex flex-col">
         <AuthSessionProvider initialUser={initialUser}>
           <AppHeader />
-          {children}
+          <div id="main-content" tabIndex={-1} className="flex flex-1 flex-col outline-none"><PageAccessBoundary>{children}</PageAccessBoundary></div>
         </AuthSessionProvider>
       </body>
     </html>

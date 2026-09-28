@@ -1,6 +1,7 @@
 package com.yonghoo.team_manager.match.repository
 
 import com.yonghoo.team_manager.match.domain.MatchEntity
+import com.yonghoo.team_manager.match.domain.MatchNoteVisibility
 import com.yonghoo.team_manager.match.domain.MatchRecord
 import com.yonghoo.team_manager.match.domain.MatchStatus
 import com.yonghoo.team_manager.match.domain.MatchesTable
@@ -66,6 +67,16 @@ class MatchRepository {
         return MatchEntity.find {
             (MatchesTable.id eq matchId) and MatchesTable.deletedAt.isNull()
         }.firstOrNull()?.let(MatchRecord::from)
+    }
+
+    fun updateMatchNote(matchId: Long, visibility: MatchNoteVisibility, content: String?): MatchRecord {
+        val match = MatchEntity[matchId]
+        when (visibility) {
+            MatchNoteVisibility.PUBLIC -> match.publicNote = content
+            MatchNoteVisibility.MANAGERS -> match.managerNote = content
+        }
+        match.updatedAt = LocalDateTime.now()
+        return MatchRecord.from(match)
     }
 
     fun selectMatchesByTeamId(teamId: Long): List<MatchRecord> {

@@ -15,13 +15,17 @@ enum class MatchErrorCode(
         status = HttpStatus.NOT_FOUND,
         message = "매치를 찾을 수 없습니다.",
     ),
+    MATCH_NOTE_TOO_LONG(
+        status = HttpStatus.BAD_REQUEST,
+        message = "매치 내용 기록은 10,000자 이내로 입력해 주세요.",
+    ),
     MATCH_CREATION_FORBIDDEN(
         status = HttpStatus.FORBIDDEN,
-        message = "팀장 또는 부관리자만 매치를 생성할 수 있습니다.",
+        message = "운영진만 매치를 생성할 수 있습니다.",
     ),
     MATCH_RECORD_FORBIDDEN(
         status = HttpStatus.FORBIDDEN,
-        message = "팀장 또는 부관리자만 경기 기록을 저장할 수 있습니다.",
+        message = "운영진만 경기 기록을 저장할 수 있습니다.",
     ),
     MATCH_VIEW_FORBIDDEN(
         status = HttpStatus.FORBIDDEN,

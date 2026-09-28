@@ -129,6 +129,8 @@ CREATE TABLE matches (
     match_at DATETIME NOT NULL,
     participation_deadline_at DATETIME NOT NULL,
     location VARCHAR(255) NULL,
+    public_note TEXT NULL,
+    manager_note TEXT NULL,
     team_score INT UNSIGNED NULL,
     unknown_goal_count INT UNSIGNED NOT NULL DEFAULT 0,
     opponent_score INT UNSIGNED NULL,
@@ -182,4 +184,19 @@ CREATE TABLE match_participants (
     KEY idx_match_participants_team_member_id (team_member_id),
     KEY idx_match_participants_match_side (match_id, team_side),
     KEY idx_match_participants_vote_status (match_id, vote_status)
+);
+
+-- Private service inquiries, independent of team membership and roles.
+CREATE TABLE inquiries (
+    id BIGINT UNSIGNED NOT NULL AUTO_INCREMENT,
+    user_id BIGINT UNSIGNED NOT NULL,
+    category VARCHAR(20) NOT NULL,
+    title VARCHAR(100) NOT NULL,
+    content TEXT NOT NULL,
+    status VARCHAR(20) NOT NULL DEFAULT 'WAITING',
+    created_at DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP,
+    updated_at DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
+    deleted_at DATETIME NULL,
+    PRIMARY KEY (id),
+    KEY idx_inquiries_user_created (user_id, deleted_at, created_at, id)
 );

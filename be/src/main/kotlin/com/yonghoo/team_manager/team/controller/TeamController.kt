@@ -34,7 +34,7 @@ class TeamController(
 ) {
     @Operation(
         summary = "팀 생성",
-        description = "축구 팀을 생성하고 생성자를 팀 OWNER로 등록합니다.",
+        description = "축구 팀을 생성하고 생성자를 팀장으로 등록합니다.",
     )
     @PostMapping
     fun createTeam(
@@ -109,7 +109,7 @@ class TeamController(
 
     @Operation(
         summary = "팀 수정",
-        description = "팀 OWNER 또는 SUB_MANAGER가 팀 정보를 수정하고 변경 이력을 저장합니다.",
+        description = "운영진이 팀 정보를 수정하고 변경 이력을 저장합니다.",
     )
     @PutMapping("/{teamId}")
     fun updateTeam(
@@ -130,7 +130,7 @@ class TeamController(
 
     @Operation(
         summary = "팀 삭제",
-        description = "팀 OWNER가 본인만 팀에 남아 있을 때 팀을 soft delete하고 삭제 이력을 저장합니다.",
+        description = "팀장이 본인만 팀에 남아 있을 때 팀을 soft delete하고 삭제 이력을 저장합니다.",
     )
     @DeleteMapping("/{teamId}")
     fun deleteTeam(
@@ -221,13 +221,16 @@ class TeamController(
 
     @Operation(
         summary = "팀 단건 조회",
-        description = "팀 정보와 활성 멤버 목록을 조회합니다.",
+        description = "팀 정보를 조회합니다. 활성 팀원에게만 멤버 목록을 반환합니다.",
     )
     @GetMapping("/{teamId}")
     fun getTeam(
         @PathVariable teamId: Long,
+        @RequestAttribute(name = AUTHENTICATED_USER_ID_ATTRIBUTE, required = false) userId: Long?,
     ): ResponseEntity<CommonResponse<TeamDetailResponse>> {
-        return ResponseEntity.ok(CommonResponse(data = teamService.getTeam(teamId)))
+        return ResponseEntity.ok()
+            .header("Cache-Control", "no-store")
+            .body(CommonResponse(data = teamService.getTeam(teamId, userId)))
     }
 
     private fun requireAuthenticatedUserId(userId: Long?): Long {

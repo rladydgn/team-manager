@@ -55,3 +55,11 @@ This frontend must be built as a responsive application.
 - Avoid overly saturated colors for large surfaces.
 - Keep forms focused and simple; avoid competing side panels unless they provide clear value.
 - Build dense operational screens with clear hierarchy, readable tables/lists, and predictable actions.
+
+# UI/UX Design Reference
+
+- Before adding or changing a screen, read [`../docs/design-system.md`](../docs/design-system.md) and follow its color, spacing, component, responsive, and Korean copy guidelines.
+- Reuse tokens and component classes in `src/app/globals.css`, `PageHeading`, `Icon`, and existing domain UI. Do not introduce new hex colors or competing button/card styles for existing meanings.
+- Preserve the service logo, permission-aware navigation, and the sticky month headers in the fee table.
+- Update the design guide when intentionally changing a shared design convention.
+- Keep frontend tests small and focused on essential behavior. Do not add tests solely for reversible styling or copy changes.

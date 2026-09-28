@@ -3,6 +3,9 @@ package com.yonghoo.team_manager.match.controller
 import com.yonghoo.team_manager.common.dto.CommonResponse
 import com.yonghoo.team_manager.exception.exception.ApiException
 import com.yonghoo.team_manager.match.dto.MatchCreateRequest
+import com.yonghoo.team_manager.match.domain.MatchNoteVisibility
+import com.yonghoo.team_manager.match.dto.MatchNoteUpdateRequest
+import com.yonghoo.team_manager.match.dto.MatchNotesResponse
 import com.yonghoo.team_manager.match.dto.HistoricalMatchCreateRequest
 import com.yonghoo.team_manager.match.dto.HistoricalMatchParticipantsUpdateRequest
 import com.yonghoo.team_manager.match.dto.MatchParticipantResponse
@@ -14,6 +17,7 @@ import com.yonghoo.team_manager.user.auth.AUTHENTICATED_USER_ID_ATTRIBUTE
 import com.yonghoo.team_manager.user.exception.UserErrorCode
 import io.swagger.v3.oas.annotations.Operation
 import org.springframework.http.HttpStatus
+import org.springframework.http.CacheControl
 import org.springframework.http.ResponseEntity
 import org.springframework.web.bind.annotation.GetMapping
 import org.springframework.web.bind.annotation.PathVariable
@@ -121,6 +125,32 @@ class MatchController(
                     userId = requireAuthenticatedUserId(userId),
                     request = request,
                 ),
+            ),
+        )
+    }
+
+    @Operation(summary = "매치 내용 기록 조회 (운영진 전용 기록은 운영진에게만 반환)")
+    @GetMapping("/{matchId}/notes")
+    fun getMatchNotes(
+        @PathVariable matchId: Long,
+        @RequestAttribute(name = AUTHENTICATED_USER_ID_ATTRIBUTE, required = false) userId: Long?,
+    ): ResponseEntity<CommonResponse<MatchNotesResponse>> {
+        return ResponseEntity.ok().cacheControl(CacheControl.noStore()).body(
+            CommonResponse(data = matchService.getMatchNotes(matchId, requireAuthenticatedUserId(userId))),
+        )
+    }
+
+    @Operation(summary = "공개 또는 운영진 전용 매치 내용 기록 저장")
+    @PutMapping("/{matchId}/notes/{visibility}")
+    fun updateMatchNote(
+        @PathVariable matchId: Long,
+        @PathVariable visibility: MatchNoteVisibility,
+        @RequestAttribute(name = AUTHENTICATED_USER_ID_ATTRIBUTE, required = false) userId: Long?,
+        @RequestBody request: MatchNoteUpdateRequest,
+    ): ResponseEntity<CommonResponse<MatchNotesResponse>> {
+        return ResponseEntity.ok().cacheControl(CacheControl.noStore()).body(
+            CommonResponse(
+                data = matchService.updateMatchNote(matchId, requireAuthenticatedUserId(userId), visibility, request),
             ),
         )
     }

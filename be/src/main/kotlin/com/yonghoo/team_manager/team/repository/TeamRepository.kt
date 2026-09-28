@@ -127,6 +127,14 @@ class TeamRepository {
         }.firstOrNull()?.let(TeamRecord::from)
     }
 
+    fun countActiveMembers(teamId: Long): Long {
+        return TeamMemberEntity.find {
+            (TeamMembersTable.teamId eq teamId) and
+                (TeamMembersTable.status eq TeamMemberStatus.ACTIVE) and
+                TeamMembersTable.deletedAt.isNull()
+        }.count()
+    }
+
     fun selectMembersByTeamId(teamId: Long): List<TeamMemberRecord> {
         return TeamMemberEntity.find {
             (TeamMembersTable.teamId eq teamId) and

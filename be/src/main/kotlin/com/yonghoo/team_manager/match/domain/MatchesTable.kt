@@ -14,6 +14,8 @@ object MatchesTable : LongIdTable("matches") {
     val matchAt = datetime("match_at")
     val participationDeadlineAt = datetime("participation_deadline_at")
     val location = varchar("location", 255).nullable()
+    val publicNote = text("public_note").nullable()
+    val managerNote = text("manager_note").nullable()
     val teamScore = integer("team_score").nullable()
     val unknownGoalCount = integer("unknown_goal_count").default(0)
     val opponentScore = integer("opponent_score").nullable()

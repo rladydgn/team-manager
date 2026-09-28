@@ -116,6 +116,29 @@ export function getMatch(matchId: number) {
   return getJson<Match>(`/matches/${matchId}`);
 }
 
+export type MatchNoteVisibility = "PUBLIC" | "MANAGERS";
+
+export type MatchNotes = {
+  publicNote: string;
+  managerNote?: string | null;
+  canManage: boolean;
+};
+
+export function getMatchNotes(matchId: number) {
+  return getJson<MatchNotes>(`/matches/${matchId}/notes`);
+}
+
+export function updateMatchNote(
+  matchId: number,
+  visibility: MatchNoteVisibility,
+  content: string,
+) {
+  return putJson<MatchNotes, { content: string }>(
+    `/matches/${matchId}/notes/${visibility}`,
+    { content },
+  );
+}
+
 export function getTeamMatches(teamId: number) {
   return getJson<Match[]>(`/teams/${teamId}/matches`);
 }
