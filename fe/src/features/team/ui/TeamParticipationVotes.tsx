@@ -1,7 +1,7 @@
 "use client";
 
 import Link from "next/link";
-import { useEffect, useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import { MatchTrainingBadge } from "@/features/match/ui/MatchTrainingBadge";
 import { getTeamParticipationVotes, type TeamParticipationVotes as ParticipationVotes } from "@/features/team/api/statistics";
 
@@ -12,6 +12,8 @@ export function TeamParticipationVotes({ teamId, startDate, endDate }: {
 }) {
   const [page, setPage] = useState(0);
   const [retry, setRetry] = useState(0);
+  const headerScrollRef = useRef<HTMLDivElement>(null);
+  const bodyScrollRef = useRef<HTMLDivElement>(null);
   const [result, setResult] = useState<{
     key: string;
     data?: ParticipationVotes;
@@ -37,9 +39,11 @@ export function TeamParticipationVotes({ teamId, startDate, endDate }: {
 
   const current = result?.key === requestKey ? result : null;
   const data = current?.data;
+  // 두 표에 같은 열 너비를 적용해 화면 크기와 가로 스크롤이 바뀌어도 정렬을 유지합니다.
+  const tableStyle = { width: `calc(var(--vote-name-width) + ${(data?.matches.length ?? 0) * 9}rem)` };
 
   return (
-    <section className="min-w-0 overflow-hidden rounded-xl border border-line bg-white" aria-labelledby="participation-votes-heading">
+    <section className="min-w-0 overflow-clip rounded-xl border border-line bg-white" aria-labelledby="participation-votes-heading">
       <div className="space-y-2 border-b border-line px-5 py-4 sm:px-6">
         <div className="flex flex-wrap items-center justify-between gap-2">
           <h2 id="participation-votes-heading" className="text-lg font-semibold">경기별 투표</h2>
@@ -64,52 +68,78 @@ export function TeamParticipationVotes({ teamId, startDate, endDate }: {
       ) : data && data.members.length === 0 ? (
         <p className="px-5 py-16 text-center text-sm text-muted">표시할 팀원이 없습니다.</p>
       ) : data ? (
-        <div role="region" aria-label="선수별 경기 투표 표" aria-describedby="participation-votes-help" tabIndex={0} className="isolate overflow-x-auto focus-visible:outline-2 focus-visible:-outline-offset-2 focus-visible:outline-brand">
-          <table className="w-full border-separate border-spacing-0 text-sm">
-            <caption className="sr-only">{startDate}부터 {endDate}까지 선수별 경기 참여 투표. O는 참석, X는 불참, 빈칸은 미투표·미정·참가 명단 없음.</caption>
-            <thead>
-              <tr>
-                <th scope="col" className="table-corner-header sticky left-0 top-0 z-30 h-24 min-w-28 border-b border-r border-line bg-subtle text-xs text-secondary sm:min-w-36">
-                  <span className="sr-only">선수(행) / 경기(열)</span>
-                  <span aria-hidden="true" className="absolute right-4 top-4">경기</span>
-                  <span aria-hidden="true" className="absolute bottom-4 left-4">선수</span>
-                </th>
-                {data.matches.map((match) => (
-                  <th key={match.id} scope="col" className="sticky top-0 z-20 min-w-32 border-b border-r border-line bg-subtle px-2 py-3 text-center text-xs">
-                    <Link href={`/match/${match.id}`} className="inline-flex min-h-11 flex-col justify-center gap-1 rounded px-2 text-brand-ink hover:underline" aria-label={`${match.matchAt.slice(0, 10)} ${match.matchAt.slice(11, 16)} 경기 상세`}>
-                      <span className="whitespace-nowrap">{match.matchAt.slice(0, 10).replaceAll("-", ".")}</span>
-                      <span className="font-normal text-muted">{match.matchAt.slice(11, 16)}</span>
-                    </Link>
-                    <p className="mx-auto max-w-32 truncate font-normal text-secondary" title={match.opponentTeamName ?? undefined}>
-                      {match.matchType === "INTERNAL" ? "자체 경기" : match.opponentTeamName || "외부 경기"}
-                    </p>
-                    {match.isTraining ? <div className="mt-1"><MatchTrainingBadge isTraining={match.isTraining} /></div> : null}
-                  </th>
-                ))}
-              </tr>
-            </thead>
-            <tbody>
-              {data.members.map((member) => (
-                <tr key={member.teamMemberId}>
-                  <th scope="row" className="sticky left-0 z-10 border-b border-r border-line bg-white px-4 py-4 text-left font-semibold">
-                    <span className="block w-20 break-words sm:w-28">{member.name}</span>
-                  </th>
-                  {data.matches.map((match) => {
-                    const vote = member.votes[String(match.id)];
-                    const label = vote === "AVAILABLE" ? "참석 투표" : vote === "UNAVAILABLE" ? "불참 투표" : vote === "PENDING" ? "미정" : vote === "INVITED" ? "미투표" : "참가 명단 없음";
-                    return (
-                      <td key={match.id} className="border-b border-r border-line px-3 py-4 text-center" title={label}>
-                        <span className="sr-only">{label}</span>
-                        <span aria-hidden="true" className={`text-base font-semibold ${vote === "UNAVAILABLE" ? "text-danger" : "text-brand-ink"}`}>
-                          {vote === "AVAILABLE" ? "O" : vote === "UNAVAILABLE" ? "X" : ""}
-                        </span>
-                      </td>
-                    );
-                  })}
+        <div className="relative [--vote-name-width:7rem] sm:[--vote-name-width:9rem]">
+          <div className="sticky top-[calc(4rem+1px)] z-20 bg-subtle shadow-[0_1px_0_var(--color-line)]">
+            <div ref={headerScrollRef} onScroll={(event) => syncHorizontalScroll(event.currentTarget, bodyScrollRef.current)} role="region" aria-label="경기 날짜" tabIndex={0} className="overflow-x-auto [scrollbar-width:none] [&::-webkit-scrollbar]:hidden focus-visible:outline-2 focus-visible:-outline-offset-2 focus-visible:outline-brand">
+              <table role="presentation" style={tableStyle} className="min-w-full table-fixed border-separate border-spacing-0 text-sm">
+                <colgroup>
+                  <col className="w-[var(--vote-name-width)]" />
+                  <col span={data.matches.length} className="w-36" />
+                </colgroup>
+                <thead>
+                  <tr>
+                    <th className="table-corner-header sticky left-0 z-10 h-24 border-b border-r border-line bg-subtle text-xs text-secondary">
+                      <span className="sr-only">선수(행) / 경기(열)</span>
+                      <span aria-hidden="true" className="absolute right-4 top-4">경기</span>
+                      <span aria-hidden="true" className="absolute bottom-4 left-4">선수</span>
+                    </th>
+                    {data.matches.map((match) => (
+                      <th key={match.id} className="border-b border-r border-line bg-subtle px-2 py-3 text-center text-xs">
+                        <Link href={`/match/${match.id}`} className="inline-flex min-h-11 flex-col justify-center gap-1 rounded px-2 text-brand-ink hover:underline" aria-label={`${match.matchAt.slice(0, 10)} ${match.matchAt.slice(11, 16)} 경기 상세`}>
+                          <span className="whitespace-nowrap">{match.matchAt.slice(0, 10).replaceAll("-", ".")}</span>
+                          <span className="font-normal text-muted">{match.matchAt.slice(11, 16)}</span>
+                        </Link>
+                        <p className="mx-auto max-w-32 truncate font-normal text-secondary" title={match.opponentTeamName ?? undefined}>
+                          {match.matchType === "INTERNAL" ? "자체 경기" : match.opponentTeamName || "외부 경기"}
+                        </p>
+                        {match.isTraining ? <div className="mt-1"><MatchTrainingBadge isTraining={match.isTraining} /></div> : null}
+                      </th>
+                    ))}
+                  </tr>
+                </thead>
+              </table>
+            </div>
+          </div>
+          <div ref={bodyScrollRef} onScroll={(event) => syncHorizontalScroll(event.currentTarget, headerScrollRef.current)} role="region" aria-label="선수별 경기 투표 표" aria-describedby="participation-votes-help" tabIndex={0} className="isolate overflow-x-auto focus-visible:outline-2 focus-visible:-outline-offset-2 focus-visible:outline-brand">
+            <table style={tableStyle} className="min-w-full table-fixed border-separate border-spacing-0 text-sm">
+              <caption className="sr-only">{startDate}부터 {endDate}까지 선수별 경기 참여 투표. O는 참석, X는 불참, 빈칸은 미투표·미정·참가 명단 없음.</caption>
+              <colgroup>
+                <col className="w-[var(--vote-name-width)]" />
+                <col span={data.matches.length} className="w-36" />
+              </colgroup>
+              <thead className="sr-only">
+                <tr>
+                  <th scope="col">선수</th>
+                  {data.matches.map((match) => (
+                    <th key={match.id} scope="col">
+                      {match.matchAt.slice(0, 10)} {match.matchAt.slice(11, 16)} · {match.matchType === "INTERNAL" ? "자체 경기" : match.opponentTeamName || "외부 경기"}{match.isTraining ? " · 훈련 진행" : ""}
+                    </th>
+                  ))}
                 </tr>
-              ))}
-            </tbody>
-          </table>
+              </thead>
+              <tbody>
+                {data.members.map((member) => (
+                  <tr key={member.teamMemberId}>
+                    <th scope="row" className="sticky left-0 z-10 border-b border-r border-line bg-white px-4 py-4 text-left font-semibold">
+                      <span className="block break-words">{member.name}</span>
+                    </th>
+                    {data.matches.map((match) => {
+                      const vote = member.votes[String(match.id)];
+                      const label = vote === "AVAILABLE" ? "참석 투표" : vote === "UNAVAILABLE" ? "불참 투표" : vote === "PENDING" ? "미정" : vote === "INVITED" ? "미투표" : "참가 명단 없음";
+                      return (
+                        <td key={match.id} className="border-b border-r border-line px-3 py-4 text-center" title={label}>
+                          <span className="sr-only">{label}</span>
+                          <span aria-hidden="true" className={`text-base font-semibold ${vote === "UNAVAILABLE" ? "text-danger" : "text-brand-ink"}`}>
+                            {vote === "AVAILABLE" ? "O" : vote === "UNAVAILABLE" ? "X" : ""}
+                          </span>
+                        </td>
+                      );
+                    })}
+                  </tr>
+                ))}
+              </tbody>
+            </table>
+          </div>
         </div>
       ) : null}
 
@@ -122,4 +152,10 @@ export function TeamParticipationVotes({ teamId, startDate, endDate }: {
       ) : null}
     </section>
   );
+}
+
+function syncHorizontalScroll(source: HTMLDivElement, target: HTMLDivElement | null) {
+  if (target && target.scrollLeft !== source.scrollLeft) {
+    target.scrollLeft = source.scrollLeft;
+  }
 }
