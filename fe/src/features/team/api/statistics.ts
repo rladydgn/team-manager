@@ -57,6 +57,39 @@ export type TeamPlayerRankings = {
   cleanSheetRankings: TeamPlayerRankingEntry[];
 };
 
+export type TeamParticipationVotes = {
+  startDate: string;
+  endDate: string;
+  matches: {
+    id: number;
+    matchAt: string;
+    matchType: "INTERNAL" | "EXTERNAL";
+    opponentTeamName: string | null;
+    isTraining: boolean;
+  }[];
+  members: {
+    teamMemberId: number;
+    name: string;
+    votes: Record<string, "AVAILABLE" | "UNAVAILABLE" | "INVITED" | "PENDING">;
+  }[];
+  page: number;
+  pageSize: number;
+  totalElements: number;
+  totalPages: number;
+};
+
+export function getTeamParticipationVotes(
+  teamId: number,
+  startDate: string,
+  endDate: string,
+  page: number,
+) {
+  const params = new URLSearchParams({ startDate, endDate, page: String(page) });
+  return getJson<TeamParticipationVotes>(
+    `/teams/${teamId}/statistics/participation-votes?${params.toString()}`
+  );
+}
+
 export function getTeamAttendanceStatistics(
   teamId: number,
   startDate: string,

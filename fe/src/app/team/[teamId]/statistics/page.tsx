@@ -14,6 +14,7 @@ import { getTeam, Team } from "@/features/team/api/team";
 import { getTeamSeasons, type TeamSeason } from "@/features/team/api/season";
 import { PageHeading } from "@/shared/ui/PageHeading";
 import { TeamDetailTabs } from "@/features/team/ui/TeamDetailTabs";
+import { TeamParticipationVotes } from "@/features/team/ui/TeamParticipationVotes";
 
 type PeriodPreset = "THIS_YEAR" | "SIX_MONTHS" | "ONE_YEAR" | "CUSTOM";
 
@@ -99,6 +100,7 @@ export default function TeamStatisticsPage() {
   const [selectedSeasonId, setSelectedSeasonId] = useState("");
   const defaultSeasonAppliedTeamId = useRef<number | null>(null);
   const [statistics, setStatistics] = useState<TeamAttendanceStatistics | null>(null);
+  const [view, setView] = useState<"statistics" | "votes">("statistics");
   const [selectedPreset, setSelectedPreset] = useState<PeriodPreset>("THIS_YEAR");
   const [startDate, setStartDate] = useState(initialRange.startDate);
   const [endDate, setEndDate] = useState(initialRange.endDate);
@@ -304,6 +306,17 @@ export default function TeamStatisticsPage() {
               </form>
             </section>
 
+            <div role="group" aria-label="통계 보기" className="grid grid-cols-2 gap-1 rounded-xl bg-subtle p-1 sm:w-fit">
+              {([{ value: "statistics", label: "선수별 통계" }, { value: "votes", label: "경기별 투표" }] as const).map((option) => (
+                <button key={option.value} type="button" aria-pressed={view === option.value} onClick={() => setView(option.value)} className={`min-h-11 rounded-lg px-5 text-sm font-semibold transition-colors ${view === option.value ? "bg-white text-brand-ink shadow-sm" : "text-muted hover:text-ink"}`}>
+                  {option.label}
+                </button>
+              ))}
+            </div>
+
+            {view === "votes" ? (
+              <TeamParticipationVotes key={`${teamId}:${startDate}:${endDate}`} teamId={teamId} startDate={startDate} endDate={endDate} />
+            ) : (
             <section className="overflow-hidden rounded-xl border border-line bg-white">
               <div className="flex items-center justify-between gap-4 border-b border-line px-5 py-4 sm:px-6">
                 <div>
@@ -390,6 +403,7 @@ export default function TeamStatisticsPage() {
                 </div>
               ) : null}
             </section>
+            )}
           </>
         ) : null}
       </div>

@@ -20,6 +20,9 @@ import com.yonghoo.team_manager.match.dto.TeamAttendanceStatisticsResponse
 import com.yonghoo.team_manager.match.dto.TeamAttendanceSortBy
 import com.yonghoo.team_manager.match.dto.TeamPlayerRankingEntryResponse
 import com.yonghoo.team_manager.match.dto.TeamPlayerRankingsResponse
+import com.yonghoo.team_manager.match.dto.TeamParticipationVotesResponse
+import com.yonghoo.team_manager.match.dto.TeamParticipationMatchResponse
+import com.yonghoo.team_manager.match.dto.TeamParticipationMemberResponse
 import com.yonghoo.team_manager.match.dto.SortDirection
 import com.yonghoo.team_manager.match.exception.MatchErrorCode
 import com.yonghoo.team_manager.match.domain.MatchParticipantStatus
@@ -325,6 +328,59 @@ class MatchService(
             totalPages = (sortedMemberStatistics.size + ATTENDANCE_STATISTICS_PAGE_SIZE - 1) /
                 ATTENDANCE_STATISTICS_PAGE_SIZE,
             members = sortedMemberStatistics.subList(fromIndex, toIndex),
+        )
+    }
+
+    @Transactional(readOnly = true)
+    fun getParticipationVotes(
+        teamId: Long,
+        userId: Long,
+        startDate: LocalDate,
+        endDate: LocalDate,
+        page: Int,
+    ): TeamParticipationVotesResponse {
+        if (startDate.isAfter(endDate) || page < 0) {
+            throw ApiException(MatchErrorCode.INVALID_MATCH_STATISTICS_REQUEST)
+        }
+        validateTeamExists(teamId)
+        requireActiveTeamMember(teamId, userId)
+
+        val matches = matchRepository.selectMatchesByTeamId(teamId)
+            .filter { match ->
+                val date = match.matchAt.toLocalDate()
+                match.status != MatchStatus.CANCELED &&
+                    !date.isBefore(startDate) && !date.isAfter(endDate)
+            }
+            .sortedWith(compareBy(MatchRecord::matchAt).thenBy(MatchRecord::id))
+        val members = teamRepository.selectMembersByTeamId(teamId)
+        val fromIndex = (page.toLong() * ATTENDANCE_STATISTICS_PAGE_SIZE)
+            .coerceAtMost(members.size.toLong()).toInt()
+        val pageMembers = members.subList(
+            fromIndex, (fromIndex + ATTENDANCE_STATISTICS_PAGE_SIZE).coerceAtMost(members.size),
+        )
+        val memberIds = pageMembers.map { it.id }.toSet()
+        val votesByMember = if (memberIds.isEmpty()) emptyMap() else matchParticipantRepository
+            .selectParticipantsByMatchIds(matches.map(MatchRecord::id))
+            .filter { it.teamMemberId in memberIds }
+            .groupBy { it.teamMemberId }
+
+        return TeamParticipationVotesResponse(
+            startDate = startDate,
+            endDate = endDate,
+            matches = matches.map {
+                TeamParticipationMatchResponse(it.id, it.matchAt, it.matchType, it.opponentTeamName, it.isTraining)
+            },
+            members = pageMembers.map { member ->
+                TeamParticipationMemberResponse(
+                    teamMemberId = member.id,
+                    name = member.displayName,
+                    votes = votesByMember[member.id].orEmpty().associate { it.matchId to it.voteStatus },
+                )
+            },
+            page = page,
+            pageSize = ATTENDANCE_STATISTICS_PAGE_SIZE,
+            totalElements = members.size,
+            totalPages = (members.size + ATTENDANCE_STATISTICS_PAGE_SIZE - 1) / ATTENDANCE_STATISTICS_PAGE_SIZE,
         )
     }
 
