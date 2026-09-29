@@ -68,4 +68,13 @@
   .field { @apply min-h-11 w-full rounded-lg border border-line-strong bg-white px-3.5 py-2.5 text-sm text-ink outline-none transition-colors placeholder:text-placeholder focus:border-brand focus:ring-2 focus:ring-brand-ring; }
   .eyebrow { @apply text-xs font-medium tracking-wide text-muted; }
   .status-badge { @apply inline-flex items-center gap-1.5 rounded-full bg-subtle px-2.5 py-1 text-xs font-medium text-secondary; }
+  .table-corner-header {
+    background-image: linear-gradient(
+      to top right,
+      transparent calc(50% - 0.5px),
+      var(--color-line-strong) calc(50% - 0.5px),
+      var(--color-line-strong) calc(50% + 0.5px),
+      transparent calc(50% + 0.5px)
+    );
+  }
 }

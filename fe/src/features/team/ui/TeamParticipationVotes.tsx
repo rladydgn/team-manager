@@ -64,12 +64,16 @@ export function TeamParticipationVotes({ teamId, startDate, endDate }: {
       ) : data && data.members.length === 0 ? (
         <p className="px-5 py-16 text-center text-sm text-muted">표시할 팀원이 없습니다.</p>
       ) : data ? (
-        <div role="region" aria-label="선수별 경기 투표 표" aria-describedby="participation-votes-help" tabIndex={0} className="isolate max-h-[65dvh] overflow-auto focus-visible:outline-2 focus-visible:-outline-offset-2 focus-visible:outline-brand">
+        <div role="region" aria-label="선수별 경기 투표 표" aria-describedby="participation-votes-help" tabIndex={0} className="isolate overflow-x-auto focus-visible:outline-2 focus-visible:-outline-offset-2 focus-visible:outline-brand">
           <table className="w-full border-separate border-spacing-0 text-sm">
             <caption className="sr-only">{startDate}부터 {endDate}까지 선수별 경기 참여 투표. O는 참석, X는 불참, 빈칸은 미투표·미정·참가 명단 없음.</caption>
             <thead>
               <tr>
-                <th scope="col" className="sticky left-0 top-0 z-30 min-w-28 border-b border-r border-line bg-subtle px-4 py-3 text-left text-xs text-secondary sm:min-w-36">선수</th>
+                <th scope="col" className="table-corner-header sticky left-0 top-0 z-30 h-24 min-w-28 border-b border-r border-line bg-subtle text-xs text-secondary sm:min-w-36">
+                  <span className="sr-only">선수(행) / 경기(열)</span>
+                  <span aria-hidden="true" className="absolute right-4 top-4">경기</span>
+                  <span aria-hidden="true" className="absolute bottom-4 left-4">선수</span>
+                </th>
                 {data.matches.map((match) => (
                   <th key={match.id} scope="col" className="sticky top-0 z-20 min-w-32 border-b border-r border-line bg-subtle px-2 py-3 text-center text-xs">
                     <Link href={`/match/${match.id}`} className="inline-flex min-h-11 flex-col justify-center gap-1 rounded px-2 text-brand-ink hover:underline" aria-label={`${match.matchAt.slice(0, 10)} ${match.matchAt.slice(11, 16)} 경기 상세`}>
