@@ -7,6 +7,9 @@ enum class TeamErrorCode(
     override val status: HttpStatus,
     override val message: String,
 ) : ErrorCode {
+    INVALID_TEAM_LOGO(HttpStatus.BAD_REQUEST, "로고는 1MB 이하의 PNG·JPG 이미지여야 하며 가로·세로 각각 64~2,048px이어야 합니다."),
+    TEAM_LOGO_STORAGE_FAILED(HttpStatus.INTERNAL_SERVER_ERROR, "로고를 저장하지 못했습니다. 잠시 후 다시 시도해 주세요."),
+    TEAM_LOGO_NOT_FOUND(HttpStatus.NOT_FOUND, "팀 로고를 찾을 수 없습니다."),
     INVALID_TEAM_REQUEST(
         status = HttpStatus.BAD_REQUEST,
         message = "팀 요청 값이 올바르지 않습니다.",

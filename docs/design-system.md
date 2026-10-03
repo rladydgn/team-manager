@@ -55,6 +55,7 @@
 | 선형 아이콘 | `fe/src/shared/ui/Icon.tsx` | 동일한 viewBox·선 굵기, 기본 16px |
 | 상단 탐색 | `fe/src/shared/ui/AppHeader.tsx` | 64px 높이와 하단 1px 선 유지 |
 | 팀 내 탐색 | `fe/src/features/team/ui/TeamDetailTabs.tsx` | 권한별 탭, 모바일 줄바꿈 |
+| 팀 로고 | `fe/src/features/team/ui/TeamLogo.tsx`, `TeamLogoField.tsx` | 비율 유지, 미등록 시 이름 표시, 파일 미리보기·교체·제거 |
 | 공통 404 | `fe/src/shared/ui/NotFoundPage.tsx` | 존재하지 않거나 접근할 수 없는 페이지 |
 | 훈련 표시 | `fe/src/features/match/ui/MatchTrainingBadge.tsx` | 경기 목록·상세에서 훈련 진행 시에만 표시 |
 | 문의 상태 | `fe/src/features/inquiry/ui/InquiryPresentation.tsx` | 답변 대기·답변 완료 배지 |
@@ -115,7 +116,8 @@ import { PageHeading } from "@/shared/ui/PageHeading";
 - 통계의 전체 경기 수와 경기 출석에는 훈련을 포함하고, 훈련 수·출석은 추가로 표시합니다. 요약은 ‘기간 내 전체 경기 10회 · 훈련 3회’ 형태로 씁니다. 순위도 훈련 기록을 포함하되, 종료됐거나 점수가 기록된 경기만 집계합니다. 취소된 경기는 통계와 순위에서 제외합니다.
 - 통계는 ‘선수별 통계’를 기본으로 열고, 같은 기간 필터 아래에서 ‘경기별 투표’로 전환합니다. 투표 표는 선수별 행과 날짜순 경기 열로 구성하며 참석 투표 O, 불참 투표 X, 미투표·미정·참가 명단 없음은 빈칸으로 표시합니다. 실제 출석과 혼동하지 않게 범례를 유지합니다. 표 높이를 제한하지 않고 한 페이지의 20명을 모두 펼쳐 표시합니다. 세로 이동은 페이지 스크롤을 사용하고, 경기 머리글은 앱 헤더 아래에 고정합니다. 가로 스크롤 시 선수 이름 열은 고정하고, 분리된 경기 머리글과 본문의 열 너비·스크롤 위치를 동일하게 유지합니다. 고정 영역의 조상에는 `overflow-hidden` 대신 `overflow-clip`을 사용합니다.
 - 계정 메뉴는 바깥 클릭과 Escape로 닫히며, Escape 후 열기 버튼으로 포커스가 돌아갑니다.
-- 로고는 기존 `fe/public/team-manager-logo.png`를 사용합니다. 상단 로고의 `unoptimized`는 로컬 최적화 요청 정체를 피하기 위한 설정입니다. 이를 변경하면 실제 이미지 표시를 확인합니다.
+- 서비스 로고는 기존 `fe/public/team-manager-logo.png`를 사용합니다. 상단 로고의 `unoptimized`는 로컬 최적화 요청 정체를 피하기 위한 설정입니다. 이를 변경하면 실제 이미지 표시를 확인합니다.
+- 팀 로고는 PNG/JPG 최대 1MB, 256×256px 저장 기준을 안내합니다. 업로드 미리보기는 80px, 목록은 44~48px, 팀 홈은 48~64px로 표시하고 `object-contain`으로 전체 이미지를 보여줍니다. 저장·운영 기준은 [팀 로고 문서](team-logos.md)를 따릅니다.
 
 ## 6. 반응형·접근성
 
@@ -124,6 +126,7 @@ import { PageHeading } from "@/shared/ui/PageHeading";
 - 팀 탭은 모바일에서 줄바꿈합니다. 일반 화면 전체에 가로 스크롤이 생기지 않게 합니다.
 - 데이터 표는 기존 모바일 카드·목록 표현을 유지합니다. 모든 정보를 억지로 한 줄에 넣지 않습니다.
 - 키보드 포커스 표시, 본문 바로가기, 레이블, 처리 상태를 유지합니다. 새 상호작용은 키보드로도 사용할 수 있어야 합니다.
+- 항목 설명은 `InfoTooltip`의 ⓘ 버튼으로 제공합니다. 마우스 호버·키보드 포커스·터치로 열고 Escape·바깥 클릭으로 닫습니다. 정렬 버튼과 분리하고 표의 스크롤 영역 밖에 표시해 잘리지 않게 합니다.
 - 중요한 일반 텍스트는 배경과 4.5:1 이상의 대비를 목표로 합니다. `placeholder`는 중요한 설명 문구에 쓰지 않습니다.
 - 모션은 짧은 색상 전환 정도로 제한하고 `prefers-reduced-motion`을 존중합니다.
 

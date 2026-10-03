@@ -4,6 +4,7 @@ import Link from "next/link";
 import { useParams, useRouter } from "next/navigation";
 import { FormEvent, useCallback, useEffect, useMemo, useState } from "react";
 import { useCurrentUser } from "@/features/auth/model/auth-session";
+import { TeamLogoField } from "@/features/team/ui/TeamLogoField";
 import {
   getTeam,
   Team,
@@ -58,6 +59,8 @@ export default function EditTeamPage() {
   const currentUser = useCurrentUser();
   const [teamDetail, setTeamDetail] = useState<TeamDetail | null>(null);
   const [form, setForm] = useState<TeamForm>(emptyTeamForm);
+  const [logoFile, setLogoFile] = useState<File | null>(null);
+  const [isLogoProcessing, setIsLogoProcessing] = useState(false);
   const [isLoading, setIsLoading] = useState(true);
   const [isSaving, setIsSaving] = useState(false);
   const [errorMessage, setErrorMessage] = useState("");
@@ -115,6 +118,7 @@ export default function EditTeamPage() {
 
   async function handleSubmit(event: FormEvent<HTMLFormElement>) {
     event.preventDefault();
+    if (isSaving || isLogoProcessing) return;
     setErrorMessage("");
 
     if (!teamDetail || !canEditTeam) {
@@ -141,7 +145,7 @@ export default function EditTeamPage() {
     setIsSaving(true);
 
     try {
-      const response = await updateTeam(teamDetail.team.id, request);
+      const response = await updateTeam(teamDetail.team.id, request, logoFile);
 
       if (!response.data) {
         throw new Error("수정된 팀 정보를 받지 못했습니다.");
@@ -213,6 +217,7 @@ export default function EditTeamPage() {
             </div>
 
             <form className="grid gap-7 p-5 sm:p-7" noValidate onSubmit={handleSubmit}>
+              <TeamLogoField file={logoFile} existingLogoUrl={form.logoUrl} name={form.name} disabled={isSaving} onChange={setLogoFile} onBusyChange={setIsLogoProcessing} onRemove={() => updateFormField("logoUrl", "")} />
               <section className="grid gap-5">
                 <div>
                   <h2 className="text-base font-semibold text-ink">기본 정보</h2>
@@ -286,16 +291,6 @@ export default function EditTeamPage() {
                       type="date"
                     />
                   </label>
-                  <label className="grid gap-2 text-sm font-semibold">
-                    로고 URL
-                    <input
-                      value={form.logoUrl}
-                      onChange={(event) => updateFormField("logoUrl", event.target.value)}
-                      className="h-12 rounded-lg border border-line-strong bg-white px-4 text-base font-normal outline-none transition-colors placeholder:text-placeholder focus:border-brand focus:ring-2 focus:ring-brand-ring"
-                      placeholder="https://example.com/team-logo.png"
-                      maxLength={500}
-                    />
-                  </label>
                 </div>
               </section>
 
@@ -341,7 +336,7 @@ export default function EditTeamPage() {
                 <button
                   className="inline-flex h-12 items-center justify-center rounded-lg bg-brand px-5 text-base font-semibold text-white transition-colors hover:bg-brand-hover disabled:cursor-not-allowed disabled:bg-brand-disabled"
                   type="submit"
-                  disabled={isSaving || !form.name.trim()}
+                  disabled={isSaving || isLogoProcessing || !form.name.trim()}
                 >
                   {isSaving ? "저장 중..." : "변경 사항 저장"}
                 </button>

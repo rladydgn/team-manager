@@ -4,8 +4,23 @@ import Link from "next/link";
 
 export const metadata: Metadata = {
   title: "가이드 | Team Manager",
-  description: "팀 가입 승인과 기존 비회원·용병 기록에 계정을 연결하는 방법을 안내합니다.",
+  description: "선수 추가, 팀 가입 승인, 기존 비회원·용병 기록에 계정을 연결하는 방법을 안내합니다.",
 };
+
+const playerSteps = [
+  {
+    title: "‘팀원’ 메뉴 열기",
+    description: "운영진 계정으로 로그인한 뒤, 팀 목록에서 팀을 선택하고 ‘팀원’ 메뉴를 엽니다.",
+  },
+  {
+    title: "이름과 구분 입력",
+    description: "‘용병·비회원 이름’에 선수 이름을 입력합니다. ‘구분’은 팀 소속 선수라면 ‘비회원 팀원’, 임시 참가자라면 ‘용병’을 선택하세요.",
+  },
+  {
+    title: "‘팀원 추가’ 누르기",
+    description: "추가된 선수를 팀원 목록에서 확인합니다. 선수의 계정 없이 먼저 등록하고, 나중에 가입하면 기존 기록에 계정을 연결할 수 있습니다.",
+  },
+];
 
 const approvalSteps = [
   {
@@ -58,20 +73,31 @@ export default function GuidePage() {
     <main className="min-h-[calc(100dvh-4rem-1px)] bg-canvas text-ink">
       <div className="mx-auto flex w-full max-w-4xl flex-col gap-6 px-5 py-7 sm:px-6 sm:py-10 lg:px-8">
         <div>
-          <PageHeading label="이용 안내" title="가이드" description="가입 승인부터 기존 팀원 기록 연결까지, 차근차근 확인하세요." />
-          <p className="mt-3 rounded-xl border border-line-strong bg-brand-soft px-4 py-3 text-sm leading-6 text-brand-ink">가입 신청은 본인이, 승인과 기록 연결은 운영진(팀장·부팀장)이 진행합니다.</p>
+          <PageHeading label="이용 안내" title="가이드" description="선수 추가부터 가입 승인, 기존 기록 연결까지 안내합니다." />
+          <p className="mt-3 rounded-xl border border-line-strong bg-brand-soft px-4 py-3 text-sm leading-6 text-brand-ink">가입 신청은 본인이, 선수 추가·승인·기록 연결은 운영진(팀장·부팀장)이 진행합니다.</p>
         </div>
 
-        <nav aria-label="가이드 목차" className="grid gap-3 sm:grid-cols-2">
+        <nav aria-label="가이드 목차" className="grid gap-3 sm:grid-cols-3">
+          <a href="#add-player" className="rounded-xl border border-line bg-white p-5 transition-colors hover:border-brand focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-brand">
+            <span className="text-xs font-semibold text-muted">01 · 처음 시작하기</span>
+            <span className="mt-2 block font-semibold text-ink">선수 추가 →</span>
+          </a>
           <a href="#join-approval" className="rounded-xl border border-line bg-white p-5 transition-colors hover:border-brand focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-brand">
-            <span className="text-xs font-semibold text-muted">01 · 새 팀원 등록</span>
+            <span className="text-xs font-semibold text-muted">02 · 가입 신청 처리</span>
             <span className="mt-2 block font-semibold text-ink">팀원 가입 승인 →</span>
           </a>
           <a href="#link-existing-member" className="rounded-xl border border-line bg-white p-5 transition-colors hover:border-brand focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-brand">
-            <span className="text-xs font-semibold text-muted">02 · 기존 기록 유지</span>
-            <span className="mt-2 block font-semibold text-ink">기존 기록에 계정 연결 →</span>
+            <span className="text-xs font-semibold text-muted">03 · 기존 기록 유지</span>
+            <span className="mt-2 block font-semibold text-ink">계정 연결 →</span>
           </a>
         </nav>
+
+        <section id="add-player" aria-labelledby="add-player-title" className="scroll-mt-24 rounded-xl border border-line bg-white p-5 sm:p-7">
+          <h2 id="add-player-title" className="text-xl font-semibold text-ink">처음 선수 추가하기</h2>
+          <p className="mt-2 text-sm leading-6 text-muted">선수의 회원가입 없이 이름으로 먼저 등록하는 방법입니다.</p>
+          <Steps items={playerSteps} />
+          <a href="#link-existing-member" className="mt-6 inline-flex min-h-10 items-center text-sm font-semibold text-brand-ink underline underline-offset-4">등록한 선수가 나중에 가입했다면? 계정 연결 →</a>
+        </section>
 
         <section id="join-approval" aria-labelledby="join-approval-title" className="scroll-mt-24 rounded-xl border border-line bg-white p-5 sm:p-7">
           <h2 id="join-approval-title" className="text-xl font-semibold text-ink">팀원 가입 승인</h2>

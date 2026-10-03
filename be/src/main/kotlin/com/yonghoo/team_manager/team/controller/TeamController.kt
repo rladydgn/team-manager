@@ -16,6 +16,9 @@ import com.yonghoo.team_manager.user.auth.AUTHENTICATED_USER_ID_ATTRIBUTE
 import com.yonghoo.team_manager.user.exception.UserErrorCode
 import io.swagger.v3.oas.annotations.Operation
 import org.springframework.http.HttpStatus
+import org.springframework.http.MediaType
+import org.springframework.web.bind.annotation.RequestPart
+import org.springframework.web.multipart.MultipartFile
 import org.springframework.http.ResponseEntity
 import org.springframework.web.bind.annotation.GetMapping
 import org.springframework.web.bind.annotation.DeleteMapping
@@ -36,7 +39,7 @@ class TeamController(
         summary = "팀 생성",
         description = "축구 팀을 생성하고 생성자를 팀장으로 등록합니다.",
     )
-    @PostMapping
+    @PostMapping(consumes = [MediaType.APPLICATION_JSON_VALUE])
     fun createTeam(
         @RequestAttribute(name = AUTHENTICATED_USER_ID_ATTRIBUTE, required = false) userId: Long?,
         @RequestBody request: TeamCreateRequest,
@@ -45,6 +48,24 @@ class TeamController(
             .status(HttpStatus.CREATED)
             .body(CommonResponse(data = teamService.createTeam(requireAuthenticatedUserId(userId), request)))
     }
+
+    @PostMapping(consumes = [MediaType.MULTIPART_FORM_DATA_VALUE])
+    fun createTeamWithLogo(
+        @RequestAttribute(name = AUTHENTICATED_USER_ID_ATTRIBUTE, required = false) userId: Long?,
+        @RequestPart("request") request: TeamCreateRequest,
+        @RequestPart("logo", required = false) logo: MultipartFile?,
+    ): ResponseEntity<CommonResponse<TeamResponse>> = ResponseEntity.status(HttpStatus.CREATED)
+        .body(CommonResponse(data = teamService.createTeam(requireAuthenticatedUserId(userId), request, logo)))
+
+    @PutMapping("/{teamId}", consumes = [MediaType.MULTIPART_FORM_DATA_VALUE])
+    fun updateTeamWithLogo(
+        @PathVariable teamId: Long,
+        @RequestAttribute(name = AUTHENTICATED_USER_ID_ATTRIBUTE, required = false) userId: Long?,
+        @RequestPart("request") request: TeamUpdateRequest,
+        @RequestPart("logo", required = false) logo: MultipartFile?,
+    ): ResponseEntity<CommonResponse<TeamResponse>> = ResponseEntity.ok(
+        CommonResponse(data = teamService.updateTeam(teamId, requireAuthenticatedUserId(userId), request, logo)),
+    )
 
     @Operation(
         summary = "팀 가입",
@@ -111,7 +132,7 @@ class TeamController(
         summary = "팀 수정",
         description = "운영진이 팀 정보를 수정하고 변경 이력을 저장합니다.",
     )
-    @PutMapping("/{teamId}")
+    @PutMapping("/{teamId}", consumes = [MediaType.APPLICATION_JSON_VALUE])
     fun updateTeam(
         @PathVariable teamId: Long,
         @RequestAttribute(name = AUTHENTICATED_USER_ID_ATTRIBUTE, required = false) userId: Long?,

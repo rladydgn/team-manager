@@ -137,6 +137,12 @@ export async function putJson<TResponse, TBody>(
   return resolveResponse<TResponse>(response);
 }
 
+export async function sendFormData<TResponse>(path: string, method: "POST" | "PUT", body: FormData): Promise<ApiResponse<TResponse>> {
+  // 브라우저가 multipart boundary를 지정하도록 Content-Type을 직접 설정하지 않습니다.
+  const response = await requestWithAccessRefresh(path, { method, credentials: "include", body });
+  return resolveResponse<TResponse>(response);
+}
+
 export async function deleteJson<TResponse>(
   path: string
 ): Promise<ApiResponse<TResponse>> {

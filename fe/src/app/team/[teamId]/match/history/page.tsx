@@ -306,7 +306,7 @@ export default function HistoricalMatchCreatePage() {
             <section className="overflow-hidden rounded-lg border border-line">
               <div className="flex flex-col gap-3 border-b border-line bg-subtle px-4 py-4 sm:flex-row sm:items-center sm:justify-between sm:px-5">
                 <div>
-                  <h2 className="font-semibold text-ink">통계 대상 팀원</h2>
+                  <h2 className="font-semibold text-ink">참가 명단과 투표</h2>
                   <p className="mt-1 text-sm text-muted">{selectedMemberCount}명 선택</p>
                 </div>
                 <label className="inline-flex w-fit items-center gap-2 text-sm font-semibold text-brand-ink">
@@ -314,7 +314,11 @@ export default function HistoricalMatchCreatePage() {
                   전체 선택
                 </label>
               </div>
-              <div className="divide-y divide-line">
+              <div id="participant-selection-help" className="space-y-1 border-b border-line px-4 py-3 text-sm leading-6 text-secondary sm:px-5">
+                <p><strong className="font-semibold text-ink">체크박스</strong>는 이 경기의 참가 명단·출석률 계산에 포함할 선수를 정합니다. 해제하면 이 경기는 해당 선수의 출석률 계산에서 빠집니다.</p>
+                <p><strong className="font-semibold text-ink">참여/불참</strong>은 명단에 포함된 선수의 투표입니다. 불참한 선수도 체크를 유지하고 ‘불참’을 선택하세요. 실제 출석은 다음 경기 기록 입력에서 확인·수정하세요.</p>
+              </div>
+              <div className="divide-y divide-line" aria-describedby="participant-selection-help">
                 {members.map((member) => {
                   const voteStatus = participantStatusByMemberId[member.id];
                   const isSelected = voteStatus !== undefined;
@@ -327,7 +331,7 @@ export default function HistoricalMatchCreatePage() {
                           <span className="mt-0.5 block text-xs text-muted">{getMemberRole(member)}</span>
                         </span>
                       </label>
-                      <select value={voteStatus ?? "AVAILABLE"} onChange={(event) => updateMemberStatus(member.id, event.target.value as HistoricalParticipantStatus)} disabled={!isSelected} className="h-10 rounded-lg border border-line-strong bg-white px-3 text-sm font-semibold text-brand-ink outline-none focus:border-brand disabled:cursor-not-allowed disabled:bg-subtle disabled:text-placeholder">
+                      <select aria-label={`${getMemberName(member)} 참여/불참 투표`} value={voteStatus ?? "AVAILABLE"} onChange={(event) => updateMemberStatus(member.id, event.target.value as HistoricalParticipantStatus)} disabled={!isSelected} className="h-10 rounded-lg border border-line-strong bg-white px-3 text-sm font-semibold text-brand-ink outline-none focus:border-brand disabled:cursor-not-allowed disabled:bg-subtle disabled:text-placeholder">
                         <option value="AVAILABLE">참여</option>
                         <option value="UNAVAILABLE">불참</option>
                       </select>

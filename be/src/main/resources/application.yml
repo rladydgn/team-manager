@@ -1,6 +1,10 @@
 spring:
   application:
     name: team-manager
+  servlet:
+    multipart:
+      max-file-size: 1MB
+      max-request-size: 2MB
   exposed:
     show-sql: true
 
@@ -10,6 +14,8 @@ server:
       max: 40
 
 app:
+  team-logo:
+    storage-path: ${TEAM_LOGO_STORAGE_PATH:./uploads/team-logos}
   jwt:
     secret: ${JWT_SECRET}
     issuer: team-manager

@@ -321,6 +321,10 @@ export default function NewMatchPage() {
                 </label>
               </div>
 
+              <p className="rounded-lg border border-line bg-subtle px-4 py-3 text-sm leading-6 text-secondary">
+                경기 등록 시 현재 팀원이 참가 명단에 자동 포함됩니다. 명단 포함은 참석 확정이 아니며, 등록 후 경기 상세에서 참여/불참을 투표합니다. 실제 출석은 경기 기록에서 별도로 입력합니다.
+              </p>
+
               {errorMessage ? (
                 <p className="rounded-lg border border-danger-line bg-danger-soft px-4 py-3 text-sm font-medium text-danger">
                   {errorMessage}

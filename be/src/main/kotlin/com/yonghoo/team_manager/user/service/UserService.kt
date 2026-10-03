@@ -110,19 +110,29 @@ class UserService(
     }
 
     fun isValidEmail(email: String): Boolean {
-        return email.isNotBlank() && !userRepository.existsByEmail(email)
+        return isEmailFormatValid(email) && !userRepository.existsByEmail(email)
+    }
+
+    private fun isEmailFormatValid(value: String): Boolean {
+        val email = value.trim()
+        val parts = email.split('@')
+        if (email.length > 254 || parts.size != 2) return false
+        val (local, domain) = parts
+        return local.length <= 64 && EMAIL_LOCAL_REGEX.matches(local) &&
+            !local.startsWith('.') && !local.endsWith('.') && !local.contains("..") &&
+            EMAIL_DOMAIN_REGEX.matches(domain)
     }
 
     private fun validateRegisterRequest(request: UserRegisterRequest) {
         val name = request.name.trim()
+        if (!isEmailFormatValid(request.email)) throw ApiException(UserErrorCode.INVALID_EMAIL)
 
         if (!USERNAME_REGEX.matches(request.username) ||
             !PASSWORD_REGEX.matches(request.password) ||
             name.isBlank() || name.length > NAME_MAX_LENGTH ||
             request.birthDate.year !in MIN_BIRTH_YEAR..Year.now().value ||
             request.birthDate.monthValue != JANUARY ||
-            request.birthDate.dayOfMonth != FIRST_DAY_OF_MONTH ||
-            request.email.isBlank()
+            request.birthDate.dayOfMonth != FIRST_DAY_OF_MONTH
         ) {
             throw ApiException(UserErrorCode.INVALID_REGISTER_REQUEST)
         }
@@ -153,6 +163,8 @@ class UserService(
         private const val MIN_BIRTH_YEAR = 1900
         private const val JANUARY = 1
         private const val FIRST_DAY_OF_MONTH = 1
+        private val EMAIL_LOCAL_REGEX = Regex("""^[A-Za-z0-9.!#${'$'}%&'*+/=?^_`{|}~-]+$""")
+        private val EMAIL_DOMAIN_REGEX = Regex("""^[A-Za-z0-9](?:[A-Za-z0-9-]{0,61}[A-Za-z0-9])?(?:\.[A-Za-z0-9](?:[A-Za-z0-9-]{0,61}[A-Za-z0-9])?)+$""")
         private val USERNAME_REGEX = Regex("^[a-z0-9_-]{5,20}$")
         private val PASSWORD_REGEX = Regex("^(?=.*[A-Za-z])(?=.*\\d)(?=.*[!@#\$%^&*()_+\\-={}\\[\\]:\";'<>?,./]).{8,20}$")
     }

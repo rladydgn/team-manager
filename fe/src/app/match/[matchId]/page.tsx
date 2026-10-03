@@ -486,7 +486,7 @@ export default function MatchDetailPage() {
                     팀원 참여 현황
                   </h2>
                   <p className="mt-1 text-sm text-muted">
-                    경기 참여 여부를 팀원별로 확인할 수 있습니다.
+                    참여/불참 투표 현황입니다. 참가 명단에 있어도 참석 확정은 아니며, 실제 출석은 경기 기록에서 별도로 입력합니다.
                   </p>
                 </div>
                 <span className="w-fit rounded-lg border border-line-strong bg-brand-soft px-2.5 py-1 text-xs font-semibold text-brand-ink">

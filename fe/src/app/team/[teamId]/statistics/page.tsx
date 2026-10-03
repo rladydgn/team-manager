@@ -12,6 +12,7 @@ import {
 } from "@/features/team/api/statistics";
 import { getTeam, Team } from "@/features/team/api/team";
 import { getTeamSeasons, type TeamSeason } from "@/features/team/api/season";
+import { InfoTooltip } from "@/shared/ui/InfoTooltip";
 import { PageHeading } from "@/shared/ui/PageHeading";
 import { TeamDetailTabs } from "@/features/team/ui/TeamDetailTabs";
 import { TeamParticipationVotes } from "@/features/team/ui/TeamParticipationVotes";
@@ -38,6 +39,16 @@ const statisticSortLabels: Record<TeamAttendanceSortBy, string> = {
   GOAL_COUNT: "골",
   ASSIST_COUNT: "어시스트",
   CLEAN_SHEET_COUNT: "클린시트",
+};
+
+const statisticHelp: Partial<Record<TeamAttendanceSortBy, string>> = {
+  ATTENDANCE_RATE: "참석 투표 수 ÷ 본인이 참가 명단에 포함된 경기 수 × 100입니다. 훈련과 예정 경기도 포함하며, 취소 경기는 제외합니다. 불참·미투표·미정도 분모에 포함되지만, 명단에 없는 경기는 제외됩니다. 예: 10경기 중 참석 투표 8회 = 80%. 실제 출석 여부와는 별개입니다.",
+  TRAINING_ATTENDANCE_RATE: "조회 기간의 훈련 중 참석 투표 수 ÷ 본인이 참가 명단에 포함된 훈련 수 × 100입니다. 경기 출석과 같은 기준이며, 일반 경기는 제외합니다. 대상 훈련이 없으면 0%입니다.",
+  POST_VOTE_ABSENCE_COUNT: "참석으로 투표했지만 경기 기록에 실제 참여가 체크되지 않은 횟수입니다. 종료된 경기 또는 양 팀 점수가 모두 기록된 경기만 계산합니다. 훈련도 포함합니다.",
+  LATE_COUNT: "경기 기록에서 실제 참여와 지각이 모두 체크된 횟수입니다. 종료된 경기 또는 양 팀 점수가 모두 기록된 경기만 계산합니다. 훈련도 포함합니다.",
+  GOAL_COUNT: "조회 기간의 경기 기록에 입력된 선수의 골 합계입니다. 훈련을 포함하고 취소 경기는 제외합니다.",
+  ASSIST_COUNT: "조회 기간의 경기 기록에 입력된 선수의 어시스트 합계입니다. 훈련을 포함하고 취소 경기는 제외합니다.",
+  CLEAN_SHEET_COUNT: "조회 기간의 경기 기록에 입력된 클린시트(무실점) 합계입니다. 경기 점수로 자동 계산하지 않습니다. 훈련을 포함하고 취소 경기는 제외합니다.",
 };
 
 function toDateInputValue(date: Date) {
@@ -322,7 +333,7 @@ export default function TeamStatisticsPage() {
                 <div>
                   <h2 className="text-lg font-semibold text-ink">선수별 기록</h2>
                   <p className="mt-1 text-sm text-muted">{statistics.startDate}부터 {statistics.endDate}까지</p>
-                  <p className="mt-1 text-xs text-muted">경기 출석은 훈련을 포함하며, 참석 투표를 기준으로 계산합니다.</p>
+                  <p className="mt-1 text-xs text-muted">출석률은 실제 출석이 아닌 참석 투표 기준입니다. 항목 옆 ⓘ에서 계산 방법을 확인하세요.</p>
                   <p className="mt-1 text-xs font-semibold text-brand">정렬: {statisticSortLabels[sortBy]} {sortDirection === "ASC" ? "오름차순" : "내림차순"}</p>
                 </div>
                 <span className="shrink-0 text-sm font-semibold text-brand-ink">총 {statistics.totalElements}명</span>
@@ -334,16 +345,18 @@ export default function TeamStatisticsPage() {
                 <>
                   <div className="flex flex-wrap gap-2 border-b border-line px-5 py-3 sm:hidden">
                     {(Object.keys(statisticSortLabels) as TeamAttendanceSortBy[]).map((targetSortBy) => (
-                      <button
-                        key={targetSortBy}
-                        type="button"
-                        onClick={() => toggleStatisticSort(targetSortBy)}
-                        aria-pressed={sortBy === targetSortBy}
-                        className={`inline-flex h-8 items-center gap-1 rounded-lg border px-2.5 text-xs font-semibold transition-colors ${sortBy === targetSortBy ? "border-brand bg-brand-soft text-brand-ink" : "border-line bg-white text-muted"}`}
-                      >
-                        {statisticSortLabels[targetSortBy]}
-                        <SortArrows active={sortBy === targetSortBy} direction={sortDirection} />
-                      </button>
+                      <span key={targetSortBy} className="inline-flex items-center">
+                        <button
+                          type="button"
+                          onClick={() => toggleStatisticSort(targetSortBy)}
+                          aria-pressed={sortBy === targetSortBy}
+                          className={`inline-flex h-8 items-center gap-1 rounded-lg border px-2.5 text-xs font-semibold transition-colors ${sortBy === targetSortBy ? "border-brand bg-brand-soft text-brand-ink" : "border-line bg-white text-muted"}`}
+                        >
+                          {statisticSortLabels[targetSortBy]}
+                          <SortArrows active={sortBy === targetSortBy} direction={sortDirection} />
+                        </button>
+                        {statisticHelp[targetSortBy] && <InfoTooltip label={statisticSortLabels[targetSortBy]}>{statisticHelp[targetSortBy]}</InfoTooltip>}
+                      </span>
                     ))}
                   </div>
                   <div className="divide-y divide-line sm:hidden">
@@ -367,8 +380,8 @@ export default function TeamStatisticsPage() {
                       <thead className="bg-subtle text-xs font-semibold text-muted">
                         <tr>
                           <SortableHeader label="선수" sortKey="NAME" activeSort={sortBy} direction={sortDirection} onSort={toggleStatisticSort} className="px-6 text-left" />
-                          <SortableHeader label="경기 출석 (투표/전체)" sortKey="ATTENDANCE_RATE" activeSort={sortBy} direction={sortDirection} onSort={toggleStatisticSort} />
-                          <SortableHeader label="훈련 출석 (투표/전체)" sortKey="TRAINING_ATTENDANCE_RATE" activeSort={sortBy} direction={sortDirection} onSort={toggleStatisticSort} />
+                          <SortableHeader label="경기 출석 (투표/대상)" sortKey="ATTENDANCE_RATE" activeSort={sortBy} direction={sortDirection} onSort={toggleStatisticSort} />
+                          <SortableHeader label="훈련 출석 (투표/대상)" sortKey="TRAINING_ATTENDANCE_RATE" activeSort={sortBy} direction={sortDirection} onSort={toggleStatisticSort} />
                           <SortableHeader label="투표 후 불참" sortKey="POST_VOTE_ABSENCE_COUNT" activeSort={sortBy} direction={sortDirection} onSort={toggleStatisticSort} />
                           <SortableHeader label="지각" sortKey="LATE_COUNT" activeSort={sortBy} direction={sortDirection} onSort={toggleStatisticSort} />
                           <SortableHeader label="골" sortKey="GOAL_COUNT" activeSort={sortBy} direction={sortDirection} onSort={toggleStatisticSort} />
@@ -458,18 +471,21 @@ function SortableHeader({
       aria-sort={isActive ? (direction === "ASC" ? "ascending" : "descending") : "none"}
       className={`${className} py-3`}
     >
-      <button
-        type="button"
-        onClick={() => onSort(sortKey)}
-        aria-pressed={isActive}
-        aria-label={`${label} ${nextDirection} 정렬`}
-        className={`inline-flex items-center gap-1.5 rounded-sm px-1 py-0.5 transition-colors ${
-          isActive ? "font-semibold text-brand-ink" : "font-semibold text-muted hover:text-brand-ink"
-        }`}
-      >
-        {label}
-        <SortArrows active={isActive} direction={direction} />
-      </button>
+      <span className="inline-flex items-center">
+        <button
+          type="button"
+          onClick={() => onSort(sortKey)}
+          aria-pressed={isActive}
+          aria-label={`${label} ${nextDirection} 정렬`}
+          className={`inline-flex items-center gap-1.5 rounded-sm px-1 py-0.5 transition-colors ${
+            isActive ? "font-semibold text-brand-ink" : "font-semibold text-muted hover:text-brand-ink"
+          }`}
+        >
+          {label}
+          <SortArrows active={isActive} direction={direction} />
+        </button>
+        {statisticHelp[sortKey] && <InfoTooltip label={statisticSortLabels[sortKey]}>{statisticHelp[sortKey]}</InfoTooltip>}
+      </span>
     </th>
   );
 }

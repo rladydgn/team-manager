@@ -11,6 +11,8 @@ import { Icon } from "@/shared/ui/Icon";
 import { PageHeading } from "@/shared/ui/PageHeading";
 import { useCurrentUser } from "@/features/auth/model/auth-session";
 import { createTeam, getTeams, joinTeam, Team } from "@/features/team/api/team";
+import { TeamLogo } from "@/features/team/ui/TeamLogo";
+import { TeamLogoField } from "@/features/team/ui/TeamLogoField";
 
 function cleanOptionalValue(value: string) {
   const trimmed = value.trim();
@@ -32,6 +34,8 @@ export default function TeamsClientPage({
   const [teamFilter, setTeamFilter] = useState<"all" | "mine">("all");
   const [searchText, setSearchText] = useState("");
   const [teamName, setTeamName] = useState("");
+  const [logoFile, setLogoFile] = useState<File | null>(null);
+  const [isLogoProcessing, setIsLogoProcessing] = useState(false);
   const [shortName, setShortName] = useState("");
   const [foundedAt, setFoundedAt] = useState("");
   const [region, setRegion] = useState("");
@@ -83,6 +87,7 @@ export default function TeamsClientPage({
 
   async function handleCreateTeam(event: FormEvent<HTMLFormElement>) {
     event.preventDefault();
+    if (isCreating || isLogoProcessing) return;
     setErrorMessage("");
     setNoticeMessage("");
 
@@ -101,9 +106,10 @@ export default function TeamsClientPage({
         region: cleanOptionalValue(region),
         homeStadium: cleanOptionalValue(homeStadium),
         description: cleanOptionalValue(description),
-      });
+      }, logoFile);
 
       setTeamName("");
+      setLogoFile(null);
       setShortName("");
       setFoundedAt("");
       setRegion("");
@@ -162,7 +168,7 @@ export default function TeamsClientPage({
 
       <div className="page-shell">
         <PageHeading label="함께 뛰는 팀" title="팀" description="내 팀으로 이동하거나 함께할 팀을 찾아보세요." action={currentUser ? (
-          <button type="button" aria-expanded={shouldShowCreateForm} aria-controls="create-team-panel" onClick={() => setIsCreatePanelOpen((value) => !value)} className={shouldShowCreateForm ? "btn-secondary" : "btn-primary"}>
+          <button type="button" disabled={isCreating || isLogoProcessing} aria-expanded={shouldShowCreateForm} aria-controls="create-team-panel" onClick={() => setIsCreatePanelOpen((value) => !value)} className={shouldShowCreateForm ? "btn-secondary" : "btn-primary"}>
             <Icon name={shouldShowCreateForm ? "close" : "plus"} />{shouldShowCreateForm ? "닫기" : "새 팀 만들기"}
           </button>
         ) : <Link href="/login" className="btn-primary">로그인하고 시작하기 <Icon name="arrow" /></Link>} />
@@ -201,6 +207,7 @@ export default function TeamsClientPage({
             </div>
 
             <form className="mt-6 grid gap-5" onSubmit={handleCreateTeam}>
+              <TeamLogoField file={logoFile} name={teamName} disabled={isCreating} onChange={setLogoFile} onBusyChange={setIsLogoProcessing} />
               <div className="grid gap-5 md:grid-cols-2">
                 <label className="grid gap-2 text-sm font-semibold">
                   팀 이름
@@ -274,7 +281,7 @@ export default function TeamsClientPage({
               <button
                 className="inline-flex h-12 items-center justify-center rounded-lg bg-brand px-5 text-base font-semibold text-white transition-colors hover:bg-brand-hover disabled:cursor-not-allowed disabled:bg-brand-disabled"
                 type="submit"
-                disabled={isCreating || !teamName.trim() || !currentUser}
+                disabled={isCreating || isLogoProcessing || !teamName.trim() || !currentUser}
               >
                 {isCreating ? "생성 중..." : "팀 만들기"}
               </button>
@@ -348,7 +355,8 @@ export default function TeamsClientPage({
                   className="surface-card flex flex-col p-5 transition-colors hover:border-line-strong"
                 >
                   <div className="flex items-start justify-between gap-4">
-                    <div className="min-w-0">
+                    <TeamLogo logoUrl={team.logoUrl} name={team.shortName || team.name} />
+                    <div className="min-w-0 flex-1">
                       <p className="text-xs font-semibold uppercase tracking-tight text-brand">
                         {team.shortName || "우리 팀"}
                       </p>

@@ -1,6 +1,7 @@
 "use client";
 
 import Link from "next/link";
+import { TeamLogo } from "@/features/team/ui/TeamLogo";
 import { useParams, useRouter } from "next/navigation";
 import {
   useCallback,
@@ -26,10 +27,6 @@ function formatDate(value: string | null) {
     month: "short",
     day: "numeric",
   }).format(new Date(value));
-}
-
-function getInitials(name: string) {
-  return name.trim().slice(0, 2).toUpperCase() || "TM";
 }
 
 export default function TeamDetailPage() {
@@ -186,9 +183,7 @@ export default function TeamDetailPage() {
             <section className="surface-card p-5 sm:p-7">
               <div className="flex flex-col gap-6 lg:flex-row lg:items-start lg:justify-between">
                 <div className="flex min-w-0 items-start gap-4 sm:gap-5">
-                  <span className="grid size-12 shrink-0 place-items-center rounded-xl bg-brand-soft text-base font-semibold text-brand-ink">
-                    {getInitials(teamDetail.team.shortName || teamDetail.team.name)}
-                  </span>
+                  <TeamLogo logoUrl={teamDetail.team.logoUrl} name={teamDetail.team.shortName || teamDetail.team.name} className="size-12 text-base sm:size-16" priority />
                   <div className="min-w-0 flex-1">
                     <p className="text-sm font-semibold text-brand-ink">
                       {teamDetail.team.shortName || "우리 팀"}

@@ -25,6 +25,7 @@ import com.yonghoo.team_manager.user.repository.UserRepository
 import org.springframework.stereotype.Service
 import org.springframework.transaction.annotation.Transactional
 import java.time.LocalDateTime
+import org.springframework.web.multipart.MultipartFile
 
 @Transactional
 @Service
@@ -34,15 +35,19 @@ class TeamService(
     private val objectMapper: ObjectMapper,
     private val matchRepository: MatchRepository,
     private val matchParticipantRepository: MatchParticipantRepository,
+    private val teamLogoStorage: TeamLogoStorage,
 ) {
     fun createTeam(
         createdByUserId: Long,
         request: TeamCreateRequest,
+        logo: MultipartFile? = null,
     ): TeamResponse {
-        val normalizedRequest = request.copy(name = request.name.trim())
+        var normalizedRequest = request.copy(name = request.name.trim())
         validateTeamCreateRequest(normalizedRequest)
         validateTeamNameIsAvailable(normalizedRequest.name)
         val creator = getUser(createdByUserId)
+        validateLogoUrl(normalizedRequest.logoUrl, null)
+        if (logo != null) normalizedRequest = normalizedRequest.copy(logoUrl = teamLogoStorage.save(logo))
 
         val team = teamRepository.createTeam(createdByUserId, normalizedRequest)
         teamRepository.createTeamMember(
@@ -59,14 +64,17 @@ class TeamService(
         teamId: Long,
         userId: Long,
         request: TeamUpdateRequest,
+        logo: MultipartFile? = null,
     ): TeamResponse {
-        val normalizedRequest = request.copy(name = request.name.trim())
+        var normalizedRequest = request.copy(name = request.name.trim())
         validateTeamUpdateRequest(normalizedRequest)
 
         val team = teamRepository.selectTeamById(teamId)
             ?: throw ApiException(TeamErrorCode.TEAM_NOT_FOUND)
         validateTeamUpdatePermission(teamId, userId)
         validateTeamNameIsAvailable(normalizedRequest.name, excludedTeamId = teamId)
+        validateLogoUrl(normalizedRequest.logoUrl, team.logoUrl)
+        if (logo != null) normalizedRequest = normalizedRequest.copy(logoUrl = teamLogoStorage.save(logo))
 
         val beforeSnapshot = serializeHistorySnapshot(team)
         val updatedTeam = teamRepository.updateTeam(teamId, normalizedRequest)
@@ -317,6 +325,13 @@ class TeamService(
         }
 
         return teamRepository.selectMembersByTeamId(teamId).map(::toTeamMemberResponse)
+    }
+
+    private fun validateLogoUrl(value: String?, existing: String?) {
+        val url = value?.trim()?.takeIf { it.isNotEmpty() } ?: return
+        if (url.length > LOGO_URL_MAX_LENGTH ||
+            (url != existing && !url.startsWith("https://") && !url.startsWith("http://"))
+        ) throw ApiException(TeamErrorCode.INVALID_TEAM_REQUEST)
     }
 
     private fun validateTeamCreateRequest(request: TeamCreateRequest) {

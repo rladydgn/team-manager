@@ -1,4 +1,4 @@
-import { deleteJson, getJson, postJson, putJson } from "@/shared/api/http";
+import { deleteJson, getJson, postJson, putJson, sendFormData } from "@/shared/api/http";
 
 export type Team = {
   id: number;
@@ -82,7 +82,15 @@ export function getTeamMembers(teamId: number) {
   return getJson<TeamMember[]>(`/teams/${teamId}/members`);
 }
 
-export function createTeam(request: TeamCreateRequest) {
+function withLogo(request: TeamCreateRequest | TeamUpdateRequest, logo: File) {
+  const body = new FormData();
+  body.append("request", new Blob([JSON.stringify(request)], { type: "application/json" }));
+  body.append("logo", logo);
+  return body;
+}
+
+export function createTeam(request: TeamCreateRequest, logo?: File | null) {
+  if (logo) return sendFormData<Team>("/teams", "POST", withLogo(request, logo));
   return postJson<Team, TeamCreateRequest>("/teams", request);
 }
 
@@ -141,7 +149,8 @@ export function rejectTeamJoinRequest(teamId: number, teamMemberId: number) {
   );
 }
 
-export function updateTeam(teamId: number, request: TeamUpdateRequest) {
+export function updateTeam(teamId: number, request: TeamUpdateRequest, logo?: File | null) {
+  if (logo) return sendFormData<Team>(`/teams/${teamId}`, "PUT", withLogo(request, logo));
   return putJson<Team, TeamUpdateRequest>(`/teams/${teamId}`, request);
 }
 

@@ -7,6 +7,10 @@ enum class UserErrorCode(
     override val status: HttpStatus,
     override val message: String,
 ) : ErrorCode {
+    INVALID_EMAIL(
+        status = HttpStatus.BAD_REQUEST,
+        message = "올바른 이메일 형식으로 입력해 주세요. 예: team@example.com",
+    ),
     INVALID_REGISTER_REQUEST(
         status = HttpStatus.BAD_REQUEST,
         message = "회원가입 요청 값이 올바르지 않습니다.",

@@ -47,7 +47,8 @@ class JwtAuthenticationInterceptor(
     private fun isAuthenticationExemptRequest(request: HttpServletRequest): Boolean {
         val path = request.requestURI
 
-        return path in PUBLIC_PATHS ||
+        return (request.method == "GET" && path.startsWith("/teams/logos/")) ||
+            path in PUBLIC_PATHS ||
             path.startsWith("/swagger-ui/") ||
             path.startsWith("/v3/api-docs/")
     }

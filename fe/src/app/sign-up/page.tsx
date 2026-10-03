@@ -17,7 +17,7 @@ import {
 } from "@/features/auth/model/sign-up-validation";
 import { ApiRequestError } from "@/shared/api/http";
 
-const formFields: SignUpField[] = ["name", "birthYear", "username", "password", "email"];
+const formFields: SignUpField[] = ["name", "birthYear", "username", "password", "passwordConfirmation", "email"];
 const currentYear = new Date().getFullYear();
 
 export default function SignUpPage() {
@@ -27,6 +27,7 @@ export default function SignUpPage() {
   const [birthYear, setBirthYear] = useState("");
   const [username, setUsername] = useState("");
   const [password, setPassword] = useState("");
+  const [passwordConfirmation, setPasswordConfirmation] = useState("");
   const [email, setEmail] = useState("");
   const [fieldErrors, setFieldErrors] = useState<SignUpFieldErrors>({});
   const [touchedFields, setTouchedFields] = useState<
@@ -35,7 +36,7 @@ export default function SignUpPage() {
   const [errorMessage, setErrorMessage] = useState("");
   const [isSubmitting, setIsSubmitting] = useState(false);
 
-  const values = { name, birthYear, username, password, email };
+  const values = { name, birthYear, username, password, passwordConfirmation, email };
 
   useEffect(() => {
     if (currentUser) {
@@ -49,17 +50,23 @@ export default function SignUpPage() {
       birthYear: setBirthYear,
       username: setUsername,
       password: setPassword,
+      passwordConfirmation: setPasswordConfirmation,
       email: setEmail,
     };
 
     setters[field](value);
 
-    if (touchedFields[field] || fieldErrors[field]) {
-      setFieldErrors((currentErrors) => ({
-        ...currentErrors,
-        [field]: validateSignUpField(field, value),
-      }));
-    }
+    const nextValues = { ...values, [field]: value };
+    setFieldErrors((currentErrors) => {
+      const nextErrors = { ...currentErrors };
+      if (touchedFields[field] || currentErrors[field]) {
+        nextErrors[field] = validateSignUpField(field, value, nextValues.password);
+      }
+      if (field === "password" && (passwordConfirmation || touchedFields.passwordConfirmation)) {
+        nextErrors.passwordConfirmation = validateSignUpField("passwordConfirmation", passwordConfirmation, value);
+      }
+      return nextErrors;
+    });
   }
 
   function validateField(field: SignUpField) {
@@ -69,7 +76,7 @@ export default function SignUpPage() {
     }));
     setFieldErrors((currentErrors) => ({
       ...currentErrors,
-      [field]: validateSignUpField(field, values[field]),
+      [field]: validateSignUpField(field, values[field], password),
     }));
   }
 
@@ -83,6 +90,7 @@ export default function SignUpPage() {
 
   async function handleSubmit(event: FormEvent<HTMLFormElement>) {
     event.preventDefault();
+    if (isSubmitting) return;
 
     const validationErrors = validateSignUp(values);
 
@@ -128,7 +136,7 @@ export default function SignUpPage() {
         return;
       }
 
-      if (error instanceof ApiRequestError && error.code === "DUPLICATED_EMAIL") {
+      if (error instanceof ApiRequestError && ["DUPLICATED_EMAIL", "INVALID_EMAIL"].includes(error.code ?? "")) {
         setFieldErrors({ email: error.message });
         return;
       }
@@ -262,6 +270,26 @@ export default function SignUpPage() {
                   </label>
 
                   <label className="grid gap-2 text-sm font-semibold">
+                    비밀번호 확인
+                    <input
+                      value={passwordConfirmation}
+                      onBlur={() => validateField("passwordConfirmation")}
+                      onChange={(event) => updateField("passwordConfirmation", event.target.value)}
+                      aria-describedby="password-confirmation-message"
+                      aria-invalid={Boolean(fieldErrors.passwordConfirmation)}
+                      className={inputClassName("passwordConfirmation")}
+                      placeholder="비밀번호를 한 번 더 입력해 주세요"
+                      type="password"
+                      autoComplete="new-password"
+                      required
+                      disabled={isSubmitting}
+                    />
+                    <span id="password-confirmation-message" aria-live="polite" className={`text-xs font-normal leading-5 ${fieldErrors.passwordConfirmation ? "text-danger" : "text-success"}`}>
+                      {fieldErrors.passwordConfirmation || (touchedFields.passwordConfirmation && passwordConfirmation && passwordConfirmation === password ? "비밀번호가 일치합니다." : "")}
+                    </span>
+                  </label>
+
+                  <label className="grid gap-2 text-sm font-semibold">
                     이메일
                     <input
                       value={email}
@@ -273,6 +301,9 @@ export default function SignUpPage() {
                       placeholder="team@example.com"
                       type="email"
                       autoComplete="email"
+                      autoCapitalize="none"
+                      spellCheck={false}
+                      maxLength={254}
                       required
                       disabled={isSubmitting}
                     />

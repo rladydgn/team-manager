@@ -10,14 +10,31 @@ import org.junit.jupiter.api.Assertions.*
 import org.junit.jupiter.api.Test
 import org.mockito.Mockito.*
 import java.time.LocalDateTime
+import com.yonghoo.team_manager.exception.exception.ApiException
+import com.yonghoo.team_manager.team.dto.TeamUpdateRequest
+import com.yonghoo.team_manager.team.exception.TeamErrorCode
+import org.junit.jupiter.api.assertThrows
+import org.springframework.mock.web.MockMultipartFile
 
 class TeamVisibilityTest {
     private val repository = mock(TeamRepository::class.java)
+    private val logoStorage = mock(TeamLogoStorage::class.java)
     private val service = TeamService(repository, mock(UserRepository::class.java), ObjectMapper(),
-        mock(MatchRepository::class.java), mock(MatchParticipantRepository::class.java))
+        mock(MatchRepository::class.java), mock(MatchParticipantRepository::class.java), logoStorage)
     private val now = LocalDateTime.now()
     private val team = TeamRecord(1, 7, TeamCategory.SOCCER, "테스트 팀", null, null, null,
         null, null, null, null, TeamStatus.ACTIVE, now, now, null)
+
+    @Test
+    fun `일반 팀원의 로고 업로드는 파일 저장 전에 거절한다`() {
+        `when`(repository.selectTeamById(1)).thenReturn(team)
+        `when`(repository.selectActiveMemberRole(1, 7)).thenReturn(TeamMemberRole.MEMBER)
+        assertEquals(TeamErrorCode.TEAM_UPDATE_FORBIDDEN, assertThrows<ApiException> {
+            service.updateTeam(1, 7, TeamUpdateRequest(name = team.name),
+                MockMultipartFile("logo", "logo.png", "image/png", byteArrayOf(1)))
+        }.errorCode)
+        verifyNoInteractions(logoStorage)
+    }
 
     @Test
     fun `비로그인 사용자는 팀 소개만 조회하고 팀원 목록은 조회하지 않는다`() {

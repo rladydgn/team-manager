@@ -6,6 +6,7 @@ import { useAuthSession } from "@/features/auth/model/auth-session";
 import { getTeams, type Team } from "@/features/team/api/team";
 import { Icon } from "@/shared/ui/Icon";
 import { PageHeading } from "@/shared/ui/PageHeading";
+import { TeamLogo } from "@/features/team/ui/TeamLogo";
 
 function MyTeams() {
   const [teams, setTeams] = useState<Team[] | null>(null);
@@ -25,7 +26,7 @@ function MyTeams() {
       {error ? <div className="surface-card px-6 py-8 text-center"><p className="text-sm text-muted">팀을 불러오지 못했습니다.</p><button className="btn-secondary mt-4" onClick={() => { setError(false); setAttempt((value) => value + 1); }}>다시 시도</button></div>
         : !teams ? <div role="status" className="surface-card px-6 py-12 text-sm text-muted">내 팀을 불러오고 있습니다.</div>
         : teams.length === 0 ? <div className="surface-card flex flex-col items-center px-6 py-10 text-center"><span className="mb-4 grid size-12 place-items-center rounded-2xl bg-brand-soft text-brand"><Icon name="users" className="size-5" /></span><h3 className="font-semibold">함께할 팀을 찾아보세요</h3><p className="mt-2 text-sm leading-6 text-muted">팀에 가입하거나 새 팀을 만들어 시작할 수 있습니다.</p><Link href="/team" className="btn-secondary mt-5">팀 찾아보기 <Icon name="arrow" /></Link></div>
-        : <div className="grid gap-3 sm:grid-cols-2 lg:grid-cols-3">{teams.map((team) => <Link key={team.id} href={`/team/${team.id}`} className="surface-card group flex items-center gap-4 p-5 transition-colors hover:border-brand"><span className="grid size-11 shrink-0 place-items-center rounded-xl bg-brand-soft text-sm font-semibold text-brand-ink">{(team.shortName || team.name).slice(0, 2)}</span><div className="min-w-0 flex-1"><h3 className="truncate font-semibold">{team.name}</h3><p className="mt-1 truncate text-xs text-muted">{team.region || "활동 지역 미등록"}</p></div><Icon name="arrow" className="size-4 text-placeholder transition-colors group-hover:text-brand" /></Link>)}</div>}
+        : <div className="grid gap-3 sm:grid-cols-2 lg:grid-cols-3">{teams.map((team) => <Link key={team.id} href={`/team/${team.id}`} className="surface-card group flex items-center gap-4 p-5 transition-colors hover:border-brand"><TeamLogo logoUrl={team.logoUrl} name={team.shortName || team.name} className="size-11 text-sm" /><div className="min-w-0 flex-1"><h3 className="truncate font-semibold">{team.name}</h3><p className="mt-1 truncate text-xs text-muted">{team.region || "활동 지역 미등록"}</p></div><Icon name="arrow" className="size-4 text-placeholder transition-colors group-hover:text-brand" /></Link>)}</div>}
     </section>
   );
 }
