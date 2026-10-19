@@ -13,7 +13,7 @@ import {
   MatchParticipant,
   updateMatchParticipation,
 } from "@/features/match/api/match";
-import { canUpdateMatchParticipation } from "@/features/match/model/participation";
+import { canUpdateMatchParticipation, sortMembersByParticipation } from "@/features/match/model/participation";
 import {
   getMatchResult,
   matchResultPresentation,
@@ -186,6 +186,7 @@ export default function MatchDetailPage() {
         (participant?.assistCount ?? 0) > 0 ||
         (participant?.cleanSheetCount ?? 0) > 0,
     );
+  const participationMembers = sortMembersByParticipation(matchTeamMembers, participants);
 
   function applyParticipantUpdate(updatedParticipant: MatchParticipant) {
     setParticipants((currentParticipants) => {
@@ -508,7 +509,7 @@ export default function MatchDetailPage() {
               </div>
 
               <div className="divide-y divide-line md:hidden">
-                {matchTeamMembers.map((member) => {
+                {participationMembers.map((member) => {
                   const participant = participants.find(
                     (item) => item.teamMemberId === member.id,
                   );
@@ -528,7 +529,6 @@ export default function MatchDetailPage() {
                               {member.name ??
                                 (member.userId ? "가입 팀원" : "미가입 팀원")}
                             </h3>
-                            <PlayerProfileBadges {...member} />
                             {match.matchType === "INTERNAL" && <span className="status-badge">{sideLabels[participant?.teamSide ?? "UNASSIGNED"]}</span>}
                             {isCurrentUser ? (
                               <span className="rounded border border-line-strong bg-brand-soft px-1.5 py-0.5 text-[11px] font-semibold text-brand-ink">
@@ -554,6 +554,18 @@ export default function MatchDetailPage() {
                       </div>
 
                       <dl className="mt-4 grid grid-cols-2 gap-3 rounded-xl bg-subtle p-3 text-xs">
+                        <div>
+                          <dt className="font-medium text-muted">주포지션</dt>
+                          <dd className="mt-1 leading-5 text-secondary">
+                            {member.mainPosition ? <PlayerProfileBadges mainPosition={member.mainPosition} /> : "미설정"}
+                          </dd>
+                        </div>
+                        <div>
+                          <dt className="font-medium text-muted">등번호</dt>
+                          <dd className="mt-1 leading-5 text-secondary">
+                            {member.jerseyNumber != null ? <PlayerProfileBadges jerseyNumber={member.jerseyNumber} /> : "미설정"}
+                          </dd>
+                        </div>
                         <div>
                           <dt className="font-medium text-placeholder">응답 시간</dt>
                           <dd className="mt-1 leading-5 text-secondary">
@@ -604,6 +616,12 @@ export default function MatchDetailPage() {
                       <th scope="col" className="px-5 py-3 sm:px-6">
                         팀원
                       </th>
+                      <th scope="col" className="whitespace-nowrap px-3 py-3">
+                        주포지션
+                      </th>
+                      <th scope="col" className="whitespace-nowrap px-3 py-3">
+                        등번호
+                      </th>
                       <th scope="col" className="px-5 py-3">
                         역할
                       </th>
@@ -619,7 +637,7 @@ export default function MatchDetailPage() {
                     </tr>
                   </thead>
                   <tbody className="divide-y divide-line [&>tr]:transition-colors [&>tr:hover]:bg-canvas">
-                    {matchTeamMembers.map((member) => {
+                    {participationMembers.map((member) => {
                       const participant = participants.find(
                         (participant) => participant.teamMemberId === member.id,
                       );
@@ -636,8 +654,13 @@ export default function MatchDetailPage() {
                           <td className="px-5 py-4 font-semibold text-ink sm:px-6">
                             {member.name ??
                               (member.userId ? "가입 팀원" : "미가입 팀원")}
-                            <span className="ml-2"><PlayerProfileBadges {...member} /></span>
                             {match.matchType === "INTERNAL" && <span className="ml-2 status-badge">{sideLabels[participant?.teamSide ?? "UNASSIGNED"]}</span>}
+                          </td>
+                          <td className="whitespace-nowrap px-3 py-4">
+                            {member.mainPosition ? <PlayerProfileBadges mainPosition={member.mainPosition} /> : <span className="text-muted" aria-label="주포지션 미설정">—</span>}
+                          </td>
+                          <td className="whitespace-nowrap px-3 py-4">
+                            {member.jerseyNumber != null ? <PlayerProfileBadges jerseyNumber={member.jerseyNumber} /> : <span className="text-muted" aria-label="등번호 미설정">—</span>}
                           </td>
                           <td className="px-5 py-4 text-muted">
                             {member.role === "OWNER"

@@ -65,12 +65,23 @@ export function FormationPitch({ template, placements, players, bench, onPlace, 
       </div>
       <aside className="min-w-0 rounded-xl border border-line bg-white p-4 lg:self-start">
         <h3 className="font-semibold">후보 <span className="ml-1 text-brand-ink">{bench.length}명</span></h3>
-        {!bench.length ? <p className="mt-4 text-sm text-muted">후보 선수가 없어요.</p> : <ul className="mt-3 divide-y divide-line">
-          {bench.map((player) => <li key={player.teamMemberId} draggable={editable} onDragStart={(event) => drag(event, player.teamMemberId)}
-            className={`py-3 text-sm ${editable ? "cursor-grab" : ""}`}>
-            <span className="block break-words font-medium">{player.name}</span><PlayerProfileBadges {...player} />
-          </li>)}
-        </ul>}
+        {!bench.length ? <p className="mt-4 text-sm text-muted">후보 선수가 없어요.</p> : <>
+          <div aria-hidden="true" className="mt-4 grid grid-cols-[minmax(0,1fr)_3.5rem_3.5rem] gap-2 border-b border-line pb-2 text-xs font-medium text-muted">
+            <span>선수</span><span className="text-center">주포지션</span><span className="text-center">등번호</span>
+          </div>
+          <ul className="divide-y divide-line">
+            {bench.map((player) => <li key={player.teamMemberId} draggable={editable} onDragStart={(event) => drag(event, player.teamMemberId)}
+              className={`grid grid-cols-[minmax(0,1fr)_3.5rem_3.5rem] items-center gap-2 py-3 text-sm ${editable ? "cursor-grab" : ""}`}>
+              <span className="min-w-0 break-words font-medium">{player.name}</span>
+              <span className="text-center">
+                {player.mainPosition ? <PlayerProfileBadges mainPosition={player.mainPosition} /> : <span className="text-muted" aria-label="주포지션 미설정">—</span>}
+              </span>
+              <span className="text-center">
+                {player.jerseyNumber != null ? <PlayerProfileBadges jerseyNumber={player.jerseyNumber} /> : <span className="text-muted" aria-label="등번호 미설정">—</span>}
+              </span>
+            </li>)}
+          </ul>
+        </>}
       </aside>
     </div>
     <dialog ref={dialog} onCancel={(event) => { event.preventDefault(); close(); }} onClose={close}
@@ -91,6 +102,7 @@ export function FormationPitch({ template, placements, players, bench, onPlace, 
             onClick={() => { onPlace?.(selectedSlot!, player.teamMemberId); close(); }}>
             <span className="block break-words text-sm font-medium">{player.name}</span>
             <PlayerProfileBadges {...player} />
+            {players.filter((item) => item.name === player.name).length > 1 && <span className="mr-2 text-xs text-muted">팀원 #{player.teamMemberId}</span>}
             <span className="text-xs text-muted">{current ? template.slots.find((slot) => slot.id === current.slotId)?.label : "후보"}</span>
           </button></li>;
         })}</ul>

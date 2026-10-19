@@ -1,6 +1,6 @@
 import type { PlayerPosition, PlayerProfile } from "../api/team";
 
-const positionColors: Record<PlayerPosition, string> = {
+export const positionColors: Record<PlayerPosition, string> = {
   CB: "bg-brand-soft text-brand-ink border-brand-ring",
   WB: "bg-brand-soft text-brand-ink border-brand-ring",
   MF: "bg-success-soft text-success border-success-line",

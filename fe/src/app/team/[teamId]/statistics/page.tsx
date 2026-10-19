@@ -42,8 +42,8 @@ const statisticSortLabels: Record<TeamAttendanceSortBy, string> = {
 };
 
 const statisticHelp: Partial<Record<TeamAttendanceSortBy, string>> = {
-  ATTENDANCE_RATE: "참석 투표 수 ÷ 본인이 참가 명단에 포함된 경기 수 × 100입니다. 훈련과 예정 경기도 포함하며, 취소 경기는 제외합니다. 불참·미투표·미정도 분모에 포함되지만, 명단에 없는 경기는 제외됩니다. 예: 10경기 중 참석 투표 8회 = 80%. 실제 출석 여부와는 별개입니다.",
-  TRAINING_ATTENDANCE_RATE: "조회 기간의 훈련 중 참석 투표 수 ÷ 본인이 참가 명단에 포함된 훈련 수 × 100입니다. 경기 출석과 같은 기준이며, 일반 경기는 제외합니다. 대상 훈련이 없으면 0%입니다.",
+  ATTENDANCE_RATE: "(참석 투표 수 − 투표 후 불참 수) ÷ 본인이 참가 명단에 포함된 경기 수 × 100입니다. 종료되었거나 양 팀 점수가 모두 기록된 경기에서 실제 불참한 경우를 뺍니다. 훈련과 예정 경기도 포함하며, 취소 경기는 제외합니다. 불참·미투표·미정도 분모에 포함되지만, 명단에 없는 경기는 제외됩니다. 예: 대상 10경기, 참석 투표 8회, 투표 후 불참 1회 = 70%.",
+  TRAINING_ATTENDANCE_RATE: "조회 기간의 훈련 중 (참석 투표 수 − 투표 후 불참 수) ÷ 본인이 참가 명단에 포함된 훈련 수 × 100입니다. 종료되었거나 양 팀 점수가 모두 기록된 훈련에서 실제 불참한 경우를 뺍니다. 예정 훈련은 포함하고, 일반 경기와 취소된 훈련은 제외합니다. 대상 훈련이 없으면 0%입니다.",
   POST_VOTE_ABSENCE_COUNT: "참석으로 투표했지만 경기 기록에 실제 참여가 체크되지 않은 횟수입니다. 종료된 경기 또는 양 팀 점수가 모두 기록된 경기만 계산합니다. 훈련도 포함합니다.",
   LATE_COUNT: "경기 기록에서 실제 참여와 지각이 모두 체크된 횟수입니다. 종료된 경기 또는 양 팀 점수가 모두 기록된 경기만 계산합니다. 훈련도 포함합니다.",
   GOAL_COUNT: "조회 기간의 경기 기록에 입력된 선수의 골 합계입니다. 훈련을 포함하고 취소 경기는 제외합니다.",
@@ -333,7 +333,7 @@ export default function TeamStatisticsPage() {
                 <div>
                   <h2 className="text-lg font-semibold text-ink">선수별 기록</h2>
                   <p className="mt-1 text-sm text-muted">{statistics.startDate}부터 {statistics.endDate}까지</p>
-                  <p className="mt-1 text-xs text-muted">출석률은 실제 출석이 아닌 참석 투표 기준입니다. 항목 옆 ⓘ에서 계산 방법을 확인하세요.</p>
+                  <p className="mt-1 text-xs text-muted">출석률은 참석 투표에서 기록된 투표 후 불참을 제외해 계산합니다. 예정 경기도 포함하며, 항목 옆 ⓘ에서 계산 방법을 확인하세요.</p>
                   <p className="mt-1 text-xs font-semibold text-brand">정렬: {statisticSortLabels[sortBy]} {sortDirection === "ASC" ? "오름차순" : "내림차순"}</p>
                 </div>
                 <span className="shrink-0 text-sm font-semibold text-brand-ink">총 {statistics.totalElements}명</span>
@@ -380,8 +380,8 @@ export default function TeamStatisticsPage() {
                       <thead className="bg-subtle text-xs font-semibold text-muted">
                         <tr>
                           <SortableHeader label="선수" sortKey="NAME" activeSort={sortBy} direction={sortDirection} onSort={toggleStatisticSort} className="px-6 text-left" />
-                          <SortableHeader label="경기 출석 (투표/대상)" sortKey="ATTENDANCE_RATE" activeSort={sortBy} direction={sortDirection} onSort={toggleStatisticSort} />
-                          <SortableHeader label="훈련 출석 (투표/대상)" sortKey="TRAINING_ATTENDANCE_RATE" activeSort={sortBy} direction={sortDirection} onSort={toggleStatisticSort} />
+                          <SortableHeader label="경기 출석 (출석/대상)" sortKey="ATTENDANCE_RATE" activeSort={sortBy} direction={sortDirection} onSort={toggleStatisticSort} />
+                          <SortableHeader label="훈련 출석 (출석/대상)" sortKey="TRAINING_ATTENDANCE_RATE" activeSort={sortBy} direction={sortDirection} onSort={toggleStatisticSort} />
                           <SortableHeader label="투표 후 불참" sortKey="POST_VOTE_ABSENCE_COUNT" activeSort={sortBy} direction={sortDirection} onSort={toggleStatisticSort} />
                           <SortableHeader label="지각" sortKey="LATE_COUNT" activeSort={sortBy} direction={sortDirection} onSort={toggleStatisticSort} />
                           <SortableHeader label="골" sortKey="GOAL_COUNT" activeSort={sortBy} direction={sortDirection} onSort={toggleStatisticSort} />

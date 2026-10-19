@@ -4,7 +4,7 @@ import com.yonghoo.team_manager.match.dto.FormationSlot
 import com.yonghoo.team_manager.match.dto.FormationTemplate
 
 object FormationTemplates {
-    val all = listOf("4-4-2", "4-3-3", "4-2-3-1", "4-1-4-1", "4-3-1-2", "3-5-2", "3-4-3", "5-3-2")
+    val all = listOf("4-4-2", "4-3-3", "4-2-3-1", "4-1-4-1", "4-1-2-3", "4-3-1-2", "3-5-2", "3-4-3", "5-3-2")
         .map { id ->
             val rows = id.split('-').map(String::toInt)
             FormationTemplate(id, id, listOf(FormationSlot("GK", "골키퍼", 0.5, 0.90)) +

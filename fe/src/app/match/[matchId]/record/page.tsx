@@ -150,6 +150,8 @@ export default function MatchRecordPage() {
           joinedAt: null,
           requestedAt: "",
         }
+      ).sort((left, right) =>
+        getPlayerName(left).localeCompare(getPlayerName(right), "ko") || left.id - right.id
       );
       const nextStatistics = nextRecordMembers.reduce<Record<number, PlayerStatistics>>(
         (statistics, member) => {

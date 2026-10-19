@@ -50,12 +50,14 @@ class MatchFormationTest {
     }
 
     @Test
-    fun `eight templates contain eleven unique fixed slots`() {
-        assertEquals(8, FormationTemplates.all.size)
+    fun `nine templates including 4-1-2-3 contain eleven unique fixed slots`() {
+        assertEquals(9, FormationTemplates.all.size)
         for (template in FormationTemplates.all) {
             assertEquals(11, template.slots.map { it.id }.distinct().size)
             assertTrue(template.slots.all { it.x in 0.0..1.0 && it.y in 0.0..1.0 })
         }
+        val template = FormationTemplates.all.single { it.id == "4-1-2-3" }
+        assertEquals(listOf(4, 1, 2, 3), (1..4).map { row -> template.slots.count { it.id.startsWith("R${row}_") } })
     }
 
     @Test

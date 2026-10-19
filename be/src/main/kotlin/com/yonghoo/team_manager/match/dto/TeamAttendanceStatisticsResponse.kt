@@ -35,11 +35,12 @@ data class TeamAttendanceStatisticsResponse(
 data class TeamAttendanceMemberResponse(
     val teamMemberId: Long,
     val name: String,
-    /** Available votes across all eligible matches, including training. */
+    /** Available votes excluding recorded no-shows, including training. */
     val attendanceCount: Int,
     /** Matches with this member on the participant list, including training. */
     val eligibleMatchCount: Int,
     val attendanceRate: Double,
+    /** Available training votes excluding recorded no-shows. */
     val trainingAttendanceCount: Int,
     val trainingEligibleMatchCount: Int,
     val trainingAttendanceRate: Double,

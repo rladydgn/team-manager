@@ -226,24 +226,6 @@ class MatchService(
             .toList()
         val trainingMatchIds = trainingMatches.map(MatchRecord::id).toSet()
         val trainingMatchParticipants = matchParticipants.filter { it.matchId in trainingMatchIds }
-        val eligibleMatchCountByMemberId = matchParticipants
-            .asSequence()
-            .groupingBy { it.teamMemberId }
-            .eachCount()
-        val attendanceCountByMemberId = matchParticipants
-            .asSequence()
-            .filter { it.voteStatus == MatchParticipantStatus.AVAILABLE }
-            .groupingBy { it.teamMemberId }
-            .eachCount()
-        val trainingEligibleMatchCountByMemberId = trainingMatchParticipants
-            .asSequence()
-            .groupingBy { it.teamMemberId }
-            .eachCount()
-        val trainingAttendanceCountByMemberId = trainingMatchParticipants
-            .asSequence()
-            .filter { it.voteStatus == MatchParticipantStatus.AVAILABLE }
-            .groupingBy { it.teamMemberId }
-            .eachCount()
         val recordedMatchIds = matches
             .asSequence()
             .filter {
@@ -252,13 +234,28 @@ class MatchService(
             }
             .map(MatchRecord::id)
             .toSet()
-        val postVoteAbsenceCountByMemberId = matchParticipants
+        val (postVoteAbsences, attendanceParticipants) = matchParticipants
+            .filter { it.voteStatus == MatchParticipantStatus.AVAILABLE }
+            .partition { it.matchId in recordedMatchIds && !it.actualParticipated }
+        val eligibleMatchCountByMemberId = matchParticipants
             .asSequence()
-            .filter {
-                it.matchId in recordedMatchIds &&
-                    it.voteStatus == MatchParticipantStatus.AVAILABLE &&
-                    !it.actualParticipated
-            }
+            .groupingBy { it.teamMemberId }
+            .eachCount()
+        val attendanceCountByMemberId = attendanceParticipants
+            .asSequence()
+            .groupingBy { it.teamMemberId }
+            .eachCount()
+        val trainingEligibleMatchCountByMemberId = trainingMatchParticipants
+            .asSequence()
+            .groupingBy { it.teamMemberId }
+            .eachCount()
+        val trainingAttendanceCountByMemberId = attendanceParticipants
+            .asSequence()
+            .filter { it.matchId in trainingMatchIds }
+            .groupingBy { it.teamMemberId }
+            .eachCount()
+        val postVoteAbsenceCountByMemberId = postVoteAbsences
+            .asSequence()
             .groupingBy { it.teamMemberId }
             .eachCount()
         val lateCountByMemberId = matchParticipants

@@ -109,6 +109,7 @@ export function FormationPage({ matchId, mode = "view", formationId }: { matchId
               </div>
             </div>
             {selected.placements.some((item) => !item.eligible) && <p className="mb-5 rounded-lg bg-danger-soft p-3 text-sm text-danger">참석 명단 또는 편 배정이 바뀌었어요. 제외된 선수의 배치를 수정해 주세요.</p>}
+            {!data.attendingPlayers.length && <p className="mb-4 text-sm text-muted">참석 투표한 선수가 없어요.</p>}
             {data.templates.find((item) => item.id === selected.templateId) && <FormationPitch key={selected.id} template={data.templates.find((item) => item.id === selected.templateId)!}
               placements={selected.placements} players={data.attendingPlayers.filter((player) => player.side === selected.side)} bench={getBench(data.attendingPlayers, selected.placements, selected.side)} />}
           </div>}

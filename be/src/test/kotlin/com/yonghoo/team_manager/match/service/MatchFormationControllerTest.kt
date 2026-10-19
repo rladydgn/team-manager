@@ -25,7 +25,7 @@ class MatchFormationControllerTest {
     fun `malformed JSON null fields numeric strings and fractions return 400`() {
         val base = """{"title":"1쿼터","side":"HOME","templateId":"4-4-2","placements":[]}"""
         for (body in listOf("{", "{}", base.replace("\"1쿼터\"", "null"), base.replace("\"1쿼터\"", "123"),
-            base.replace("[]", "null"), base.replace("[]", """[{"slotId":"GK","teamMemberId":1.5}]"""),
+            base.replace("[]", "null"), base.replace("[]", "[null]"), base.replace("[]", """[{"slotId":"GK","teamMemberId":1.5}]"""),
             base.replace("[]", """[{"slotId":"GK","teamMemberId":"1"}]"""))) {
             mvc.perform(post("/matches/1/formations").requestAttr(AUTHENTICATED_USER_ID_ATTRIBUTE, 10L)
                 .contentType(MediaType.APPLICATION_JSON).content(body)).andExpect(status().isBadRequest)
