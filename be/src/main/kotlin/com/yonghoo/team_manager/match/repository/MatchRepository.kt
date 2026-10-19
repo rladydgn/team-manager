@@ -10,10 +10,15 @@ import org.jetbrains.exposed.v1.core.and
 import org.jetbrains.exposed.v1.core.eq
 import org.jetbrains.exposed.v1.core.isNull
 import org.springframework.stereotype.Repository
+import org.jetbrains.exposed.v1.jdbc.selectAll
 import java.time.LocalDateTime
 
 @Repository
 class MatchRepository {
+    fun lockMatch(matchId: Long) {
+        MatchesTable.selectAll().where { MatchesTable.id eq matchId }.forUpdate().toList()
+    }
+
     fun createMatch(
         createdByUserId: Long,
         request: MatchCreateRequest,

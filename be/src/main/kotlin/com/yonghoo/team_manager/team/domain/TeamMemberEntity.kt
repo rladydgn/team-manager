@@ -11,6 +11,8 @@ class TeamMemberEntity(id: EntityID<Long>) : LongEntity(id) {
     var userId: Long? by TeamMembersTable.userId
     var displayName by TeamMembersTable.displayName
     var memo by TeamMembersTable.memo
+    var mainPosition by TeamMembersTable.mainPosition
+    var jerseyNumber by TeamMembersTable.jerseyNumber
     var role by TeamMembersTable.role
     var status by TeamMembersTable.status
     var joinedAt by TeamMembersTable.joinedAt

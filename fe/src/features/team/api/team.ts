@@ -40,7 +40,14 @@ export type TeamUpdateRequest = {
   teamColor?: string;
 };
 
-export type TeamMember = {
+export type PlayerPosition = "CB" | "WB" | "MF" | "FW" | "WF";
+
+export type PlayerProfile = {
+  mainPosition: PlayerPosition | null;
+  jerseyNumber: number | null;
+};
+
+export type TeamMember = PlayerProfile & {
   id: number;
   userId: number | null;
   name: string | null;
@@ -54,6 +61,8 @@ export type TeamMember = {
 export type TeamMemberCreateRequest = {
   displayName: string;
   role: "MEMBER" | "GUEST";
+  mainPosition?: PlayerPosition | null;
+  jerseyNumber?: number | null;
 };
 
 export type TeamMemberRoleUpdateRequest = {
@@ -107,6 +116,10 @@ export function addTeamMember(teamId: number, request: TeamMemberCreateRequest) 
 
 export function updateTeamMemberMemo(teamId: number, teamMemberId: number, memo: string) {
   return putJson<TeamMember, { memo: string }>(`/teams/${teamId}/members/${teamMemberId}/memo`, { memo });
+}
+
+export function updateTeamMemberPlayerProfile(teamId: number, teamMemberId: number, profile: PlayerProfile) {
+  return putJson<TeamMember, PlayerProfile>(`/teams/${teamId}/members/${teamMemberId}/player-profile`, profile);
 }
 
 export function deleteTeamMemberMemo(teamId: number, teamMemberId: number) {

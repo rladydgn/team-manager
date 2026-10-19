@@ -22,7 +22,8 @@ export function getPageAccess(pathname: string): PageAccess {
     const id = resourceId(resource);
     if (!id) return { kind: "missing" };
     if (section === "match") {
-      return { kind: "match", id, permission: rest.length ? "manager" : "member" };
+      const memberPage = rest.length === 0 || (rest.length === 1 && rest[0] === "formations");
+      return { kind: "match", id, permission: memberPage ? "member" : "manager" };
     }
     const memberPages = ["member", "match", "statistics", "ranking"];
     const permission = !rest.length ? "public"

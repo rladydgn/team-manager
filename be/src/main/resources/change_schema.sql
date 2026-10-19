@@ -148,3 +148,37 @@ CREATE TABLE inquiries (
     PRIMARY KEY (id),
     KEY idx_inquiries_user_created (user_id, deleted_at, created_at, id)
 );
+
+-- Preserve all existing HOME/AWAY assignments.
+ALTER TABLE matches ADD COLUMN side_assignment_version BIGINT NOT NULL DEFAULT 1;
+ALTER TABLE match_participants MODIFY COLUMN team_side ENUM('HOME', 'AWAY', 'UNASSIGNED') NOT NULL DEFAULT 'HOME';
+
+-- Match formations: HOME and AWAY share the per-match limit; application validates relationships.
+CREATE TABLE match_formations (
+    id BIGINT UNSIGNED NOT NULL AUTO_INCREMENT,
+    match_id BIGINT UNSIGNED NOT NULL,
+    title VARCHAR(50) NOT NULL,
+    side VARCHAR(20) NOT NULL,
+    template_id VARCHAR(20) NOT NULL,
+    version BIGINT NOT NULL DEFAULT 1,
+    created_by_user_id BIGINT UNSIGNED NOT NULL,
+    updated_by_user_id BIGINT UNSIGNED NOT NULL,
+    created_at DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP,
+    updated_at DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP,
+    deleted_at DATETIME NULL,
+    PRIMARY KEY (id),
+    KEY idx_match_formations_match_deleted (match_id, deleted_at)
+);
+CREATE TABLE match_formation_placements (
+    id BIGINT UNSIGNED NOT NULL AUTO_INCREMENT,
+    formation_id BIGINT UNSIGNED NOT NULL,
+    slot_id VARCHAR(20) NOT NULL,
+    team_member_id BIGINT UNSIGNED NOT NULL,
+    PRIMARY KEY (id),
+    KEY idx_match_formation_placements_formation (formation_id)
+);
+
+-- Optional player profile; jersey numbers may be shared by teammates.
+ALTER TABLE team_members
+    ADD COLUMN main_position VARCHAR(2) NULL,
+    ADD COLUMN jersey_number INT NULL;

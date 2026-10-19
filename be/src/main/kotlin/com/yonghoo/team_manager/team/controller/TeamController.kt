@@ -8,6 +8,7 @@ import com.yonghoo.team_manager.team.dto.TeamMemberResponse
 import com.yonghoo.team_manager.team.dto.TeamMemberCreateRequest
 import com.yonghoo.team_manager.team.dto.TeamJoinRequestApprovalRequest
 import com.yonghoo.team_manager.team.dto.TeamMemberMemoUpdateRequest
+import com.yonghoo.team_manager.team.dto.TeamMemberPlayerProfileRequest
 import com.yonghoo.team_manager.team.dto.TeamMemberRoleUpdateRequest
 import com.yonghoo.team_manager.team.dto.TeamResponse
 import com.yonghoo.team_manager.team.dto.TeamUpdateRequest
@@ -172,6 +173,19 @@ class TeamController(
     ): ResponseEntity<CommonResponse<List<TeamResponse>>> {
         return ResponseEntity.ok(CommonResponse(data = teamService.getTeams(userId)))
     }
+
+    @Operation(summary = "팀원 주포지션 및 등번호 수정")
+    @PutMapping("/{teamId}/members/{teamMemberId}/player-profile")
+    fun updateTeamMemberPlayerProfile(
+        @PathVariable teamId: Long,
+        @PathVariable teamMemberId: Long,
+        @RequestAttribute(name = AUTHENTICATED_USER_ID_ATTRIBUTE, required = false) userId: Long?,
+        @RequestBody request: TeamMemberPlayerProfileRequest,
+    ): ResponseEntity<CommonResponse<TeamMemberResponse>> = ResponseEntity.ok(
+        CommonResponse(data = teamService.updateTeamMemberPlayerProfile(
+            teamId, teamMemberId, requireAuthenticatedUserId(userId), request,
+        )),
+    )
 
     @Operation(summary = "비회원 팀원 추가")
     @PostMapping("/{teamId}/members/manual")

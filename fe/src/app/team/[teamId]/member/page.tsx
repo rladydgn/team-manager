@@ -2,7 +2,7 @@
 
 import Link from "next/link";
 import { useParams } from "next/navigation";
-import { FormEvent, useCallback, useEffect, useState } from "react";
+import { FormEvent, Fragment, useCallback, useEffect, useState } from "react";
 import { useCurrentUser } from "@/features/auth/model/auth-session";
 import {
   getTeam,
@@ -12,11 +12,15 @@ import {
   removeTeamMember,
   TeamDetail,
   TeamMember,
+  PlayerPosition,
   updateTeamMemberMemo,
   updateTeamMemberRole,
 } from "@/features/team/api/team";
 import { PageHeading } from "@/shared/ui/PageHeading";
 import { TeamDetailTabs } from "@/features/team/ui/TeamDetailTabs";
+import { PlayerProfileBadges } from "@/features/team/ui/PlayerProfileBadges";
+import { PlayerProfileFields } from "@/features/team/ui/PlayerProfileFields";
+import { PlayerProfileEditor } from "@/features/team/ui/PlayerProfileEditor";
 
 const roleLabels: Record<TeamMember["role"], string> = {
   OWNER: "팀장",
@@ -45,6 +49,9 @@ export default function TeamMembersPage() {
   const [isLoading, setIsLoading] = useState(true);
   const [errorMessage, setErrorMessage] = useState("");
   const [displayName, setDisplayName] = useState("");
+  const [mainPosition, setMainPosition] = useState<PlayerPosition | "">("");
+  const [jerseyNumber, setJerseyNumber] = useState("");
+  const [editingMemberId, setEditingMemberId] = useState<number | null>(null);
   const [memberRole, setMemberRole] = useState<"MEMBER" | "GUEST">("GUEST");
   const [isAddingMember, setIsAddingMember] = useState(false);
   const [changingRoleMemberId, setChangingRoleMemberId] = useState<number | null>(null);
@@ -114,8 +121,13 @@ export default function TeamMembersPage() {
     setIsAddingMember(true);
     setErrorMessage("");
     try {
-      await addTeamMember(teamId, { displayName: displayName.trim(), role: memberRole });
+      await addTeamMember(teamId, {
+        displayName: displayName.trim(), role: memberRole,
+        mainPosition: mainPosition || null, jerseyNumber: jerseyNumber === "" ? null : Number(jerseyNumber),
+      });
       setDisplayName("");
+      setMainPosition("");
+      setJerseyNumber("");
       await loadTeam();
     } catch (error) {
       setErrorMessage(error instanceof Error ? error.message : "팀원을 추가하지 못했습니다.");
@@ -221,7 +233,7 @@ export default function TeamMembersPage() {
           <section className="flex min-h-72 items-center justify-center rounded-xl border border-line bg-white">
             <p className="text-sm font-semibold text-muted">팀원 목록을 불러오는 중입니다.</p>
           </section>
-        ) : errorMessage ? (
+        ) : errorMessage && !teamDetail ? (
           <section className="rounded-xl border border-danger-line bg-white px-5 py-12 text-center">
             <h1 className="text-xl font-semibold text-ink">팀원 목록을 불러올 수 없습니다.</h1>
             <p className="mt-3 text-sm leading-6 text-danger">{errorMessage}</p>
@@ -251,12 +263,13 @@ export default function TeamMembersPage() {
         ) : teamDetail ? (
           <>
             <section className="flex flex-col gap-3 sm:flex-row sm:items-end sm:justify-between">
-              <PageHeading label={teamDetail.team.name} title="팀원" description="활동 중인 팀원의 역할과 가입 정보를 확인하세요." />
+              <PageHeading label={teamDetail.team.name} title="팀원" description="팀원의 주포지션, 등번호와 가입 정보를 확인하세요." />
               <span className="w-fit rounded-lg border border-line-strong bg-brand-soft px-3 py-1.5 text-sm font-semibold text-brand-ink">
                 총 {members.length}명
               </span>
             </section>
 
+            {errorMessage && <p role="alert" className="text-sm text-danger">{errorMessage}</p>}
             {canManageFees ? (
               <form onSubmit={handleAddMember} className="grid gap-3 rounded-xl border border-line bg-white p-4 sm:grid-cols-[minmax(0,1fr)_auto_auto] sm:items-end">
                 <label className="grid gap-1.5 text-sm font-semibold text-secondary">
@@ -270,7 +283,13 @@ export default function TeamMembersPage() {
                     <option value="MEMBER">비회원 팀원</option>
                   </select>
                 </label>
-                <button type="submit" disabled={isAddingMember || !displayName.trim()} className="inline-flex h-10 items-center justify-center rounded-lg bg-brand px-4 text-sm font-semibold text-white transition-colors hover:bg-brand-hover disabled:cursor-not-allowed disabled:bg-brand-disabled">
+                <div className="sm:col-span-3 sm:row-start-2">
+                  <fieldset disabled={isAddingMember}>
+                    <PlayerProfileFields mainPosition={mainPosition} jerseyNumber={jerseyNumber} onPositionChange={setMainPosition} onNumberChange={setJerseyNumber} />
+                  </fieldset>
+                  <p className="mt-2 text-xs text-muted">등번호는 0~99이며 같은 팀에서 중복으로 사용할 수 있습니다.</p>
+                </div>
+                <button type="submit" disabled={isAddingMember || !displayName.trim()} className="inline-flex h-10 items-center justify-center rounded-lg bg-brand px-4 text-sm font-semibold text-white transition-colors hover:bg-brand-hover disabled:cursor-not-allowed disabled:bg-brand-disabled sm:col-start-3 sm:row-start-1">
                   {isAddingMember ? "추가 중..." : "팀원 추가"}
                 </button>
               </form>
@@ -282,9 +301,9 @@ export default function TeamMembersPage() {
                   아직 등록된 팀원이 없습니다.
                 </div>
               ) : (
-                <div className="overflow-x-auto">
-                  <table className="w-full min-w-[50rem] text-left text-sm">
-                    <thead className="bg-subtle text-xs font-semibold text-muted">
+                <div>
+                  <table className="block w-full text-left text-sm lg:table">
+                    <thead className="hidden bg-subtle text-xs font-semibold text-muted lg:table-header-group">
                       <tr>
                         <th scope="col" className="px-5 py-3 sm:px-6">이름</th>
                         <th scope="col" className="px-5 py-3">가입일</th>
@@ -293,19 +312,24 @@ export default function TeamMembersPage() {
                         {canManageFees ? <th scope="col" className="px-5 py-3 text-right">관리</th> : null}
                       </tr>
                     </thead>
-                    <tbody className="divide-y divide-line">
+                    <tbody className="block divide-y divide-line lg:table-row-group">
                       {members.map((member) => (
-                        <tr key={member.id}>
-                          <td className="px-5 py-4 font-semibold text-ink sm:px-6">
+                        <Fragment key={member.id}>
+                        <tr className="block py-3 lg:table-row lg:py-0">
+                          <td className="block px-5 py-2 font-semibold text-ink sm:px-6 lg:table-cell lg:py-4">
+                            <span className="block break-words">
                             {member.name ?? (member.userId ? "가입 팀원" : "미가입 팀원")}
+                            </span>
+                            <span className="mt-1 block"><PlayerProfileBadges {...member} /></span>
                           </td>
-                          <td className="px-5 py-4 text-muted">
+                          <td className="block px-5 py-2 text-muted lg:table-cell lg:py-4">
+                            <span className="mr-2 lg:hidden">가입일</span>
                             {formatJoinedAt(member.joinedAt)}
                           </td>
-                          <td className="max-w-64 px-5 py-4 text-muted">
+                          <td className="block px-5 py-2 text-muted lg:table-cell lg:max-w-48 lg:py-4">
                             <p className="truncate">{member.memo || "메모 없음"}</p>
                           </td>
-                          <td className="px-5 py-4 text-right sm:px-6">
+                          <td className="block px-5 py-2 sm:px-6 lg:table-cell lg:py-4 lg:text-right">
                             {canManageRoles && member.role !== "OWNER" ? (
                               <select
                                 value={member.role}
@@ -335,8 +359,9 @@ export default function TeamMembersPage() {
                             )}
                           </td>
                           {canManageFees ? (
-                            <td className="px-5 py-4 text-right">
-                              <div className="flex justify-end gap-2">
+                            <td className="block px-5 py-2 lg:table-cell lg:py-4 lg:text-right">
+                              <div className="flex flex-wrap gap-2 lg:justify-end">
+                                <button type="button" onClick={() => setEditingMemberId(member.id)} disabled={editingMemberId !== null || removingMemberId === member.id} className="btn-secondary px-2.5 text-xs">선수 정보</button>
                                 <button type="button" onClick={() => void handleMemo(member)} disabled={removingMemberId === member.id} className="rounded-lg border border-line-strong bg-brand-soft px-2.5 py-1 text-xs font-semibold text-brand-ink hover:bg-brand-soft disabled:cursor-not-allowed disabled:opacity-60">
                                   메모 관리
                                 </button>
@@ -349,6 +374,13 @@ export default function TeamMembersPage() {
                             </td>
                           ) : null}
                         </tr>
+                        {editingMemberId === member.id && <tr className="block lg:table-row"><td colSpan={5} className="block p-4 lg:table-cell">
+                          <PlayerProfileEditor teamId={teamId} member={member} onCancel={() => setEditingMemberId(null)} onSaved={(updated) => {
+                            setTeamDetail((detail) => detail ? { ...detail, members: detail.members.map((item) => item.id === updated.id ? updated : item) } : detail);
+                            setEditingMemberId(null);
+                          }} />
+                        </td></tr>}
+                        </Fragment>
                       ))}
                     </tbody>
                   </table>

@@ -12,6 +12,7 @@ import org.jetbrains.exposed.v1.core.eq
 import org.jetbrains.exposed.v1.core.inList
 import org.jetbrains.exposed.v1.core.isNull
 import org.springframework.stereotype.Repository
+import org.jetbrains.exposed.v1.jdbc.selectAll
 import java.time.LocalDateTime
 
 @Repository
@@ -20,13 +21,14 @@ class MatchParticipantRepository {
         matchId: Long,
         teamMemberIds: List<Long>,
     ): List<MatchParticipantRecord> {
+        val initialSide = lockMatchForParticipantWrite(matchId)
         val now = LocalDateTime.now()
 
         return teamMemberIds.map { teamMemberId ->
             val participant = MatchParticipantEntity.new {
                 this.matchId = matchId
                 this.teamMemberId = teamMemberId
-                teamSide = MatchTeamSide.HOME
+                teamSide = initialSide
                 voteStatus = MatchParticipantStatus.PENDING
                 actualParticipated = false
                 late = false
@@ -47,13 +49,14 @@ class MatchParticipantRepository {
         matchId: Long,
         participants: List<HistoricalMatchParticipantCreateRequest>,
     ): List<MatchParticipantRecord> {
+        val initialSide = lockMatchForParticipantWrite(matchId)
         val now = LocalDateTime.now()
 
         return participants.map { participantRequest ->
             val participant = MatchParticipantEntity.new {
                 this.matchId = matchId
                 teamMemberId = participantRequest.teamMemberId
-                teamSide = MatchTeamSide.HOME
+                teamSide = initialSide
                 voteStatus = participantRequest.voteStatus
                 actualParticipated = participantRequest.voteStatus == MatchParticipantStatus.AVAILABLE
                 late = false
@@ -74,6 +77,7 @@ class MatchParticipantRepository {
         matchId: Long,
         participants: List<HistoricalMatchParticipantCreateRequest>,
     ): List<MatchParticipantRecord> {
+        val initialSide = lockMatchForParticipantWrite(matchId)
         val existingParticipants = MatchParticipantEntity.find {
             MatchParticipantsTable.matchId eq matchId
         }.toList()
@@ -100,7 +104,7 @@ class MatchParticipantRepository {
                 ?: MatchParticipantEntity.new {
                     this.matchId = matchId
                     teamMemberId = participantRequest.teamMemberId
-                    teamSide = MatchTeamSide.HOME
+                    teamSide = initialSide
                     voteStatus = participantRequest.voteStatus
                     actualParticipated = participantRequest.voteStatus == MatchParticipantStatus.AVAILABLE
                     late = false
@@ -137,14 +141,15 @@ class MatchParticipantRepository {
         memo: String?,
         shouldUpdateMemo: Boolean,
     ): MatchParticipantRecord {
+        val initialSide = lockMatchForParticipantWrite(matchId)
         val now = LocalDateTime.now()
         val existingParticipant = MatchParticipantEntity.find {
             (MatchParticipantsTable.matchId eq matchId) and
-                (MatchParticipantsTable.teamMemberId eq teamMemberId) and
-                MatchParticipantsTable.deletedAt.isNull()
-        }.firstOrNull()
+                (MatchParticipantsTable.teamMemberId eq teamMemberId)
+        }.toList().sortedWith(compareBy<MatchParticipantEntity> { it.deletedAt != null }.thenByDescending { it.id.value }).firstOrNull()
 
         if (existingParticipant != null) {
+            existingParticipant.deletedAt = null
             val voteStatusChanged = existingParticipant.voteStatus != voteStatus
             existingParticipant.voteStatus = voteStatus
             if (shouldUpdateMemo) {
@@ -160,7 +165,7 @@ class MatchParticipantRepository {
         val participant = MatchParticipantEntity.new {
             this.matchId = matchId
             this.teamMemberId = teamMemberId
-            teamSide = MatchTeamSide.HOME
+            teamSide = initialSide
             this.voteStatus = voteStatus
             actualParticipated = false
             late = false
@@ -180,11 +185,12 @@ class MatchParticipantRepository {
         matchId: Long,
         teamMemberId: Long,
     ) {
-        val participant = MatchParticipantEntity.find {
+        lockMatchForParticipantWrite(matchId)
+        val participant = MatchParticipantEntity.wrapRows(MatchParticipantsTable.selectAll().where {
             (MatchParticipantsTable.matchId eq matchId) and
                 (MatchParticipantsTable.teamMemberId eq teamMemberId) and
                 MatchParticipantsTable.deletedAt.isNull()
-        }.firstOrNull() ?: return
+        }.forUpdate()).firstOrNull() ?: return
         val now = LocalDateTime.now()
 
         participant.deletedAt = now
@@ -195,6 +201,7 @@ class MatchParticipantRepository {
         matchId: Long,
         statistics: List<MatchParticipantStatisticsUpdateRequest>,
     ): List<MatchParticipantRecord> {
+        lockMatchForParticipantWrite(matchId)
         val existingByMemberId = MatchParticipantEntity.find {
             (MatchParticipantsTable.matchId eq matchId) and MatchParticipantsTable.deletedAt.isNull()
         }

@@ -114,6 +114,7 @@ class MatchService(
         userId: Long,
         request: HistoricalMatchParticipantsUpdateRequest,
     ): MatchResponse {
+        matchRepository.lockMatch(matchId)
         val match = getMatchAndValidateViewPermission(matchId, userId)
         validateMatchRecordManager(match.teamId, userId)
         if (match.matchAt.isAfter(LocalDateTime.now())) {
@@ -177,6 +178,7 @@ class MatchService(
 
             MatchParticipantResponse(
                 teamMemberId = participant.teamMemberId,
+                teamSide = participant.teamSide,
                 voteStatus = participant.voteStatus,
                 actualParticipated = participant.actualParticipated,
                 late = participant.late,
@@ -187,6 +189,8 @@ class MatchService(
                 respondedAt = participant.respondedAt,
                 name = member?.displayName,
                 role = member?.role,
+                mainPosition = member?.mainPosition,
+                jerseyNumber = member?.jerseyNumber,
             )
         }
     }
@@ -464,6 +468,7 @@ class MatchService(
         userId: Long,
         request: MatchParticipationUpdateRequest,
     ): MatchParticipantResponse {
+        matchRepository.lockMatch(matchId)
         if (request.voteStatus !in setOf(MatchParticipantStatus.AVAILABLE, MatchParticipantStatus.UNAVAILABLE)) {
             throw ApiException(MatchErrorCode.INVALID_MATCH_PARTICIPATION_REQUEST)
         }
@@ -482,6 +487,7 @@ class MatchService(
 
         return MatchParticipantResponse(
             teamMemberId = participant.teamMemberId,
+            teamSide = participant.teamSide,
             voteStatus = participant.voteStatus,
             actualParticipated = participant.actualParticipated,
             late = participant.late,
@@ -490,6 +496,10 @@ class MatchService(
             cleanSheetCount = participant.cleanSheetCount,
             memo = participant.memo,
             respondedAt = participant.respondedAt,
+            name = teamMember.displayName,
+            role = teamMember.role,
+            mainPosition = teamMember.mainPosition,
+            jerseyNumber = teamMember.jerseyNumber,
         )
     }
 
@@ -498,6 +508,7 @@ class MatchService(
         userId: Long,
         request: MatchRecordUpdateRequest,
     ): MatchResponse {
+        matchRepository.lockMatch(matchId)
         val match = getMatchAndValidateViewPermission(matchId, userId)
         validateMatchRecordManager(match.teamId, userId)
 

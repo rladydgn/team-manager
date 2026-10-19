@@ -14,6 +14,8 @@ data class TeamMemberRecord(
     val createdAt: LocalDateTime,
     val updatedAt: LocalDateTime,
     val deletedAt: LocalDateTime?,
+    val mainPosition: PlayerPosition? = null,
+    val jerseyNumber: Int? = null,
 ) {
     companion object {
         fun from(teamMember: TeamMemberEntity): TeamMemberRecord {
@@ -23,6 +25,8 @@ data class TeamMemberRecord(
                 userId = teamMember.userId,
                 displayName = teamMember.displayName,
                 memo = teamMember.memo,
+                mainPosition = teamMember.mainPosition,
+                jerseyNumber = teamMember.jerseyNumber,
                 role = teamMember.role,
                 status = teamMember.status,
                 joinedAt = teamMember.joinedAt,

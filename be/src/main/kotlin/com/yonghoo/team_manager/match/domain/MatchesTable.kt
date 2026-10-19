@@ -6,6 +6,7 @@ import java.time.LocalDateTime
 
 object MatchesTable : LongIdTable("matches") {
     val teamId = long("team_id")
+    val sideAssignmentVersion = long("side_assignment_version").default(1)
     val matchType = enumerationByName("match_type", 20, MatchType::class)
     val isTraining = bool("is_training").default(false)
     val opponentTeamId = long("opponent_team_id").nullable()

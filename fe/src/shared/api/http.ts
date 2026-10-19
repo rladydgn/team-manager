@@ -99,13 +99,22 @@ function shouldRefreshAccessCookie(path: string) {
 }
 
 export async function getJson<TResponse>(
-  path: string
+  path: string,
+  options: Pick<RequestInit, "cache"> = {},
 ): Promise<ApiResponse<TResponse>> {
   const response = await requestWithAccessRefresh(path, {
+    ...options,
     headers: createHeaders(),
     credentials: "include",
   });
 
+  return resolveResponse<TResponse>(response);
+}
+
+export async function patchJson<TResponse, TBody>(path: string, body: TBody): Promise<ApiResponse<TResponse>> {
+  const response = await requestWithAccessRefresh(path, {
+    method: "PATCH", headers: createHeaders(true), body: JSON.stringify(body), credentials: "include",
+  });
   return resolveResponse<TResponse>(response);
 }
 

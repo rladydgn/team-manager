@@ -16,6 +16,7 @@ data class MatchParticipantRecord(
     val respondedAt: LocalDateTime?,
     val createdAt: LocalDateTime,
     val updatedAt: LocalDateTime,
+    val teamSide: MatchTeamSide = MatchTeamSide.HOME,
 ) {
     companion object {
         fun from(participant: MatchParticipantEntity): MatchParticipantRecord {
@@ -23,6 +24,7 @@ data class MatchParticipantRecord(
                 id = participant.id.value,
                 matchId = participant.matchId,
                 teamMemberId = participant.teamMemberId,
+                teamSide = participant.teamSide,
                 voteStatus = participant.voteStatus,
                 actualParticipated = participant.actualParticipated,
                 late = participant.late,

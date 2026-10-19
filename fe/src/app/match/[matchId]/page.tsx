@@ -1,6 +1,8 @@
 "use client";
 
 import Link from "next/link";
+import { PlayerProfileBadges } from "@/features/team/ui/PlayerProfileBadges";
+import { sideLabels } from "@/features/match/api/formations";
 import { MatchTrainingBadge } from "@/features/match/ui/MatchTrainingBadge";
 import { useParams } from "next/navigation";
 import { useCallback, useEffect, useState } from "react";
@@ -163,6 +165,8 @@ export default function MatchDetailPage() {
       userId: null,
       name: participant.name ?? "내보낸 팀원",
       memo: null,
+      mainPosition: participant.mainPosition,
+      jerseyNumber: participant.jerseyNumber,
       role: participant.role ?? "MEMBER",
       status: "LEFT" as const,
       joinedAt: null,
@@ -390,6 +394,11 @@ export default function MatchDetailPage() {
               </div>
             </section>
 
+            <section className="surface-card flex flex-wrap items-center justify-between gap-4 p-5 sm:p-6">
+              <div><h2 className="text-lg font-semibold">포메이션</h2><p className="mt-1 text-sm text-muted">쿼터별 선수 배치와 후보를 확인하세요.</p></div>
+              <Link href={`/match/${match.id}/formations`} className="btn-secondary">포메이션 보기</Link>
+            </section>
+
             {noticeMessage ? (
               <p className="rounded-lg border border-line-strong bg-brand-soft px-4 py-3 text-sm font-medium text-brand-ink">
                 {noticeMessage}
@@ -464,6 +473,7 @@ export default function MatchDetailPage() {
                       <div key={member.id} className="flex items-center justify-between gap-4 px-5 py-4 sm:px-6">
                         <p className="min-w-0 truncate font-semibold text-ink">
                           {member.name ?? (member.userId ? "가입 팀원" : "미가입 팀원")}
+                          <span className="ml-2"><PlayerProfileBadges {...member} /></span>
                         </p>
                         <div className="flex shrink-0 items-center gap-2 text-xs font-semibold sm:text-sm">
                           {(participant?.goalCount ?? 0) > 0 ? <span className="rounded-lg border border-line-strong bg-brand-soft px-2.5 py-1 text-brand-ink">골 {participant?.goalCount}</span> : null}
@@ -488,6 +498,9 @@ export default function MatchDetailPage() {
                   <p className="mt-1 text-sm text-muted">
                     참여/불참 투표 현황입니다. 참가 명단에 있어도 참석 확정은 아니며, 실제 출석은 경기 기록에서 별도로 입력합니다.
                   </p>
+                  {match.matchType === "INTERNAL" && canManageMatchRecord && match.status !== "CANCELED" && (
+                    <Link href={`/match/${match.id}/formations/sides`} className="btn-secondary mt-3">편 배정 관리</Link>
+                  )}
                 </div>
                 <span className="w-fit rounded-lg border border-line-strong bg-brand-soft px-2.5 py-1 text-xs font-semibold text-brand-ink">
                   {match.availableParticipantCount}명 참여
@@ -515,6 +528,8 @@ export default function MatchDetailPage() {
                               {member.name ??
                                 (member.userId ? "가입 팀원" : "미가입 팀원")}
                             </h3>
+                            <PlayerProfileBadges {...member} />
+                            {match.matchType === "INTERNAL" && <span className="status-badge">{sideLabels[participant?.teamSide ?? "UNASSIGNED"]}</span>}
                             {isCurrentUser ? (
                               <span className="rounded border border-line-strong bg-brand-soft px-1.5 py-0.5 text-[11px] font-semibold text-brand-ink">
                                 나
@@ -621,6 +636,8 @@ export default function MatchDetailPage() {
                           <td className="px-5 py-4 font-semibold text-ink sm:px-6">
                             {member.name ??
                               (member.userId ? "가입 팀원" : "미가입 팀원")}
+                            <span className="ml-2"><PlayerProfileBadges {...member} /></span>
+                            {match.matchType === "INTERNAL" && <span className="ml-2 status-badge">{sideLabels[participant?.teamSide ?? "UNASSIGNED"]}</span>}
                           </td>
                           <td className="px-5 py-4 text-muted">
                             {member.role === "OWNER"

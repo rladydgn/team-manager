@@ -16,6 +16,7 @@ import com.yonghoo.team_manager.team.dto.TeamMemberResponse
 import com.yonghoo.team_manager.team.dto.TeamMemberCreateRequest
 import com.yonghoo.team_manager.team.dto.TeamJoinRequestApprovalRequest
 import com.yonghoo.team_manager.team.dto.TeamMemberMemoUpdateRequest
+import com.yonghoo.team_manager.team.dto.TeamMemberPlayerProfileRequest
 import com.yonghoo.team_manager.team.dto.TeamMemberRoleUpdateRequest
 import com.yonghoo.team_manager.team.dto.TeamResponse
 import com.yonghoo.team_manager.team.dto.TeamUpdateRequest
@@ -25,6 +26,7 @@ import com.yonghoo.team_manager.user.repository.UserRepository
 import org.springframework.stereotype.Service
 import org.springframework.transaction.annotation.Transactional
 import java.time.LocalDateTime
+import java.math.BigDecimal
 import org.springframework.web.multipart.MultipartFile
 
 @Transactional
@@ -145,6 +147,7 @@ class TeamService(
         validateTeamExists(teamId)
         validateTeamUpdatePermission(teamId, userId)
         val displayName = request.displayName.trim()
+        val jerseyNumber = normalizeJerseyNumber(request.jerseyNumber)
 
         if (displayName.isBlank() || displayName.length > TEAM_MEMBER_NAME_MAX_LENGTH ||
             request.role !in setOf(TeamMemberRole.MEMBER, TeamMemberRole.GUEST)
@@ -157,10 +160,37 @@ class TeamService(
                 userId = null,
                 displayName = displayName,
                 role = request.role,
+                mainPosition = request.mainPosition,
+                jerseyNumber = jerseyNumber,
             )
         createDefaultParticipantsForUpcomingMatches(teamId, teamMember.id)
 
         return TeamMemberResponse.from(teamMember)
+    }
+
+    fun updateTeamMemberPlayerProfile(
+        teamId: Long,
+        teamMemberId: Long,
+        userId: Long,
+        request: TeamMemberPlayerProfileRequest,
+    ): TeamMemberResponse {
+        validateTeamExists(teamId)
+        validateTeamUpdatePermission(teamId, userId)
+        val jerseyNumber = normalizeJerseyNumber(request.jerseyNumber)
+        val member = teamRepository.selectTeamMemberById(teamId, teamMemberId)
+            ?.takeIf { it.status == TeamMemberStatus.ACTIVE }
+            ?: throw ApiException(TeamErrorCode.TEAM_MEMBER_NOT_FOUND)
+        return TeamMemberResponse.from(
+            teamRepository.updateTeamMemberPlayerProfile(member.id, request.mainPosition, jerseyNumber),
+        )
+    }
+
+    private fun normalizeJerseyNumber(jerseyNumber: BigDecimal?): Int? {
+        if (jerseyNumber == null) return null
+        if (jerseyNumber < BigDecimal.ZERO || jerseyNumber > BigDecimal(99) || jerseyNumber.stripTrailingZeros().scale() > 0) {
+            throw ApiException(TeamErrorCode.INVALID_JERSEY_NUMBER)
+        }
+        return jerseyNumber.toInt()
     }
 
     fun updateTeamMemberMemo(
@@ -244,8 +274,8 @@ class TeamService(
             throw ApiException(TeamErrorCode.TEAM_MEMBER_REMOVAL_FORBIDDEN)
         }
 
-        teamRepository.updateTeamMemberStatus(targetMember.id, TeamMemberStatus.LEFT)
         removeParticipantFromUpcomingMatches(teamId, targetMember.id)
+        teamRepository.updateTeamMemberStatus(targetMember.id, TeamMemberStatus.LEFT)
     }
 
     @Transactional(readOnly = true)
@@ -448,6 +478,7 @@ class TeamService(
         val openMatchIds = matchRepository.selectMatchesByTeamId(teamId)
             .filter { it.status == MatchStatus.SCHEDULED && it.matchAt.isAfter(now) }
             .map { it.id }
+            .sorted()
 
         openMatchIds.forEach { matchId ->
             matchParticipantRepository.createDefaultParticipants(matchId, listOf(teamMemberId))

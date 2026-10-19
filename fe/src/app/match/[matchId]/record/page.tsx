@@ -143,6 +143,8 @@ export default function MatchRecordPage() {
           userId: null,
           name: participant.name ?? "내보낸 팀원",
           memo: null,
+          mainPosition: participant.mainPosition,
+          jerseyNumber: participant.jerseyNumber,
           role: participant.role ?? "MEMBER",
           status: "LEFT" as const,
           joinedAt: null,

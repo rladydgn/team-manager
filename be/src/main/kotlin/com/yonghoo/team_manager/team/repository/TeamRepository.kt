@@ -1,6 +1,7 @@
 package com.yonghoo.team_manager.team.repository
 
 import com.yonghoo.team_manager.team.domain.TeamEntity
+import com.yonghoo.team_manager.team.domain.PlayerPosition
 import com.yonghoo.team_manager.team.domain.TeamHistoryAction
 import com.yonghoo.team_manager.team.domain.TeamHistoryEntity
 import com.yonghoo.team_manager.team.domain.TeamMemberEntity
@@ -96,6 +97,8 @@ class TeamRepository {
         displayName: String,
         role: TeamMemberRole,
         status: TeamMemberStatus = TeamMemberStatus.ACTIVE,
+        mainPosition: PlayerPosition? = null,
+        jerseyNumber: Int? = null,
     ): TeamMemberRecord {
         val now = LocalDateTime.now()
         val teamMember = TeamMemberEntity.new {
@@ -103,6 +106,8 @@ class TeamRepository {
             this.userId = userId
             this.displayName = displayName
             memo = null
+            this.mainPosition = mainPosition
+            this.jerseyNumber = jerseyNumber
             this.role = role
             this.status = status
             joinedAt = now.takeIf { status == TeamMemberStatus.ACTIVE }
@@ -212,6 +217,18 @@ class TeamRepository {
         teamMember.memo = memo
         teamMember.updatedAt = LocalDateTime.now()
         return TeamMemberRecord.from(teamMember)
+    }
+
+    fun updateTeamMemberPlayerProfile(
+        teamMemberId: Long,
+        mainPosition: PlayerPosition?,
+        jerseyNumber: Int?,
+    ): TeamMemberRecord {
+        val member = TeamMemberEntity[teamMemberId]
+        member.mainPosition = mainPosition
+        member.jerseyNumber = jerseyNumber
+        member.updatedAt = LocalDateTime.now()
+        return TeamMemberRecord.from(member)
     }
 
     fun linkTeamMemberToUser(

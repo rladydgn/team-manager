@@ -72,6 +72,8 @@ CREATE TABLE team_members (
     user_id BIGINT UNSIGNED NULL,
     display_name VARCHAR(50) NOT NULL,
     memo VARCHAR(500) NULL,
+    main_position VARCHAR(2) NULL,
+    jersey_number INT NULL,
     role ENUM('OWNER', 'SUB_MANAGER', 'MEMBER', 'GUEST') NOT NULL DEFAULT 'MEMBER',
     status ENUM('ACTIVE', 'PENDING', 'REJECTED', 'LEFT', 'BANNED') NOT NULL DEFAULT 'ACTIVE',
     joined_at DATETIME NULL,
@@ -119,6 +121,7 @@ CREATE TABLE team_fee_payments (
 );
 
 CREATE TABLE matches (
+    side_assignment_version BIGINT NOT NULL DEFAULT 1,
     id BIGINT UNSIGNED NOT NULL AUTO_INCREMENT,
     team_id BIGINT UNSIGNED NOT NULL,
     match_type ENUM('EXTERNAL', 'INTERNAL') NOT NULL DEFAULT 'EXTERNAL',
@@ -167,7 +170,7 @@ CREATE TABLE match_participants (
     id BIGINT UNSIGNED NOT NULL AUTO_INCREMENT,
     match_id BIGINT UNSIGNED NOT NULL,
     team_member_id BIGINT UNSIGNED NOT NULL,
-    team_side ENUM('HOME', 'AWAY') NOT NULL DEFAULT 'HOME',
+    team_side ENUM('HOME', 'AWAY', 'UNASSIGNED') NOT NULL DEFAULT 'HOME',
     vote_status ENUM('INVITED', 'AVAILABLE', 'UNAVAILABLE', 'PENDING') NOT NULL DEFAULT 'PENDING',
     actual_participated TINYINT(1) NOT NULL DEFAULT 0,
     late TINYINT(1) NOT NULL DEFAULT 0,
@@ -199,4 +202,29 @@ CREATE TABLE inquiries (
     deleted_at DATETIME NULL,
     PRIMARY KEY (id),
     KEY idx_inquiries_user_created (user_id, deleted_at, created_at, id)
+);
+
+-- Match formations: HOME and AWAY share the per-match limit; application validates relationships.
+CREATE TABLE match_formations (
+    id BIGINT UNSIGNED NOT NULL AUTO_INCREMENT,
+    match_id BIGINT UNSIGNED NOT NULL,
+    title VARCHAR(50) NOT NULL,
+    side VARCHAR(20) NOT NULL,
+    template_id VARCHAR(20) NOT NULL,
+    version BIGINT NOT NULL DEFAULT 1,
+    created_by_user_id BIGINT UNSIGNED NOT NULL,
+    updated_by_user_id BIGINT UNSIGNED NOT NULL,
+    created_at DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP,
+    updated_at DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP,
+    deleted_at DATETIME NULL,
+    PRIMARY KEY (id),
+    KEY idx_match_formations_match_deleted (match_id, deleted_at)
+);
+CREATE TABLE match_formation_placements (
+    id BIGINT UNSIGNED NOT NULL AUTO_INCREMENT,
+    formation_id BIGINT UNSIGNED NOT NULL,
+    slot_id VARCHAR(20) NOT NULL,
+    team_member_id BIGINT UNSIGNED NOT NULL,
+    PRIMARY KEY (id),
+    KEY idx_match_formation_placements_formation (formation_id)
 );

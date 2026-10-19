@@ -1,4 +1,5 @@
 import { getJson, postJson, putJson } from "@/shared/api/http";
+import type { PlayerProfile } from "@/features/team/api/team";
 
 export type MatchType = "EXTERNAL" | "INTERNAL";
 export type MatchParticipationStatus =
@@ -61,7 +62,8 @@ export type Match = {
   myVoteStatus: MatchParticipationStatus;
 };
 
-export type MatchParticipant = {
+export type MatchParticipant = PlayerProfile & {
+  teamSide: "HOME" | "AWAY" | "UNASSIGNED";
   teamMemberId: number;
   voteStatus: MatchParticipationStatus;
   actualParticipated: boolean;
