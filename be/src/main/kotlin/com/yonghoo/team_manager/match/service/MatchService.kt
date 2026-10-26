@@ -612,6 +612,7 @@ class MatchService(
     ): MatchRecord {
         val match = matchRepository.selectMatchById(matchId)
             ?: throw ApiException(MatchErrorCode.MATCH_NOT_FOUND)
+        validateTeamExists(match.teamId)
         validateMatchViewPermission(match.teamId, userId)
         return match
     }

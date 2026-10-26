@@ -11,6 +11,9 @@ import com.yonghoo.team_manager.match.dto.MatchResponse
 import com.yonghoo.team_manager.match.exception.MatchErrorCode
 import com.yonghoo.team_manager.match.repository.MatchParticipantRepository
 import com.yonghoo.team_manager.match.repository.MatchRepository
+import com.yonghoo.team_manager.team.domain.TeamCategory
+import com.yonghoo.team_manager.team.domain.TeamRecord
+import com.yonghoo.team_manager.team.domain.TeamStatus
 import com.yonghoo.team_manager.team.domain.TeamMemberRecord
 import com.yonghoo.team_manager.team.domain.TeamMemberRole
 import com.yonghoo.team_manager.team.domain.TeamMemberStatus
@@ -47,6 +50,10 @@ class MatchNotesTest {
 
     @BeforeEach
     fun setup() {
+        `when`(teams.selectTeamById(2)).thenReturn(
+            TeamRecord(2, 3, TeamCategory.SOCCER, "테스트 팀", null, null, null,
+                null, null, null, null, TeamStatus.ACTIVE, now, now, null),
+        )
         `when`(matches.selectMatchById(1)).thenReturn(match)
         `when`(teams.existsActiveMember(2, 3)).thenReturn(true)
         setRole(TeamMemberRole.OWNER)

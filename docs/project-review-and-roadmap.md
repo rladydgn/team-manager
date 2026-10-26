@@ -80,7 +80,7 @@ team-manager/
 | F08 | 시즌 수정·보관 | P2 | 중 | 기능 공백 확인 |
 | F09 | 문의 답변 기능 완성 | P2 | 대 | 의도적으로 미구현된 범위 |
 | F10 | 과거 명단 편집 시 기존 참가자·기록 보존 | P1 | 중 | 저장 경로에서 누락·합계 불일치 확인 |
-| F11 | 삭제된 팀의 하위 경기 API 접근 검사 | P1 | 소~중 | 서버 검사 누락 확인 |
+| F11 | 삭제된 팀의 하위 경기 API 접근 검사 | P1 | 소~중 | 2026-10-26 수정·관련 회귀 41개 통과 |
 | T01 | 회비·역할·기록의 동시 수정 보호 | P1 | 중 | 코드상 위험, 동시 요청 검증 필요 |
 | T02 | 자동 검증과 배포 확인 | P1 | 중 | 저장소 설정에서 누락 확인 |
 | T03 | 대량 조회·중복 요청·화면 책임 정리 | P2 | 중 | 구조 확인, 효과 측정 필요 |
@@ -209,7 +209,7 @@ team-manager/
 
 ### F11. 삭제된 팀의 경기 API 접근 조건 일치
 
-**현재:** 팀 삭제는 팀을 `INACTIVE`로 바꾸고 `deletedAt`을 설정한다. 마지막 팀장의 팀원 기록과 경기 기록은 그대로 남는다. 팀·통계·포메이션 조회는 팀 상태를 검사하지만, `MatchService.getMatchAndValidateViewPermission()`은 경기 존재와 활성 팀원 여부만 검사한다. 이때 팀원 검사도 부모 팀 상태를 읽지 않는다.
+**2026-10-23 점검 당시:** 팀 삭제는 팀을 `INACTIVE`로 바꾸고 `deletedAt`을 설정한다. 마지막 팀장의 팀원 기록과 경기 기록은 그대로 남는다. 팀·통계·포메이션 조회는 팀 상태를 검사하지만, `MatchService.getMatchAndValidateViewPermission()`은 경기 존재와 활성 팀원 여부만 검사한다. 이때 팀원 검사도 부모 팀 상태를 읽지 않는다.
 
 **영향:** 삭제 전 마지막 팀장의 유효한 로그인 상태에서 기존 경기 ID로 직접 요청하면 경기 상세·참가 명단·메모 및 일부 쓰기 경로가 부모 팀 삭제를 감지하지 못한다. 프런트의 팀 조회가 404를 표시하더라도 서버 API에 같은 검사가 필요하다. 타인의 계정이나 다른 팀 권한으로 접근 가능하다는 주장은 아니다.
 
@@ -218,6 +218,10 @@ team-manager/
 **완료 기준:** 마지막 팀장이 팀을 삭제한 뒤 기존 경기의 조회·메모·기록·투표·과거 명단 수정 API를 직접 호출해도 404로 거절한다. 활성 팀의 정상 경기 접근은 유지한다. FE 가드를 거치지 않는 API 회귀 테스트로 검증한다.
 
 근거: [TeamService.kt](../be/src/main/kotlin/com/yonghoo/team_manager/team/service/TeamService.kt)의 `deleteTeam`; [TeamRepository.kt](../be/src/main/kotlin/com/yonghoo/team_manager/team/repository/TeamRepository.kt)의 `softDeleteTeam`, `existsActiveMember`; [MatchService.kt](../be/src/main/kotlin/com/yonghoo/team_manager/match/service/MatchService.kt)의 `getMatchAndValidateViewPermission`; 비교 대상은 [MatchFormationRepository.kt](../be/src/main/kotlin/com/yonghoo/team_manager/match/repository/MatchFormationRepository.kt)의 `role`.
+
+**2026-10-26 구현 결과:** 공통 경기 접근 진입점에 `validateTeamExists(match.teamId)`를 추가했다. 기존 `selectTeamById`가 ACTIVE·미삭제 팀만 반환하므로 삭제/비활성 부모 팀을 공통 404로 차단한다. 포메이션·편 배정의 기존 부모 팀 검사는 유지했다. 스키마·저장 데이터·FE 변경은 없다.
+
+**검증:** 실제 TeamService로 마지막 팀장이 삭제한 뒤에도 ACTIVE 팀원·경기 기록이 남은 상태에서 상세·참가자·메모·투표·기록·과거 명단·포메이션·편 배정 14개 요청의 404를 확인했다. 상태만 INACTIVE, deletedAt만 설정한 경우도 차단하며 활성 팀의 4개 역할과 비팀원 제한을 검증했다. [신규 API 회귀 테스트](../be/src/test/kotlin/com/yonghoo/team_manager/match/service/DeletedTeamMatchAccessTest.kt) 8개를 포함해 관련 41개 테스트가 통과했다. H2·MockMvc 및 인증 후 사용자 속성 주입 기반 검증이며 실제 JWT 쿠키 E2E·MySQL 동시 요청·배포 검증은 아니다. 상세 명령과 남은 범위는 [작업 기록](project-improvement-work-plan.md#7-결정작업-기록-양식)을 참고한다.
 
 ## 4. 추가하면 유용한 기능
 
@@ -348,7 +352,7 @@ FE 테스트 실행 시 모듈 형식 자동 판별 경고가 있었으나 테�
 
 ## 9. 우선 항목의 재현·인수 시나리오
 
-아래는 코드에서 확인한 경로를 테스트로 고정하기 위한 절차다. 운영 데이터 대신 격리된 테스트 데이터로 실행한다. ‘수정 후 기준’은 앞으로 구현할 목표이며 현재 통과를 주장하지 않는다.
+아래는 코드에서 확인한 경로를 테스트로 고정하기 위한 절차다. 운영 데이터 대신 격리된 테스트 데이터로 실행한다. ‘수정 후 기준’은 2026-10-23 점검 당시의 목표다. F11은 2026-10-26 관련 회귀 검증을 완료했으며, 나머지 항목의 통과를 주장하지 않는다.
 
 | ID | 준비·동작 | 현재 코드에서 예상되는 결과 | 수정 후 기준 |
 | --- | --- | --- | --- |
