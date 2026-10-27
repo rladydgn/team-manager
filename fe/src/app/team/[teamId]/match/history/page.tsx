@@ -8,13 +8,16 @@ import {
   getMatch,
   getMatchParticipants,
   HistoricalMatchParticipantCreateRequest,
+  MatchParticipant,
+  MatchParticipationStatus,
   MatchType,
   updateHistoricalMatchParticipants,
 } from "@/features/match/api/match";
 import { useCurrentUser } from "@/features/auth/model/auth-session";
-import { getTeam, TeamDetail, TeamMember } from "@/features/team/api/team";
+import { getTeam, TeamDetail } from "@/features/team/api/team";
+import { buildHistoricalRoster, HistoricalRosterMember, selectHistoricalMembers } from "@/features/match/model/historical-roster";
 
-type HistoricalParticipantStatus = HistoricalMatchParticipantCreateRequest["voteStatus"];
+type HistoricalParticipantStatus = MatchParticipationStatus;
 
 const matchTypes: { value: MatchType; label: string }[] = [
   { value: "EXTERNAL", label: "외부전" },
@@ -31,11 +34,7 @@ function toDateTimeLocalValue(value: Date) {
   return localValue.toISOString().slice(0, 16);
 }
 
-function getMemberName(member: TeamMember) {
-  return member.name ?? (member.userId ? "가입 팀원" : "미가입 팀원");
-}
-
-function getMemberRole(member: TeamMember) {
+function getMemberRole(member: HistoricalRosterMember) {
   if (member.role === "OWNER") {
     return "팀장";
   }
@@ -57,6 +56,7 @@ export default function HistoricalMatchCreatePage() {
   const isEditMode = Number.isInteger(historicalMatchId) && historicalMatchId > 0;
   const currentUser = useCurrentUser();
   const [teamDetail, setTeamDetail] = useState<TeamDetail | null>(null);
+  const [existingParticipants, setExistingParticipants] = useState<MatchParticipant[]>([]);
   const [matchType, setMatchType] = useState<MatchType>("EXTERNAL");
   const [isTraining, setIsTraining] = useState(false);
   const [opponentTeamName, setOpponentTeamName] = useState("");
@@ -88,7 +88,7 @@ export default function HistoricalMatchCreatePage() {
         ]);
         const historicalMatch = matchResponse.data;
 
-        if (!historicalMatch || historicalMatch.teamId !== teamId) {
+        if (!historicalMatch || historicalMatch.teamId !== teamId || !participantsResponse.data) {
           throw new Error("이전 경기 정보를 불러오지 못했습니다.");
         }
 
@@ -97,21 +97,12 @@ export default function HistoricalMatchCreatePage() {
         setOpponentTeamName(historicalMatch.opponentTeamName ?? "");
         setMatchAt(toDateTimeLocalValue(new Date(historicalMatch.matchAt)));
         setLocation(historicalMatch.location ?? "");
-        setParticipantStatusByMemberId(
-          (participantsResponse.data ?? []).reduce<
-            Record<number, HistoricalParticipantStatus>
-          >(
-            (next, participant) => ({
-              ...next,
-              [participant.teamMemberId]:
-                participant.voteStatus === "UNAVAILABLE"
-                  ? "UNAVAILABLE"
-                  : "AVAILABLE",
-            }),
-            {}
-          )
-        );
+        setExistingParticipants(participantsResponse.data);
+        setParticipantStatusByMemberId(Object.fromEntries(
+          participantsResponse.data.map((participant) => [participant.teamMemberId, participant.voteStatus])
+        ));
       } else {
+        setExistingParticipants([]);
         setParticipantStatusByMemberId({});
       }
       setTeamDetail(response.data);
@@ -138,7 +129,16 @@ export default function HistoricalMatchCreatePage() {
   );
   const canCreateMatch =
     currentMember?.role === "OWNER" || currentMember?.role === "SUB_MANAGER";
-  const members = teamDetail?.members ?? [];
+  const members = useMemo(
+    () => buildHistoricalRoster(teamDetail?.members ?? [], existingParticipants),
+    [teamDetail?.members, existingParticipants]
+  );
+  const memberGroups = isEditMode
+    ? [
+        { label: "기존 참가자", members: members.filter((member) => member.originalVoteStatus !== undefined) },
+        { label: "추가 가능한 팀원", members: members.filter((member) => member.originalVoteStatus === undefined) },
+      ]
+    : [{ label: "", members }];
   const selectedMemberCount = Object.keys(participantStatusByMemberId).length;
   const areAllMembersSelected =
     members.length > 0 && members.every((member) => member.id in participantStatusByMemberId);
@@ -151,7 +151,8 @@ export default function HistoricalMatchCreatePage() {
         return remaining;
       }
 
-      return { ...current, [memberId]: "AVAILABLE" };
+      const originalVoteStatus = members.find((member) => member.id === memberId)?.originalVoteStatus;
+      return { ...current, [memberId]: current[memberId] ?? originalVoteStatus ?? "AVAILABLE" };
     });
   }
 
@@ -161,12 +162,7 @@ export default function HistoricalMatchCreatePage() {
       return;
     }
 
-    setParticipantStatusByMemberId(
-      members.reduce<Record<number, HistoricalParticipantStatus>>(
-        (next, member) => ({ ...next, [member.id]: "AVAILABLE" }),
-        {}
-      )
-    );
+    setParticipantStatusByMemberId((current) => selectHistoricalMembers(members, current));
   }
 
   function updateMemberStatus(memberId: number, voteStatus: HistoricalParticipantStatus) {
@@ -215,7 +211,12 @@ export default function HistoricalMatchCreatePage() {
                 : undefined,
             matchAt,
             location: cleanOptionalValue(location),
-            participants,
+            participants: participants.map((participant): HistoricalMatchParticipantCreateRequest => {
+              if (participant.voteStatus !== "AVAILABLE" && participant.voteStatus !== "UNAVAILABLE") {
+                throw new Error("새 경기의 참가자는 참여 또는 불참을 선택해 주세요.");
+              }
+              return { ...participant, voteStatus: participant.voteStatus };
+            }),
           });
 
       if (!response.data) {
@@ -318,26 +319,36 @@ export default function HistoricalMatchCreatePage() {
                 <p><strong className="font-semibold text-ink">체크박스</strong>는 이 경기의 참가 명단·출석률 계산에 포함할 선수를 정합니다. 해제하면 이 경기는 해당 선수의 출석률 계산에서 빠집니다.</p>
                 <p><strong className="font-semibold text-ink">참여/불참</strong>은 명단에 포함된 선수의 투표입니다. 불참한 선수도 체크를 유지하고 ‘불참’을 선택하세요. 실제 출석은 다음 경기 기록 입력에서 확인·수정하세요.</p>
               </div>
+              {isEditMode ? (
+                <p className="border-b border-line px-4 py-3 text-sm leading-6 text-muted sm:px-5">기존 참가자는 현재 팀 소속과 관계없이 표시됩니다. 미응답·초대 상태도 직접 바꾸지 않으면 유지됩니다.</p>
+              ) : null}
               <div className="divide-y divide-line" aria-describedby="participant-selection-help">
-                {members.map((member) => {
-                  const voteStatus = participantStatusByMemberId[member.id];
-                  const isSelected = voteStatus !== undefined;
-                  return (
-                    <div key={member.id} className="grid gap-3 px-4 py-3 sm:grid-cols-[minmax(0,1fr)_9rem] sm:items-center sm:px-5">
-                      <label className="flex min-w-0 items-center gap-3">
-                        <input type="checkbox" checked={isSelected} onChange={(event) => toggleMember(member.id, event.target.checked)} className="size-4 shrink-0 accent-brand" />
-                        <span className="min-w-0">
-                          <span className="block truncate font-semibold text-ink">{getMemberName(member)}</span>
-                          <span className="mt-0.5 block text-xs text-muted">{getMemberRole(member)}</span>
-                        </span>
-                      </label>
-                      <select aria-label={`${getMemberName(member)} 참여/불참 투표`} value={voteStatus ?? "AVAILABLE"} onChange={(event) => updateMemberStatus(member.id, event.target.value as HistoricalParticipantStatus)} disabled={!isSelected} className="h-10 rounded-lg border border-line-strong bg-white px-3 text-sm font-semibold text-brand-ink outline-none focus:border-brand disabled:cursor-not-allowed disabled:bg-subtle disabled:text-placeholder">
-                        <option value="AVAILABLE">참여</option>
-                        <option value="UNAVAILABLE">불참</option>
-                      </select>
-                    </div>
-                  );
-                })}
+                {memberGroups.filter((group) => group.members.length > 0).map((group) => (
+                  <section key={group.label} className="divide-y divide-line">
+                    {group.label ? <h3 className="bg-subtle px-4 py-3 text-sm font-semibold text-secondary sm:px-5">{group.label} · {group.members.length}명</h3> : null}
+                    {group.members.map((member) => {
+                      const voteStatus = participantStatusByMemberId[member.id];
+                      const isSelected = voteStatus !== undefined;
+                      return (
+                        <div key={member.id} className="grid gap-3 px-4 py-3 sm:grid-cols-[minmax(0,1fr)_9rem] sm:items-center sm:px-5">
+                          <label className="flex min-w-0 items-center gap-3">
+                            <input type="checkbox" checked={isSelected} onChange={(event) => toggleMember(member.id, event.target.checked)} className="size-4 shrink-0 accent-brand" />
+                            <span className="min-w-0">
+                              <span className="block truncate font-semibold text-ink">{member.name}</span>
+                              <span className="mt-0.5 block text-xs text-muted">{getMemberRole(member)}{!member.isActive ? " · 현재 팀원 명단에 없음" : ""}</span>
+                            </span>
+                          </label>
+                          <select aria-label={`${member.name} 투표 상태`} value={voteStatus ?? "AVAILABLE"} onChange={(event) => updateMemberStatus(member.id, event.target.value as HistoricalParticipantStatus)} disabled={!isSelected} className="h-11 min-w-0 rounded-lg border border-line-strong bg-white px-3 text-base font-semibold text-brand-ink outline-none focus:border-brand disabled:cursor-not-allowed disabled:bg-subtle disabled:text-placeholder sm:text-sm">
+                            {member.originalVoteStatus === "PENDING" ? <option value="PENDING">미응답</option> : null}
+                            {member.originalVoteStatus === "INVITED" ? <option value="INVITED">초대됨</option> : null}
+                            <option value="AVAILABLE">참여</option>
+                            <option value="UNAVAILABLE">불참</option>
+                          </select>
+                        </div>
+                      );
+                    })}
+                  </section>
+                ))}
               </div>
             </section>
 

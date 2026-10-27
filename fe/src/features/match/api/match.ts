@@ -37,7 +37,7 @@ export type HistoricalMatchCreateRequest = {
 };
 
 export type HistoricalMatchParticipantsUpdateRequest = {
-  participants: HistoricalMatchParticipantCreateRequest[];
+  participants: { teamMemberId: number; voteStatus: MatchParticipationStatus }[];
 };
 
 export type Match = {

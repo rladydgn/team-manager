@@ -121,7 +121,8 @@ class MatchService(
             throw ApiException(MatchErrorCode.INVALID_MATCH_REQUEST)
         }
 
-        validateHistoricalMatchParticipants(match.teamId, request.participants)
+        val existingParticipants = matchParticipantRepository.selectParticipantsByMatchIds(listOf(match.id))
+        validateHistoricalMatchParticipants(match.teamId, request.participants, existingParticipants)
         val participants = matchParticipantRepository.replaceHistoricalParticipants(
             matchId = match.id,
             participants = request.participants,
@@ -747,20 +748,23 @@ class MatchService(
     private fun validateHistoricalMatchParticipants(
         teamId: Long,
         participants: List<com.yonghoo.team_manager.match.dto.HistoricalMatchParticipantCreateRequest>,
+        existingParticipants: List<MatchParticipantRecord> = emptyList(),
     ) {
         val participantIds = participants.map { it.teamMemberId }
         val activeMemberIds = teamRepository.selectMembersByTeamId(teamId)
             .map { it.id }
             .toSet()
 
+        val existingByMemberId = existingParticipants.associateBy { it.teamMemberId }
+
         if (participantIds.isEmpty() ||
             participantIds.toSet().size != participantIds.size ||
-            !activeMemberIds.containsAll(participantIds) ||
+            participantIds.any { it !in activeMemberIds && it !in existingByMemberId } ||
             participants.any {
                 it.voteStatus !in setOf(
                     MatchParticipantStatus.AVAILABLE,
                     MatchParticipantStatus.UNAVAILABLE,
-                )
+                ) && it.voteStatus != existingByMemberId[it.teamMemberId]?.voteStatus
             }
         ) {
             throw ApiException(MatchErrorCode.INVALID_MATCH_REQUEST)
