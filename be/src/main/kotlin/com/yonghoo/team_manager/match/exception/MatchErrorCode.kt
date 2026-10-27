@@ -43,6 +43,10 @@ enum class MatchErrorCode(
         status = HttpStatus.BAD_REQUEST,
         message = "어시스트 합계는 골 합계보다 클 수 없습니다.",
     ),
+    MATCH_PARTICIPANT_RECORD_PRESERVED(
+        status = HttpStatus.CONFLICT,
+        message = "기존 경기 기록을 보존하기 위해 탈퇴했거나 출석·개인 기록이 있는 선수는 명단에서 제외할 수 없습니다.",
+    ),
     MATCH_RECORD_UNAVAILABLE(
         status = HttpStatus.CONFLICT,
         message = "취소된 매치에는 경기 기록을 저장할 수 없습니다.",

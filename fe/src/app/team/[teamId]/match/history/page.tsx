@@ -146,6 +146,7 @@ export default function HistoricalMatchCreatePage() {
   function toggleMember(memberId: number, selected: boolean) {
     setParticipantStatusByMemberId((current) => {
       if (!selected) {
+        if (members.find((member) => member.id === memberId)?.mustRetain) return current;
         const remaining = { ...current };
         delete remaining[memberId];
         return remaining;
@@ -158,7 +159,9 @@ export default function HistoricalMatchCreatePage() {
 
   function toggleAllMembers(selected: boolean) {
     if (!selected) {
-      setParticipantStatusByMemberId({});
+      setParticipantStatusByMemberId((current) =>
+        selectHistoricalMembers(members.filter((member) => member.mustRetain), current)
+      );
       return;
     }
 
@@ -320,7 +323,7 @@ export default function HistoricalMatchCreatePage() {
                 <p><strong className="font-semibold text-ink">참여/불참</strong>은 명단에 포함된 선수의 투표입니다. 불참한 선수도 체크를 유지하고 ‘불참’을 선택하세요. 실제 출석은 다음 경기 기록 입력에서 확인·수정하세요.</p>
               </div>
               {isEditMode ? (
-                <p className="border-b border-line px-4 py-3 text-sm leading-6 text-muted sm:px-5">기존 참가자는 현재 팀 소속과 관계없이 표시됩니다. 미응답·초대 상태도 직접 바꾸지 않으면 유지됩니다.</p>
+                <p className="border-b border-line px-4 py-3 text-sm leading-6 text-muted sm:px-5">탈퇴했거나 출석·개인 기록이 있는 선수는 기존 경기 기록을 보존하기 위해 명단에서 제외할 수 없습니다. 미응답·초대 상태도 직접 바꾸지 않으면 유지됩니다.</p>
               ) : null}
               <div className="divide-y divide-line" aria-describedby="participant-selection-help">
                 {memberGroups.filter((group) => group.members.length > 0).map((group) => (
@@ -332,10 +335,10 @@ export default function HistoricalMatchCreatePage() {
                       return (
                         <div key={member.id} className="grid gap-3 px-4 py-3 sm:grid-cols-[minmax(0,1fr)_9rem] sm:items-center sm:px-5">
                           <label className="flex min-w-0 items-center gap-3">
-                            <input type="checkbox" checked={isSelected} onChange={(event) => toggleMember(member.id, event.target.checked)} className="size-4 shrink-0 accent-brand" />
+                            <input type="checkbox" checked={isSelected} onChange={(event) => toggleMember(member.id, event.target.checked)} disabled={member.mustRetain} className="size-4 shrink-0 accent-brand disabled:cursor-not-allowed" />
                             <span className="min-w-0">
                               <span className="block truncate font-semibold text-ink">{member.name}</span>
-                              <span className="mt-0.5 block text-xs text-muted">{getMemberRole(member)}{!member.isActive ? " · 현재 팀원 명단에 없음" : ""}</span>
+                              <span className="mt-0.5 block text-xs text-muted">{getMemberRole(member)}{!member.isActive ? " · 현재 팀원 명단에 없음" : ""}{member.mustRetain ? " · 기록 보존" : ""}</span>
                             </span>
                           </label>
                           <select aria-label={`${member.name} 투표 상태`} value={voteStatus ?? "AVAILABLE"} onChange={(event) => updateMemberStatus(member.id, event.target.value as HistoricalParticipantStatus)} disabled={!isSelected} className="h-11 min-w-0 rounded-lg border border-line-strong bg-white px-3 text-base font-semibold text-brand-ink outline-none focus:border-brand disabled:cursor-not-allowed disabled:bg-subtle disabled:text-placeholder sm:text-sm">

@@ -769,6 +769,17 @@ class MatchService(
         ) {
             throw ApiException(MatchErrorCode.INVALID_MATCH_REQUEST)
         }
+
+        val selectedMemberIds = participantIds.toSet()
+        val removesPreservedParticipant = existingParticipants.any {
+            it.teamMemberId !in selectedMemberIds && (
+                it.teamMemberId !in activeMemberIds || it.actualParticipated || it.late ||
+                    it.goalCount > 0 || it.assistCount > 0 || it.cleanSheetCount > 0
+                )
+        }
+        if (removesPreservedParticipant) {
+            throw ApiException(MatchErrorCode.MATCH_PARTICIPANT_RECORD_PRESERVED)
+        }
     }
 
     private fun resolveParticipationDeadlineAt(request: MatchCreateRequest): LocalDateTime {

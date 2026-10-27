@@ -6,6 +6,7 @@ export type HistoricalRosterMember = {
   name: string;
   role: TeamMember["role"] | null;
   isActive: boolean;
+  mustRetain: boolean;
   originalVoteStatus?: MatchParticipationStatus;
 };
 
@@ -22,6 +23,8 @@ export function buildHistoricalRoster(
       name: participant.name ?? activeById.get(participant.teamMemberId)?.name ?? "기존 참가자",
       role: participant.role,
       isActive: activeById.has(participant.teamMemberId),
+      mustRetain: !activeById.has(participant.teamMemberId) || Boolean(participant.actualParticipated) || Boolean(participant.late) ||
+        participant.goalCount > 0 || participant.assistCount > 0 || participant.cleanSheetCount > 0,
       originalVoteStatus: participant.voteStatus,
     })),
     ...activeMembers.filter((member) => !existingIds.has(member.id)).map((member) => ({
@@ -29,6 +32,7 @@ export function buildHistoricalRoster(
       name: member.name ?? (member.userId ? "가입 팀원" : "미가입 팀원"),
       role: member.role,
       isActive: true,
+      mustRetain: false,
     })),
   ];
 }
