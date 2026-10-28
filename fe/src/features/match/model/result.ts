@@ -23,11 +23,11 @@ export const matchResultPresentation: Record<
 export function getMatchResult(
   match: Pick<
     Match,
-    "matchAt" | "opponentScore" | "status" | "teamScore"
+    "matchAt" | "opponentScore" | "status" | "teamScore" | "matchType"
   >
 ): MatchResult | null {
   if (
-    match.status === "CANCELED" ||
+    match.matchType === "INTERNAL" || match.status === "CANCELED" ||
     match.teamScore === null ||
     match.opponentScore === null ||
     new Date(match.matchAt).getTime() > Date.now()
@@ -40,4 +40,12 @@ export function getMatchResult(
   }
 
   return match.teamScore > match.opponentScore ? "WIN" : "LOSS";
+}
+
+export function matchScoreText(match: Pick<Match, "matchType" | "internalRecordConfirmed" | "teamScore" | "opponentScore">) {
+  if (match.teamScore == null || match.opponentScore == null) return "VS";
+  if (match.matchType === "INTERNAL") return match.internalRecordConfirmed
+    ? `홈 ${match.teamScore} : 어웨이 ${match.opponentScore}`
+    : `기존 점수 ${match.teamScore} : ${match.opponentScore} · 편별 기록 확인 필요`;
+  return `${match.teamScore} : ${match.opponentScore}`;
 }

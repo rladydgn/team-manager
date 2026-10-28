@@ -152,7 +152,7 @@ class DeletedTeamMatchAccessTest {
         return listOf(
             put("/matches/1/notes/PUBLIC").json("""{"content":"변경"}"""),
             put("/matches/1/notes/MANAGERS").json("""{"content":"변경"}"""),
-            put("/matches/2/record").json("""{"opponentScore":0,"participants":[{"teamMemberId":1,"actualParticipated":true,"late":false,"goalCount":1,"assistCount":0,"cleanSheetCount":0}]}"""),
+            put("/matches/2/record").json("""{"opponentScore":0,"internalRecord":{"sideAssignmentVersion":1,"homeUnknownGoalCount":0,"homeUnknownAssistCount":0,"awayUnknownGoalCount":0,"awayUnknownAssistCount":0},"participants":[{"teamMemberId":1,"teamSide":"HOME","actualParticipated":true,"late":false,"goalCount":1,"assistCount":0,"cleanSheetCount":0}]}"""),
             put("/matches/2/historical-participants").json("""{"participants":[{"teamMemberId":1,"voteStatus":"AVAILABLE"}]}"""),
             patch("/matches/1/participant-sides").json("""{"version":1,"assignments":[{"teamMemberId":1,"side":"AWAY"}]}"""),
             post("/matches/1/formations").json(formation),

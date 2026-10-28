@@ -247,6 +247,7 @@ class MatchParticipantRepository {
     fun upsertMatchStatistics(
         matchId: Long,
         statistics: List<MatchParticipantStatisticsUpdateRequest>,
+        updateSides: Boolean = false,
     ): List<MatchParticipantRecord> {
         lockMatchForParticipantWrite(matchId)
         val existingByMemberId = MatchParticipantEntity.find {
@@ -263,6 +264,7 @@ class MatchParticipantRepository {
             participant.goalCount = statistic.goalCount
             participant.assistCount = statistic.assistCount
             participant.cleanSheetCount = statistic.cleanSheetCount
+            if (updateSides) participant.teamSide = requireNotNull(statistic.teamSide)
             participant.updatedAt = now
 
             MatchParticipantRecord.from(participant)

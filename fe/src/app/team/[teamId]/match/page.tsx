@@ -12,6 +12,7 @@ import {
 import { canUpdateMatchParticipation } from "@/features/match/model/participation";
 import {
   getMatchResult,
+  matchScoreText,
   matchResultPresentation,
 } from "@/features/match/model/result";
 import { MatchParticipationButton } from "@/features/match/ui/MatchParticipationButton";
@@ -234,6 +235,7 @@ export default function TeamMatchesPage() {
                         </div>
                       </Link>
                       <div className="flex flex-wrap items-center gap-2 lg:justify-end">
+                        {match.matchType === "INTERNAL" && match.teamScore != null && match.opponentScore != null ? <span className="rounded-lg border border-line-strong bg-brand-soft px-2.5 py-1 text-sm font-semibold text-brand-ink">{matchScoreText(match)}</span> : null}
                         {matchResult ? (
                           <>
                             <span className="rounded-lg bg-ink px-2.5 py-1 text-sm font-semibold tabular-nums text-white">

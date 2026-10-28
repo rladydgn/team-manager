@@ -11,6 +11,9 @@ import {
   updateMatchRecord,
 } from "@/features/match/api/match";
 import { getTeam, Team, TeamMember } from "@/features/team/api/team";
+import { sideLabels, type ParticipantSide } from "@/features/match/api/formations";
+import { calculateInternalScores, needsInternalRecordReview } from "@/features/match/model/internal-record";
+import { ApiRequestError } from "@/shared/api/http";
 import {
   changeActualParticipation,
   hasAttendanceConflict,
@@ -50,6 +53,12 @@ export default function MatchRecordPage() {
   const [opponentScore, setOpponentScore] = useState(0);
   const [unknownGoalCount, setUnknownGoalCount] = useState(0);
   const [unknownAssistCount, setUnknownAssistCount] = useState(0);
+  const [awayUnknownGoalCount, setAwayUnknownGoalCount] = useState(0);
+  const [awayUnknownAssistCount, setAwayUnknownAssistCount] = useState(0);
+  const [sides, setSides] = useState<Record<number, ParticipantSide>>({});
+  const [originalSides, setOriginalSides] = useState<Record<number, ParticipantSide>>({});
+  const [confirmLegacyConversion, setConfirmLegacyConversion] = useState(false);
+  const [versionConflict, setVersionConflict] = useState(false);
   const [isLoading, setIsLoading] = useState(true);
   const [isSaving, setIsSaving] = useState(false);
   const [errorMessage, setErrorMessage] = useState("");
@@ -67,6 +76,12 @@ export default function MatchRecordPage() {
   const conflictingMembers = recordMembers.filter((member) =>
     hasAttendanceConflict(toPlayerStatistics(statisticsByMemberId[member.id]))
   );
+  const isInternal = match?.matchType === "INTERNAL";
+  const legacyReview = match ? needsInternalRecordReview(match) : false;
+  const internalScores = calculateInternalScores(statisticsByMemberId, sides, {
+    homeGoals: unknownGoalCount, homeAssists: unknownAssistCount,
+    awayGoals: awayUnknownGoalCount, awayAssists: awayUnknownAssistCount,
+  });
   const teamScore = useMemo(
     () =>
       Object.values(statisticsByMemberId).reduce(
@@ -87,6 +102,9 @@ export default function MatchRecordPage() {
     match?.matchType === "INTERNAL"
       ? "상대 팀"
       : match?.opponentTeamName || "등록된 상대 팀";
+  const invalidRecord = conflictingMembers.length > 0 || (isInternal
+    ? internalScores.invalidAssists || internalScores.unassignedRecordIds.length > 0 || (legacyReview && !confirmLegacyConversion)
+    : totalAssistCount > teamScore);
 
   const loadMatchRecord = useCallback(async () => {
     if (!isSessionReady) {
@@ -119,6 +137,7 @@ export default function MatchRecordPage() {
         getMatchParticipants(matchId),
       ]);
       const detail = teamResponse.data;
+      if (!participantsResponse.data) throw new Error("참가자 기록을 받지 못했습니다. 다시 불러와 주세요.");
       const members = detail?.members ?? [];
       const role = members.find((member) => member.userId === currentUser.id)?.role;
 
@@ -168,9 +187,15 @@ export default function MatchRecordPage() {
       setTeamMembers(members);
       setRecordMembers(nextRecordMembers);
       setStatisticsByMemberId(nextStatistics);
+      const nextSides = Object.fromEntries(participantsResponse.data.map(player => [player.teamMemberId, player.teamSide]));
+      setSides(nextSides); setOriginalSides(nextSides);
+      setConfirmLegacyConversion(false); setVersionConflict(false);
+      const needsReview = needsInternalRecordReview(matchResponse.data);
       setOpponentScore(matchResponse.data.opponentScore ?? 0);
-      setUnknownGoalCount(matchResponse.data.unknownGoalCount ?? 0);
-      setUnknownAssistCount(matchResponse.data.unknownAssistCount ?? 0);
+      setUnknownGoalCount(needsReview ? 0 : (matchResponse.data.unknownGoalCount ?? 0));
+      setUnknownAssistCount(needsReview ? 0 : (matchResponse.data.unknownAssistCount ?? 0));
+      setAwayUnknownGoalCount(matchResponse.data.awayUnknownGoalCount ?? 0);
+      setAwayUnknownAssistCount(matchResponse.data.awayUnknownAssistCount ?? 0);
     } catch (error) {
       setErrorMessage(
         error instanceof Error ? error.message : "경기 기록을 불러오지 못했습니다."
@@ -256,6 +281,12 @@ export default function MatchRecordPage() {
       setFormErrorMessage("불참 선수의 골·어시스트·클린시트·지각을 직접 정정하거나 실제 참여를 선택해 주세요.");
       return;
     }
+    if (isInternal && invalidRecord) {
+      setFormErrorMessage("편 배정·편별 골과 어시스트·기존 기록 전환 확인을 모두 완료해 주세요.");
+      return;
+    }
+    if (isInternal && recordMembers.some(member => sides[member.id] !== originalSides[member.id]) &&
+      !window.confirm("편 변경과 기록을 함께 저장하면 양쪽 점수를 다시 계산하고 기존 포메이션의 일부 배치는 제외 상태가 됩니다. 저장할까요?")) return;
 
     if (
       match.status === "SCHEDULED" &&
@@ -266,7 +297,7 @@ export default function MatchRecordPage() {
       return;
     }
 
-    if (totalAssistCount > teamScore) {
+    if (!isInternal && totalAssistCount > teamScore) {
       setFormErrorMessage("어시스트 합계는 골 합계보다 클 수 없습니다.");
       return;
     }
@@ -277,9 +308,16 @@ export default function MatchRecordPage() {
 
     try {
       const response = await updateMatchRecord(match.id, {
-        opponentScore: normalizeCount(opponentScore),
-        unknownGoalCount: normalizeCount(unknownGoalCount),
-        unknownAssistCount: normalizeCount(unknownAssistCount),
+        opponentScore: isInternal ? 0 : normalizeCount(opponentScore),
+        unknownGoalCount: isInternal ? 0 : normalizeCount(unknownGoalCount),
+        unknownAssistCount: isInternal ? 0 : normalizeCount(unknownAssistCount),
+        ...(isInternal ? { internalRecord: {
+          sideAssignmentVersion: match.sideAssignmentVersion ?? 1,
+          homeUnknownGoalCount: normalizeCount(unknownGoalCount),
+          homeUnknownAssistCount: normalizeCount(unknownAssistCount),
+          awayUnknownGoalCount: normalizeCount(awayUnknownGoalCount),
+          awayUnknownAssistCount: normalizeCount(awayUnknownAssistCount), confirmLegacyConversion,
+        } } : {}),
         participants: recordMembers.map((member) => {
           const statistic = statisticsByMemberId[member.id];
 
@@ -290,6 +328,7 @@ export default function MatchRecordPage() {
             goalCount: statistic?.goalCount ?? 0,
             assistCount: statistic?.assistCount ?? 0,
             cleanSheetCount: statistic?.cleanSheetCount ?? 0,
+            ...(isInternal ? { teamSide: sides[member.id] ?? "UNASSIGNED" } : {}),
           };
         }),
       });
@@ -301,6 +340,7 @@ export default function MatchRecordPage() {
       setMatch(response.data);
       router.replace(`/match/${response.data.id}`);
     } catch (error) {
+      if (error instanceof ApiRequestError && error.code === "INTERNAL_MATCH_RECORD_VERSION_CONFLICT") setVersionConflict(true);
       setFormErrorMessage(
         error instanceof Error ? error.message : "경기 기록을 저장하지 못했습니다."
       );
@@ -338,21 +378,32 @@ export default function MatchRecordPage() {
               </div>
               <div className="grid grid-cols-[minmax(0,1fr)_auto_minmax(0,1fr)] items-center gap-3 px-5 py-6 text-center sm:gap-6 sm:px-8">
                 <div className="min-w-0">
-                  <p className="truncate text-sm font-semibold text-secondary">{team.name}</p>
-                  <p className="mt-2 text-4xl font-semibold text-ink">{teamScore}</p>
-                  <p className="mt-1 text-xs text-muted">팀 골 합계</p>
+                  <p className="truncate text-sm font-semibold text-secondary">{isInternal ? "홈" : team.name}</p>
+                  <p className="mt-2 text-4xl font-semibold text-ink">{isInternal ? internalScores.homeGoals : teamScore}</p>
+                  <p className="mt-1 text-xs text-muted">{isInternal ? "홈 골 합계" : "팀 골 합계"}</p>
                 </div>
                 <span className="text-sm font-semibold text-placeholder">:</span>
                 <div className="min-w-0">
-                  <p className="truncate text-sm font-semibold text-secondary">{opponentLabel}</p>
-                  <input type="number" min="0" max="99" value={opponentScore} onChange={(event) => setOpponentScore(normalizeCount(event.target.valueAsNumber))} disabled={isSaving} aria-label="상대 팀 점수" className="mt-2 h-12 w-20 rounded-lg border border-line-strong bg-white text-center text-2xl font-semibold text-ink outline-none focus:border-brand focus:ring-2 focus:ring-brand-ring disabled:cursor-not-allowed" />
-                  <p className="mt-1 text-xs text-muted">상대 팀 점수</p>
+                  <p className="truncate text-sm font-semibold text-secondary">{isInternal ? "어웨이" : opponentLabel}</p>
+                  {isInternal ? <p className="mt-2 text-4xl font-semibold text-ink">{internalScores.awayGoals}</p> : <input type="number" min="0" max="99" value={opponentScore} onChange={(event) => setOpponentScore(normalizeCount(event.target.valueAsNumber))} disabled={isSaving} aria-label="상대 팀 점수" className="mt-2 h-12 w-20 rounded-lg border border-line-strong bg-white text-center text-2xl font-semibold text-ink outline-none focus:border-brand focus:ring-2 focus:ring-brand-ring disabled:cursor-not-allowed" />}
+                  <p className="mt-1 text-xs text-muted">{isInternal ? "어웨이 골 합계" : "상대 팀 점수"}</p>
                 </div>
               </div>
             </section>
 
             {noticeMessage ? <p className="rounded-lg border border-line-strong bg-brand-soft px-4 py-3 text-sm font-medium text-brand-ink">{noticeMessage}</p> : null}
             {formErrorMessage ? <p className="rounded-lg border border-danger-line bg-danger-soft px-4 py-3 text-sm font-medium text-danger">{formErrorMessage}</p> : null}
+            {versionConflict ? <button type="button" className="btn-secondary w-fit" onClick={() => {
+              if (window.confirm("현재 입력을 버리고 최신 편 배정과 기록을 다시 불러올까요?")) { setFormErrorMessage(""); void loadMatchRecord(); }
+            }}>최신 기록 다시 불러오기</button> : null}
+            {legacyReview ? <section className="rounded-lg border border-line-strong bg-brand-soft p-4 text-sm leading-6 text-brand-ink">
+              <p className="font-semibold">편별 기록 확인 필요</p>
+              <p>기존 점수 {match.teamScore ?? "미입력"} : {match.opponentScore ?? "미입력"} · 기존 미상 골 {match.unknownGoalCount} · 미상 어시스트 {match.unknownAssistCount}</p>
+              <p>원본은 아직 바뀌지 않았습니다. 기존 미상 기록은 어느 편인지 추정하지 않고 아래 입력을 0부터 시작합니다. 선수 편과 각 편의 미상 기록을 직접 확인해 주세요.</p>
+              <label className="mt-3 flex items-start gap-2"><input type="checkbox" className="mt-1 size-4 shrink-0 accent-brand" checked={confirmLegacyConversion} onChange={event => setConfirmLegacyConversion(event.target.checked)} disabled={isSaving} />기존 점수·미상 기록과 편 배정을 확인했으며 편별 기록으로 전환합니다.</label>
+            </section> : null}
+            {isInternal && internalScores.unassignedRecordIds.length > 0 ? <p role="alert" className="rounded-lg bg-danger-soft p-4 text-sm text-danger">미배정 선수의 골·어시스트·클린시트가 있습니다. 홈 또는 어웨이를 먼저 지정해 주세요.</p> : null}
+            {isInternal && internalScores.invalidAssists ? <p role="alert" className="rounded-lg bg-danger-soft p-4 text-sm text-danger">각 편의 어시스트 합계는 해당 편의 골 합계보다 클 수 없습니다.</p> : null}
             {conflictingMembers.length > 0 ? (
               <p role="alert" className="rounded-lg border border-danger-line bg-danger-soft px-4 py-3 text-sm font-medium text-danger">
                 불참과 개인 기록이 함께 있는 선수가 있습니다. 기록은 자동으로 바뀌지 않습니다. 해당 선수의 골·어시스트·클린시트·지각을 직접 정정하거나 실제 참여를 선택한 뒤 저장해 주세요.
@@ -363,7 +414,7 @@ export default function MatchRecordPage() {
               <div className="flex flex-col gap-2 border-b border-line px-5 py-5 sm:flex-row sm:items-end sm:justify-between sm:px-6">
                 <div>
                   <h2 className="text-lg font-semibold text-ink">선수 기록</h2>
-                  <p className="mt-1 text-sm text-muted">골 {teamScore} · 어시스트 {totalAssistCount}</p>
+                  <p className="mt-1 text-sm text-muted">{isInternal ? `홈 골 ${internalScores.homeGoals} · 어시스트 ${internalScores.homeAssists} / 어웨이 골 ${internalScores.awayGoals} · 어시스트 ${internalScores.awayAssists}` : `골 ${teamScore} · 어시스트 ${totalAssistCount}`}</p>
                 </div>
                 <div className="flex flex-wrap items-center gap-x-5 gap-y-2">
                   {match.status === "COMPLETED" ? (
@@ -395,6 +446,11 @@ export default function MatchRecordPage() {
                       <div className="min-w-0">
                         <p className="truncate font-semibold text-ink">{getPlayerName(member)}</p>
                         <p className="mt-1 text-xs text-muted">{member.role === "OWNER" ? "팀장" : member.role === "SUB_MANAGER" ? "부팀장" : member.role === "GUEST" ? "용병" : "팀원"}</p>
+                        {isInternal ? <label className="mt-2 flex items-center gap-2 text-sm text-secondary">편
+                          <select aria-label={`${getPlayerName(member)} 기록 편`} className="field min-w-0 max-w-full" value={sides[member.id] ?? "UNASSIGNED"} disabled={isSaving} onChange={event => setSides(current => ({ ...current, [member.id]: event.target.value as ParticipantSide }))}>
+                            {Object.entries(sideLabels).map(([side, label]) => <option key={side} value={side}>{label}</option>)}
+                          </select>
+                        </label> : null}
                         {hasAttendanceConflict(statistic) ? <p className="mt-2 text-sm font-medium text-danger">불참·기록 확인 필요</p> : null}
                       </div>
                       <label className="flex items-center gap-2 text-sm font-semibold text-secondary sm:flex-col sm:gap-1 sm:text-center">
@@ -420,7 +476,14 @@ export default function MatchRecordPage() {
                     </div>
                   );
                 })}
-                <div className="grid gap-3 bg-canvas px-5 py-4 lg:grid-cols-[minmax(0,1fr)_5.5rem_4.5rem_5rem_5rem_6rem] lg:items-center sm:px-6">
+                {isInternal ? <div className="divide-y divide-line bg-canvas">
+                  {([{ side: "홈", goals: unknownGoalCount, assists: unknownAssistCount, setGoals: setUnknownGoalCount, setAssists: setUnknownAssistCount },
+                    { side: "어웨이", goals: awayUnknownGoalCount, assists: awayUnknownAssistCount, setGoals: setAwayUnknownGoalCount, setAssists: setAwayUnknownAssistCount }]).map(row => <div key={row.side} className="grid gap-3 px-5 py-4 sm:grid-cols-[minmax(0,1fr)_6rem_6rem] sm:px-6">
+                    <p className="text-sm font-semibold text-ink">{row.side} · 선수를 알 수 없는 기록</p>
+                    <label className="grid gap-1 text-sm text-secondary">미상 골<input className="field w-full" aria-label={`${row.side} 미상 골`} type="number" min={0} max={99} value={row.goals} disabled={isSaving} onChange={event => row.setGoals(normalizeCount(event.target.valueAsNumber))} /></label>
+                    <label className="grid gap-1 text-sm text-secondary">미상 어시스트<input className="field w-full" aria-label={`${row.side} 미상 어시스트`} type="number" min={0} max={99} value={row.assists} disabled={isSaving} onChange={event => row.setAssists(normalizeCount(event.target.valueAsNumber))} /></label>
+                  </div>)}
+                </div> : <div className="grid gap-3 bg-canvas px-5 py-4 lg:grid-cols-[minmax(0,1fr)_5.5rem_4.5rem_5rem_5rem_6rem] lg:items-center sm:px-6">
                   <div className="min-w-0">
                     <p className="font-semibold text-ink">알 수 없음</p>
                     <p className="mt-1 text-xs text-muted">명단 외 용병 또는 선수를 특정할 수 없는 기록</p>
@@ -435,10 +498,10 @@ export default function MatchRecordPage() {
                     <input type="number" min="0" max="99" value={unknownAssistCount} onChange={(event) => setUnknownAssistCount(normalizeCount(event.target.valueAsNumber))} disabled={isSaving} aria-label="알 수 없는 어시스트" className="h-9 min-w-0 rounded-lg border border-line-strong bg-white px-2 text-center text-sm font-semibold text-ink outline-none focus:border-brand focus:ring-2 focus:ring-brand-ring disabled:cursor-not-allowed" />
                   </label>
                   <p className="text-sm text-placeholder lg:text-center">-</p>
-                </div>
+                </div>}
               </div>
               <div className="flex justify-end border-t border-line bg-canvas px-5 py-4 sm:px-6">
-                <button type="button" onClick={() => void saveMatchRecord()} disabled={isSaving || totalAssistCount > teamScore || conflictingMembers.length > 0} className="inline-flex h-11 items-center justify-center rounded-lg bg-brand px-5 text-sm font-semibold text-white transition-colors hover:bg-brand-hover disabled:cursor-not-allowed disabled:bg-brand-disabled">
+                <button type="button" onClick={() => void saveMatchRecord()} disabled={isSaving || invalidRecord || versionConflict} className="inline-flex h-11 items-center justify-center rounded-lg bg-brand px-5 text-sm font-semibold text-white transition-colors hover:bg-brand-hover disabled:cursor-not-allowed disabled:bg-brand-disabled">
                   {isSaving ? "저장 중" : "전체 기록 저장"}
                 </button>
               </div>

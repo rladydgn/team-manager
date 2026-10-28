@@ -192,6 +192,7 @@ class ProxyParticipationTest {
         val participantDdl = Regex("CREATE TABLE match_participants \\(.*?;", RegexOption.DOT_MATCHES_ALL).find(schema)!!.value
         val historyDdl = Regex("CREATE TABLE match_participation_histories \\(.*?;", RegexOption.DOT_MATCHES_ALL).find(schema)!!.value
         val upgrade = Files.readString(Path.of("src/main/resources/change_schema.sql")).substringAfter("-- F01 (2026-10-28):")
+            .substringBefore("-- F02 (2026-10-28):")
         for (existing in listOf(false, true)) {
             val isolated = Database.connect("jdbc:h2:mem:${UUID.randomUUID()};MODE=MySQL;DB_CLOSE_DELAY=-1", driver = "org.h2.Driver")
             transaction(isolated) {

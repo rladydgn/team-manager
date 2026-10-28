@@ -21,7 +21,7 @@ export type FormationCollection = {
   permissions: { canCreate: boolean; canUpdate: boolean; canDelete: boolean; canAssignSides: boolean };
   templates: FormationTemplate[]; attendingPlayers: FormationPlayer[]; formations: Formation[];
 };
-export type ParticipantSides = { matchId: number; version: number; canManage: boolean; players: FormationPlayer[] };
+export type ParticipantSides = { matchId: number; version: number; canManage: boolean; players: FormationPlayer[]; recordEditingRequired?: boolean };
 export const sideLabels = { HOME: "홈", AWAY: "어웨이", UNASSIGNED: "미배정" } as const;
 export const getFormations = (matchId: number) => getJson<FormationCollection>(`/matches/${matchId}/formations`, { cache: "no-store" });
 export const createFormation = (matchId: number, input: FormationInput) => postJson<Formation, FormationInput>(`/matches/${matchId}/formations`, input);

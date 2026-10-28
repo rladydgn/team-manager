@@ -23,6 +23,10 @@ data class MatchRecord(
     val deletedAt: LocalDateTime?,
     val publicNote: String? = null,
     val managerNote: String? = null,
+    val sideAssignmentVersion: Long = 1,
+    val awayUnknownGoalCount: Int = 0,
+    val awayUnknownAssistCount: Int = 0,
+    val internalRecordConfirmed: Boolean = false,
 ) {
     companion object {
         fun from(match: MatchEntity): MatchRecord {
@@ -47,6 +51,10 @@ data class MatchRecord(
                 deletedAt = match.deletedAt,
                 publicNote = match.publicNote,
                 managerNote = match.managerNote,
+                sideAssignmentVersion = match.sideAssignmentVersion,
+                awayUnknownGoalCount = match.awayUnknownGoalCount,
+                awayUnknownAssistCount = match.awayUnknownAssistCount,
+                internalRecordConfirmed = match.internalRecordConfirmed,
             )
         }
     }

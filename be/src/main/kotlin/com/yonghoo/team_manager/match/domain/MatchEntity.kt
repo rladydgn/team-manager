@@ -8,6 +8,7 @@ class MatchEntity(id: EntityID<Long>) : LongEntity(id) {
     companion object : LongEntityClass<MatchEntity>(MatchesTable)
 
     var teamId by MatchesTable.teamId
+    var sideAssignmentVersion by MatchesTable.sideAssignmentVersion
     var matchType by MatchesTable.matchType
     var isTraining by MatchesTable.isTraining
     var opponentTeamId by MatchesTable.opponentTeamId
@@ -22,6 +23,9 @@ class MatchEntity(id: EntityID<Long>) : LongEntity(id) {
     var unknownGoalCount by MatchesTable.unknownGoalCount
     var opponentScore by MatchesTable.opponentScore
     var unknownAssistCount by MatchesTable.unknownAssistCount
+    var awayUnknownGoalCount by MatchesTable.awayUnknownGoalCount
+    var awayUnknownAssistCount by MatchesTable.awayUnknownAssistCount
+    var internalRecordConfirmed by MatchesTable.internalRecordConfirmed
     var status by MatchesTable.status
     var createdAt by MatchesTable.createdAt
     var updatedAt by MatchesTable.updatedAt

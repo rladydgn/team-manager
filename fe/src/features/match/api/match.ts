@@ -41,6 +41,10 @@ export type HistoricalMatchParticipantsUpdateRequest = {
 };
 
 export type Match = {
+  sideAssignmentVersion?: number;
+  awayUnknownGoalCount?: number;
+  awayUnknownAssistCount?: number;
+  internalRecordConfirmed?: boolean;
   id: number;
   teamId: number;
   matchType: MatchType;
@@ -79,6 +83,7 @@ export type MatchParticipant = PlayerProfile & {
 };
 
 export type MatchParticipantStatisticsUpdateRequest = {
+  teamSide?: "HOME" | "AWAY" | "UNASSIGNED";
   teamMemberId: number;
   actualParticipated: boolean;
   late: boolean;
@@ -88,6 +93,14 @@ export type MatchParticipantStatisticsUpdateRequest = {
 };
 
 export type MatchRecordUpdateRequest = {
+  internalRecord?: {
+    sideAssignmentVersion: number;
+    homeUnknownGoalCount: number;
+    homeUnknownAssistCount: number;
+    awayUnknownGoalCount: number;
+    awayUnknownAssistCount: number;
+    confirmLegacyConversion: boolean;
+  };
   opponentScore: number;
   unknownGoalCount: number;
   unknownAssistCount: number;

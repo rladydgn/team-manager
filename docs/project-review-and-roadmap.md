@@ -18,7 +18,7 @@
 
 실행 순서·완료 조건·착수 시 질문할 결정 사항은 [개선 작업 계획](project-improvement-work-plan.md)에 정리했다. 미결정 정책은 해당 작업에서 사용자에게 확인한 뒤 구현하고, 권장안을 확정 요구사항으로 간주하지 않는다.
 
-**후속 진행(2026-10-28):** F11과 F10-a·F10-b 보존 처리, F03을 완료했으며 F10 변경 이력은 T01 연계로 남아 있다. F01은 D-F01 세 정책을 확정해 대리 참석·출처·운영진 전용 이력을 구현하고 로컬 검증했다. 실제 MySQL 설치·갱신 검증은 미실행이라 작업 계획에는 검증 중으로 남겼다. T04-a 중 README·개발 안내·포메이션 문서 정리도 반영했다. 다음 기능 작업은 F02이며 D-F02를 먼저 질문한다. 아래 ‘현재’ 설명은 원칙적으로 2026-10-23 조사 당시를 가리키며 최신 실행 결과는 작업 계획을 우선한다. 배포 관련 변경(T02·T04-b 운영 작업)과 CI 구축 제외를 유지한다.
+**후속 진행(2026-10-28):** F11과 F10-a·F10-b 보존 처리, F03을 완료했으며 F10 변경 이력은 T01 연계로 남아 있다. F01 대리 참석과 F02 자체 경기 편별 기록도 각각 정책을 확정해 구현·로컬 검증했다. 실제 MySQL 설치·갱신 검증은 미실행이라 F01·F02는 작업 계획에 검증 중으로 남겼다. T04-a의 실행·기능 문서 정리도 반영했다. 다음 독립 기능은 F04-a이며 D-F04-a를 먼저 질문한다. 아래 ‘현재’ 설명은 원칙적으로 2026-10-23 조사 당시를 가리키며 최신 실행 결과는 작업 계획을 우선한다. 배포 관련 변경(T02·T04-b 운영 작업)과 CI 구축 제외를 유지한다.
 
 ## 1. 현재 구조와 구현 현황
 
@@ -106,6 +106,8 @@ team-manager/
 근거: [MatchService.kt](../be/src/main/kotlin/com/yonghoo/team_manager/match/service/MatchService.kt)의 `updateMatchParticipation`, `updateHistoricalMatchParticipants`; [MatchParticipantRepository.kt](../be/src/main/kotlin/com/yonghoo/team_manager/match/repository/MatchParticipantRepository.kt)의 `createDefaultParticipants`; [MatchFormationService.kt](../be/src/main/kotlin/com/yonghoo/team_manager/match/service/MatchFormationService.kt)의 `attending`.
 
 ### F02. 자체 경기 점수를 홈·어웨이별로 계산
+
+**2026-10-28 구현 반영:** D-F02 세 정책을 확정해 [편별 기록](internal-match-records.md)을 구현했다. 편별 점수·미상 골/도움, 미배정 개인 기록 차단, 기록 화면의 편 동시 정정과 버전 검사, 일반 편 배정 차단, 과거 점수 원본 표시·운영진 명시적 전환, 자체 경기의 팀 승무패 미표시를 반영했다. BE 관련 46개·FE 20개와 모의 API 반응형 검증이 통과했다. 실제 MySQL·운영 DB에는 적용하지 않았으며 아래 ‘현재’는 최초 조사 시점의 문제 근거다.
 
 **현재:** 자체 경기의 편 배정은 저장하지만, 기록 저장은 편과 관계없이 모든 참가자의 골을 더해 `teamScore`로 만든다. 프런트엔드도 모든 선수의 골 합계를 우리 팀 점수로 표시하고 상대 점수는 별도로 입력한다.
 

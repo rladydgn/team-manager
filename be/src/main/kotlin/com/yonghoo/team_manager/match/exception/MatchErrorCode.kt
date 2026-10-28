@@ -71,6 +71,9 @@ enum class MatchErrorCode(
         status = HttpStatus.BAD_REQUEST,
         message = "마감 후에는 정정 사유가 필요하며, 사유는 500자 이내로 입력해 주세요.",
     ),
+    INVALID_INTERNAL_MATCH_RECORD(HttpStatus.BAD_REQUEST, "자체 경기의 편 배정과 편별 미상 기록을 확인해 주세요."),
+    INTERNAL_MATCH_RECORD_VERSION_CONFLICT(HttpStatus.CONFLICT, "다른 운영진이 편 배정 또는 기록을 수정했습니다. 입력을 보존한 채 최신 기록을 확인해 주세요."),
+    INTERNAL_MATCH_RECORD_CONFIRMATION_REQUIRED(HttpStatus.CONFLICT, "기존 자체 경기의 원본 점수와 미상 기록을 확인한 뒤 편별 전환에 동의해 주세요."),
     MATCH_PARTICIPATION_CLOSED(
         status = HttpStatus.CONFLICT,
         message = "투표 마감일이 지났거나 이미 시작한 매치입니다.",

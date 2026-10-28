@@ -35,6 +35,7 @@ export function ParticipantSidesPage({ matchId }: { matchId: number }) {
     <p className="text-sm leading-6 text-muted">기존 경기의 참가자는 홈으로 배정되어 있을 수 있어요. 배정을 확인해 주세요.</p>
     {error && <FormationError message={error} retry={() => void refresh()} />}
     {!data && !error && <FormationLoading />}
+    {data?.recordEditingRequired ? <p className="text-sm leading-6 text-muted">기록이 있는 경기의 편 변경은 점수와 함께 정정해야 합니다. <Link href={`/match/${matchId}/record`} className="font-semibold text-brand-ink underline">경기 기록 관리</Link>에서 수정해 주세요.</p> : null}
     {data && <SideEditor data={data} refresh={refresh} />}
   </div></main>;
 }

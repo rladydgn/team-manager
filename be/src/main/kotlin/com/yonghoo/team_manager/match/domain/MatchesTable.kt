@@ -21,6 +21,9 @@ object MatchesTable : LongIdTable("matches") {
     val unknownGoalCount = integer("unknown_goal_count").default(0)
     val opponentScore = integer("opponent_score").nullable()
     val unknownAssistCount = integer("unknown_assist_count").default(0)
+    val awayUnknownGoalCount = integer("away_unknown_goal_count").default(0)
+    val awayUnknownAssistCount = integer("away_unknown_assist_count").default(0)
+    val internalRecordConfirmed = bool("internal_record_confirmed").default(false)
     val status = enumerationByName("status", 20, MatchStatus::class).clientDefault { MatchStatus.SCHEDULED }
     val createdAt = datetime("created_at").clientDefault { LocalDateTime.now() }
     val updatedAt = datetime("updated_at").clientDefault { LocalDateTime.now() }

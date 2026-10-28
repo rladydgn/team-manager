@@ -8,7 +8,7 @@ import org.jetbrains.exposed.v1.jdbc.*
 import org.springframework.stereotype.Repository
 import java.time.LocalDateTime
 
-data class FormationMatch(val id: Long, val teamId: Long, val type: MatchType, val status: MatchStatus, val sideVersion: Long)
+data class FormationMatch(val id: Long, val teamId: Long, val type: MatchType, val status: MatchStatus, val sideVersion: Long, val recordSaved: Boolean = false)
 data class FormationPlayerState(
     val teamMemberId: Long, val name: String, val memberExists: Boolean,
     val participantExists: Boolean, val vote: MatchParticipantStatus?, val side: MatchTeamSide,
@@ -26,7 +26,8 @@ class MatchFormationRepository {
         val query = MatchesTable.selectAll().where { (MatchesTable.id eq matchId) and MatchesTable.deletedAt.isNull() }
         val row = (if (lock) query.forUpdate() else query).singleOrNull() ?: return null
         return FormationMatch(row[MatchesTable.id].value, row[MatchesTable.teamId], row[MatchesTable.matchType],
-            row[MatchesTable.status], row[MatchesTable.sideAssignmentVersion])
+            row[MatchesTable.status], row[MatchesTable.sideAssignmentVersion],
+            row[MatchesTable.status] == MatchStatus.COMPLETED || row[MatchesTable.teamScore] != null || row[MatchesTable.opponentScore] != null)
     }
 
     fun role(teamId: Long, userId: Long, lock: Boolean): TeamMemberRole? {

@@ -7,4 +7,5 @@ data class MatchParticipantStatisticsUpdateRequest(
     val goalCount: Int,
     val assistCount: Int,
     val cleanSheetCount: Int,
+    val teamSide: com.yonghoo.team_manager.match.domain.MatchTeamSide? = null,
 )

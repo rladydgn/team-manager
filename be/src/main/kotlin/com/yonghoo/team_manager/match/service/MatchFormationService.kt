@@ -21,7 +21,7 @@ class MatchFormationService(private val repository: MatchFormationRepository) {
         val players = repository.players(match, false)
         val editable = manager && match.status != MatchStatus.CANCELED
         return FormationCollection(match.id, match.type, match.status, 10,
-            FormationPermissions(editable && formations.size < 10, editable, manager, editable && match.type == MatchType.INTERNAL),
+            FormationPermissions(editable && formations.size < 10, editable, manager, editable && match.type == MatchType.INTERNAL && !match.recordSaved),
             FormationTemplates.all, attending(players), formations.map { response(it, players) })
     }
 
@@ -53,8 +53,8 @@ class MatchFormationService(private val repository: MatchFormationRepository) {
     @Transactional(readOnly = true, isolation = Isolation.REPEATABLE_READ)
     fun sides(matchId: Long, userId: Long): ParticipantSidesResponse {
         val (match, manager) = access(matchId, userId, internal = true)
-        return ParticipantSidesResponse(match.id, match.sideVersion, manager && match.status != MatchStatus.CANCELED,
-            attending(repository.players(match, false)))
+        return ParticipantSidesResponse(match.id, match.sideVersion, manager && match.status != MatchStatus.CANCELED && !match.recordSaved,
+            attending(repository.players(match, false)), recordEditingRequired = match.recordSaved)
     }
 
     fun assignSides(matchId: Long, userId: Long, request: ParticipantSidesRequest): ParticipantSidesResponse {
@@ -62,6 +62,7 @@ class MatchFormationService(private val repository: MatchFormationRepository) {
         if (!validId(request.version)) throw ApiException(INVALID_MATCH_SIDE_ASSIGNMENT_REQUEST)
         if (request.version != match.sideVersion) throw ApiException(MATCH_SIDE_ASSIGNMENT_VERSION_CONFLICT)
         if (match.status == MatchStatus.CANCELED) throw ApiException(MATCH_SIDE_ASSIGNMENT_MATCH_CANCELED)
+        if (match.recordSaved) throw ApiException(MATCH_SIDE_ASSIGNMENT_RECORD_EDIT_REQUIRED)
         val players = repository.players(match, true)
         val eligible = attending(players).map { it.teamMemberId }.toSet()
         if (request.assignments.isEmpty() || request.assignments.map { it.teamMemberId }.distinct().size != request.assignments.size ||

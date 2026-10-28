@@ -44,7 +44,7 @@ class MatchRecordAttendanceTest {
             }
             val past = LocalDateTime.now().minusDays(7)
             MatchesTable.insert {
-                it[id] = 1; it[teamId] = 1; it[matchType] = MatchType.INTERNAL; it[createdByUserId] = 10
+                it[id] = 1; it[teamId] = 1; it[matchType] = MatchType.EXTERNAL; it[createdByUserId] = 10
                 it[matchAt] = past; it[participationDeadlineAt] = past.minusDays(1)
                 it[status] = MatchStatus.COMPLETED; it[teamScore] = 3; it[opponentScore] = 0
             }

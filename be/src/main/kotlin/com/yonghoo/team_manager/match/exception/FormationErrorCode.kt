@@ -11,6 +11,7 @@ enum class FormationErrorCode(override val status: HttpStatus, override val mess
     MATCH_FORMATION_VERSION_CONFLICT(HttpStatus.CONFLICT, "다른 운영진이 수정했어요. 최신 내용을 확인해 주세요."),
     MATCH_FORMATION_MATCH_CANCELED(HttpStatus.CONFLICT, "취소된 경기에서는 포메이션을 저장할 수 없어요."),
     MATCH_SIDE_ASSIGNMENT_VERSION_CONFLICT(HttpStatus.CONFLICT, "다른 운영진이 편 배정을 수정했어요. 최신 내용을 확인해 주세요."),
+    MATCH_SIDE_ASSIGNMENT_RECORD_EDIT_REQUIRED(HttpStatus.CONFLICT, "기록이 있는 경기의 편 변경은 경기 기록 화면에서 점수와 함께 정정해 주세요."),
     MATCH_SIDE_ASSIGNMENT_MATCH_CANCELED(HttpStatus.CONFLICT, "취소된 경기에서는 편 배정을 저장할 수 없어요.");
     override val code: String get() = name
 }

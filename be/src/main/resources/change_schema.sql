@@ -202,3 +202,12 @@ CREATE TABLE match_participation_histories (
     PRIMARY KEY (id),
     KEY idx_match_participation_histories_match_member (match_id, team_member_id)
 );
+
+-- F02 (2026-10-28): apply only this unapplied block once to existing databases.
+-- Preserve all existing scores and unknown counts. Legacy internal records require explicit review.
+ALTER TABLE matches
+    ADD COLUMN away_unknown_goal_count INT UNSIGNED NOT NULL DEFAULT 0;
+ALTER TABLE matches
+    ADD COLUMN away_unknown_assist_count INT UNSIGNED NOT NULL DEFAULT 0;
+ALTER TABLE matches
+    ADD COLUMN internal_record_confirmed TINYINT(1) NOT NULL DEFAULT 0;

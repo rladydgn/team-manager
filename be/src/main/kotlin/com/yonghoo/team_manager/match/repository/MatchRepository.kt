@@ -55,6 +55,7 @@ class MatchRepository {
         opponentScore: Int,
         unknownGoalCount: Int,
         unknownAssistCount: Int,
+        internalRecord: com.yonghoo.team_manager.match.dto.InternalMatchRecordUpdateRequest? = null,
     ): MatchRecord {
         val match = MatchEntity[matchId]
 
@@ -62,6 +63,12 @@ class MatchRepository {
         match.unknownGoalCount = unknownGoalCount
         match.opponentScore = opponentScore
         match.unknownAssistCount = unknownAssistCount
+        if (internalRecord != null) {
+            match.awayUnknownGoalCount = internalRecord.awayUnknownGoalCount
+            match.awayUnknownAssistCount = internalRecord.awayUnknownAssistCount
+            match.internalRecordConfirmed = true
+            match.sideAssignmentVersion += 1
+        }
         match.status = MatchStatus.COMPLETED
         match.updatedAt = LocalDateTime.now()
 

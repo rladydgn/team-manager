@@ -27,6 +27,7 @@ import com.yonghoo.team_manager.match.dto.SortDirection
 import com.yonghoo.team_manager.match.exception.MatchErrorCode
 import com.yonghoo.team_manager.match.domain.MatchParticipantStatus
 import com.yonghoo.team_manager.match.domain.ParticipationSource
+import com.yonghoo.team_manager.match.domain.MatchTeamSide
 import com.yonghoo.team_manager.match.dto.ProxyParticipationUpdateRequest
 import com.yonghoo.team_manager.match.dto.ParticipationHistoryResponse
 import com.yonghoo.team_manager.team.domain.TeamMemberStatus
@@ -582,20 +583,25 @@ class MatchService(
             .selectParticipantsByMatchIds(listOf(match.id))
             .map { it.teamMemberId }
             .toSet()
-        validateMatchRecordRequest(request, matchParticipantIds)
-
-        val teamScore = request.participants.sumOf(MatchParticipantStatisticsUpdateRequest::goalCount) +
-            request.unknownGoalCount
+        val internal = match.matchType == MatchType.INTERNAL
+        validateMatchRecordRequest(request, matchParticipantIds, validateTotalAssist = !internal)
+        val internalRecord = if (internal) request.internalRecord
+            ?: throw ApiException(MatchErrorCode.INVALID_INTERNAL_MATCH_RECORD) else null
+        if (!internal && request.internalRecord != null) throw ApiException(MatchErrorCode.INVALID_INTERNAL_MATCH_RECORD)
+        val scores = if (internal) validateInternalMatchRecord(match, request) else null
+        val teamScore = scores?.first ?: (request.participants.sumOf(MatchParticipantStatisticsUpdateRequest::goalCount) + request.unknownGoalCount)
         val updatedParticipants = matchParticipantRepository.upsertMatchStatistics(
             matchId = match.id,
             statistics = request.participants,
+            updateSides = internal,
         )
         val updatedMatch = matchRepository.updateMatchRecord(
             matchId = match.id,
             teamScore = teamScore,
-            opponentScore = request.opponentScore,
-            unknownGoalCount = request.unknownGoalCount,
-            unknownAssistCount = request.unknownAssistCount,
+            opponentScore = scores?.second ?: request.opponentScore,
+            unknownGoalCount = internalRecord?.homeUnknownGoalCount ?: request.unknownGoalCount,
+            unknownAssistCount = internalRecord?.homeUnknownAssistCount ?: request.unknownAssistCount,
+            internalRecord = internalRecord,
         )
         val currentTeamMember = requireActiveTeamMember(match.teamId, userId)
 
@@ -712,6 +718,7 @@ class MatchService(
     private fun validateMatchRecordRequest(
         request: MatchRecordUpdateRequest,
         matchParticipantIds: Set<Long>,
+        validateTotalAssist: Boolean = true,
     ) {
         if (request.opponentScore !in 0..MAX_MATCH_SCORE ||
             request.unknownGoalCount !in 0..MAX_PLAYER_STATISTIC_COUNT ||
@@ -743,9 +750,40 @@ class MatchService(
             request.unknownGoalCount
         val totalAssistCount = request.participants.sumOf(MatchParticipantStatisticsUpdateRequest::assistCount) +
             request.unknownAssistCount
-        if (totalAssistCount > totalGoalCount) {
+        if (validateTotalAssist && totalAssistCount > totalGoalCount) {
             throw ApiException(MatchErrorCode.INVALID_MATCH_ASSIST_COUNT)
         }
+    }
+
+    private fun validateInternalMatchRecord(match: MatchRecord, request: MatchRecordUpdateRequest): Pair<Int, Int> {
+        val record = requireNotNull(request.internalRecord)
+        if (record.sideAssignmentVersion != match.sideAssignmentVersion) {
+            throw ApiException(MatchErrorCode.INTERNAL_MATCH_RECORD_VERSION_CONFLICT)
+        }
+        val legacy = !match.internalRecordConfirmed &&
+            (match.status == MatchStatus.COMPLETED || match.teamScore != null || match.opponentScore != null)
+        if (legacy && !record.confirmLegacyConversion) {
+            throw ApiException(MatchErrorCode.INTERNAL_MATCH_RECORD_CONFIRMATION_REQUIRED)
+        }
+        if (request.opponentScore != 0 || request.unknownGoalCount != 0 || request.unknownAssistCount != 0 ||
+            listOf(record.homeUnknownGoalCount, record.homeUnknownAssistCount, record.awayUnknownGoalCount,
+                record.awayUnknownAssistCount).any { it !in 0..MAX_PLAYER_STATISTIC_COUNT } ||
+            request.participants.any {
+                it.teamSide == null || (it.teamSide == MatchTeamSide.UNASSIGNED &&
+                    (it.goalCount > 0 || it.assistCount > 0 || it.cleanSheetCount > 0))
+            }) {
+            throw ApiException(MatchErrorCode.INVALID_INTERNAL_MATCH_RECORD)
+        }
+        fun goals(side: MatchTeamSide, unknownGoals: Int, unknownAssists: Int): Int {
+            val players = request.participants.filter { it.teamSide == side }
+            val score = players.sumOf { it.goalCount } + unknownGoals
+            if (players.sumOf { it.assistCount } + unknownAssists > score) {
+                throw ApiException(MatchErrorCode.INVALID_MATCH_ASSIST_COUNT)
+            }
+            return score
+        }
+        return goals(MatchTeamSide.HOME, record.homeUnknownGoalCount, record.homeUnknownAssistCount) to
+            goals(MatchTeamSide.AWAY, record.awayUnknownGoalCount, record.awayUnknownAssistCount)
     }
 
     private fun calculateAttendanceRate(

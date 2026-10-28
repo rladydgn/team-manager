@@ -17,6 +17,7 @@ import { canUpdateMatchParticipation, participationSourceLabel, sortMembersByPar
 import { ProxyParticipationPanel } from "@/features/match/ui/ProxyParticipationPanel";
 import {
   getMatchResult,
+  matchScoreText,
   matchResultPresentation,
 } from "@/features/match/model/result";
 import { MatchParticipationButton } from "@/features/match/ui/MatchParticipationButton";
@@ -375,7 +376,7 @@ export default function MatchDetailPage() {
                   {matchResultPresentation[matchResult].label}
                 </span>
               ) : null}
-              <h1 className="mt-4 grid grid-cols-[minmax(0,1fr)_auto_minmax(0,1fr)] items-center gap-3 sm:gap-6">
+              {match.matchType === "INTERNAL" ? <h1 className="mt-4 break-words text-xl font-semibold text-ink sm:text-3xl">{matchScoreText(match)}</h1> : <h1 className="mt-4 grid grid-cols-[minmax(0,1fr)_auto_minmax(0,1fr)] items-center gap-3 sm:gap-6">
                 <strong className="break-words text-xl text-ink sm:text-3xl">
                   {team.name}
                 </strong>
@@ -387,7 +388,7 @@ export default function MatchDetailPage() {
                 <strong className="break-words text-xl text-ink sm:text-3xl">
                   {opponentLabel}
                 </strong>
-              </h1>
+              </h1>}
               </div>
               <div className="flex flex-col items-center justify-center gap-3 px-5 py-5 sm:flex-row sm:px-8">
                 <span className="rounded-lg border border-line-strong bg-white/80 px-2.5 py-1 text-xs font-semibold text-brand-ink">

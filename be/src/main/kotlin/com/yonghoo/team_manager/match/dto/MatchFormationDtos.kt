@@ -75,4 +75,5 @@ data class FormationCollection(
 )
 data class ParticipantSidesResponse(
     val matchId: Long, val version: Long, val canManage: Boolean, val players: List<FormationPlayer>,
+    val recordEditingRequired: Boolean = false,
 )

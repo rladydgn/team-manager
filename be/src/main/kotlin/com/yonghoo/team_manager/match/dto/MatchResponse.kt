@@ -26,6 +26,10 @@ data class MatchResponse(
     val availableParticipantCount: Int,
     val isMatchParticipant: Boolean,
     val myVoteStatus: MatchParticipantStatus,
+    val sideAssignmentVersion: Long = 1,
+    val awayUnknownGoalCount: Int = 0,
+    val awayUnknownAssistCount: Int = 0,
+    val internalRecordConfirmed: Boolean = false,
 ) {
     companion object {
         fun from(
@@ -54,6 +58,10 @@ data class MatchResponse(
                 availableParticipantCount = availableParticipantCount,
                 isMatchParticipant = isMatchParticipant,
                 myVoteStatus = myVoteStatus,
+                sideAssignmentVersion = match.sideAssignmentVersion,
+                awayUnknownGoalCount = match.awayUnknownGoalCount,
+                awayUnknownAssistCount = match.awayUnknownAssistCount,
+                internalRecordConfirmed = match.internalRecordConfirmed,
             )
         }
     }
