@@ -665,7 +665,8 @@ class MatchService(
         }
 
         if (request.participants.any { participant ->
-                    (participant.late && !participant.actualParticipated) ||
+                    (!participant.actualParticipated && (participant.late || participant.goalCount > 0 ||
+                        participant.assistCount > 0 || participant.cleanSheetCount > 0)) ||
                     participant.goalCount !in 0..MAX_PLAYER_STATISTIC_COUNT ||
                     participant.assistCount !in 0..MAX_PLAYER_STATISTIC_COUNT ||
                     participant.cleanSheetCount !in 0..MAX_PLAYER_STATISTIC_COUNT

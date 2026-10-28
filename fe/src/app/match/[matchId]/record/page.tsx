@@ -11,14 +11,12 @@ import {
   updateMatchRecord,
 } from "@/features/match/api/match";
 import { getTeam, Team, TeamMember } from "@/features/team/api/team";
-
-type PlayerStatistics = {
-  actualParticipated: boolean;
-  late: boolean;
-  goalCount: number;
-  assistCount: number;
-  cleanSheetCount: number;
-};
+import {
+  changeActualParticipation,
+  hasAttendanceConflict,
+  toPlayerStatistics,
+  type PlayerStatistics,
+} from "@/features/match/model/record-statistics";
 
 type PlayerStatisticCountField = Exclude<
   keyof PlayerStatistics,
@@ -66,6 +64,9 @@ export default function MatchRecordPage() {
     recordMembers.every(
       (member) => statisticsByMemberId[member.id]?.actualParticipated
     );
+  const conflictingMembers = recordMembers.filter((member) =>
+    hasAttendanceConflict(toPlayerStatistics(statisticsByMemberId[member.id]))
+  );
   const teamScore = useMemo(
     () =>
       Object.values(statisticsByMemberId).reduce(
@@ -156,17 +157,7 @@ export default function MatchRecordPage() {
       const nextStatistics = nextRecordMembers.reduce<Record<number, PlayerStatistics>>(
         (statistics, member) => {
           const participant = participantsByMemberId.get(member.id);
-          const hasRecordedStatistics =
-            (participant?.goalCount ?? 0) > 0 ||
-            (participant?.assistCount ?? 0) > 0 ||
-            (participant?.cleanSheetCount ?? 0) > 0;
-          statistics[member.id] = {
-            actualParticipated: participant?.actualParticipated || hasRecordedStatistics,
-            late: participant?.late ?? false,
-            goalCount: participant?.goalCount ?? 0,
-            assistCount: participant?.assistCount ?? 0,
-            cleanSheetCount: participant?.cleanSheetCount ?? 0,
-          };
+          statistics[member.id] = toPlayerStatistics(participant);
           return statistics;
         },
         {}
@@ -222,24 +213,10 @@ export default function MatchRecordPage() {
   }
 
   function updatePlayerParticipation(teamMemberId: number, actualParticipated: boolean) {
-    setStatisticsByMemberId((current) => {
-      const statistic = current[teamMemberId] ?? {
-        actualParticipated: false,
-        late: false,
-        goalCount: 0,
-        assistCount: 0,
-        cleanSheetCount: 0,
-      };
-
-      return {
-        ...current,
-        [teamMemberId]: {
-          ...statistic,
-          actualParticipated,
-          late: actualParticipated ? statistic.late : false,
-        },
-      };
-    });
+    setStatisticsByMemberId((current) => ({
+      ...current,
+      [teamMemberId]: changeActualParticipation(current[teamMemberId], actualParticipated),
+    }));
   }
 
   function updatePlayerLate(teamMemberId: number, late: boolean) {
@@ -263,19 +240,7 @@ export default function MatchRecordPage() {
       recordMembers.reduce<Record<number, PlayerStatistics>>(
         (next, member) => ({
           ...next,
-          [member.id]: {
-            ...(current[member.id] ?? {
-              actualParticipated: false,
-              late: false,
-              goalCount: 0,
-              assistCount: 0,
-              cleanSheetCount: 0,
-            }),
-            actualParticipated,
-            late: actualParticipated
-              ? (current[member.id]?.late ?? false)
-              : false,
-          },
+          [member.id]: changeActualParticipation(current[member.id], actualParticipated),
         }),
         current
       )
@@ -284,6 +249,11 @@ export default function MatchRecordPage() {
 
   async function saveMatchRecord() {
     if (!match || !canManageRecords) {
+      return;
+    }
+
+    if (conflictingMembers.length > 0) {
+      setFormErrorMessage("불참 선수의 골·어시스트·클린시트·지각을 직접 정정하거나 실제 참여를 선택해 주세요.");
       return;
     }
 
@@ -383,6 +353,11 @@ export default function MatchRecordPage() {
 
             {noticeMessage ? <p className="rounded-lg border border-line-strong bg-brand-soft px-4 py-3 text-sm font-medium text-brand-ink">{noticeMessage}</p> : null}
             {formErrorMessage ? <p className="rounded-lg border border-danger-line bg-danger-soft px-4 py-3 text-sm font-medium text-danger">{formErrorMessage}</p> : null}
+            {conflictingMembers.length > 0 ? (
+              <p role="alert" className="rounded-lg border border-danger-line bg-danger-soft px-4 py-3 text-sm font-medium text-danger">
+                불참과 개인 기록이 함께 있는 선수가 있습니다. 기록은 자동으로 바뀌지 않습니다. 해당 선수의 골·어시스트·클린시트·지각을 직접 정정하거나 실제 참여를 선택한 뒤 저장해 주세요.
+              </p>
+            ) : null}
 
             <section className="overflow-hidden rounded-xl border border-line bg-white">
               <div className="flex flex-col gap-2 border-b border-line px-5 py-5 sm:flex-row sm:items-end sm:justify-between sm:px-6">
@@ -420,13 +395,14 @@ export default function MatchRecordPage() {
                       <div className="min-w-0">
                         <p className="truncate font-semibold text-ink">{getPlayerName(member)}</p>
                         <p className="mt-1 text-xs text-muted">{member.role === "OWNER" ? "팀장" : member.role === "SUB_MANAGER" ? "부팀장" : member.role === "GUEST" ? "용병" : "팀원"}</p>
+                        {hasAttendanceConflict(statistic) ? <p className="mt-2 text-sm font-medium text-danger">불참·기록 확인 필요</p> : null}
                       </div>
                       <label className="flex items-center gap-2 text-sm font-semibold text-secondary sm:flex-col sm:gap-1 sm:text-center">
                         <input type="checkbox" checked={statistic.actualParticipated} onChange={(event) => updatePlayerParticipation(member.id, event.target.checked)} disabled={isSaving} className="size-4 accent-brand disabled:cursor-not-allowed" />
                         <span>실제 참여</span>
                       </label>
                       <label className="flex items-center gap-2 text-sm font-semibold text-secondary sm:flex-col sm:gap-1 sm:text-center">
-                        <input type="checkbox" checked={statistic.late} onChange={(event) => updatePlayerLate(member.id, event.target.checked)} disabled={isSaving || !statistic.actualParticipated} className="size-4 accent-[#b45309] disabled:cursor-not-allowed" />
+                        <input type="checkbox" checked={statistic.late} onChange={(event) => updatePlayerLate(member.id, event.target.checked)} disabled={isSaving || (!statistic.actualParticipated && !statistic.late)} className="size-4 accent-[#b45309] disabled:cursor-not-allowed" />
                         <span>지각</span>
                       </label>
                       <label className="grid grid-cols-[auto_1fr] items-center gap-2 text-sm font-semibold text-secondary sm:grid-cols-1 sm:gap-1 sm:text-center">
@@ -462,7 +438,7 @@ export default function MatchRecordPage() {
                 </div>
               </div>
               <div className="flex justify-end border-t border-line bg-canvas px-5 py-4 sm:px-6">
-                <button type="button" onClick={() => void saveMatchRecord()} disabled={isSaving || totalAssistCount > teamScore} className="inline-flex h-11 items-center justify-center rounded-lg bg-brand px-5 text-sm font-semibold text-white transition-colors hover:bg-brand-hover disabled:cursor-not-allowed disabled:bg-brand-disabled">
+                <button type="button" onClick={() => void saveMatchRecord()} disabled={isSaving || totalAssistCount > teamScore || conflictingMembers.length > 0} className="inline-flex h-11 items-center justify-center rounded-lg bg-brand px-5 text-sm font-semibold text-white transition-colors hover:bg-brand-hover disabled:cursor-not-allowed disabled:bg-brand-disabled">
                   {isSaving ? "저장 중" : "전체 기록 저장"}
                 </button>
               </div>
