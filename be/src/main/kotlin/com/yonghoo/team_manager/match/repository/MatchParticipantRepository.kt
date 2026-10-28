@@ -5,9 +5,6 @@ import com.yonghoo.team_manager.match.domain.MatchParticipantRecord
 import com.yonghoo.team_manager.match.domain.MatchParticipantStatus
 import com.yonghoo.team_manager.match.domain.MatchParticipantsTable
 import com.yonghoo.team_manager.match.domain.MatchTeamSide
-import com.yonghoo.team_manager.match.domain.ParticipationSource
-import com.yonghoo.team_manager.match.domain.MatchParticipationHistoriesTable
-import com.yonghoo.team_manager.match.dto.ParticipationHistoryResponse
 import com.yonghoo.team_manager.match.dto.HistoricalMatchParticipantCreateRequest
 import com.yonghoo.team_manager.match.dto.MatchParticipantStatisticsUpdateRequest
 import org.jetbrains.exposed.v1.core.and
@@ -16,8 +13,6 @@ import org.jetbrains.exposed.v1.core.inList
 import org.jetbrains.exposed.v1.core.isNull
 import org.springframework.stereotype.Repository
 import org.jetbrains.exposed.v1.jdbc.selectAll
-import org.jetbrains.exposed.v1.jdbc.insert
-import org.jetbrains.exposed.v1.core.SortOrder
 import java.time.LocalDateTime
 
 @Repository
@@ -122,7 +117,6 @@ class MatchParticipantRepository {
                     updatedAt = now
                 }
 
-            if (participant.voteStatus != participantRequest.voteStatus) participant.participationSource = null
             participant.voteStatus = participantRequest.voteStatus
             participant.updatedAt = now
 
@@ -146,10 +140,6 @@ class MatchParticipantRepository {
         voteStatus: MatchParticipantStatus,
         memo: String?,
         shouldUpdateMemo: Boolean,
-        actorUserId: Long? = null,
-        actorName: String = "",
-        source: ParticipationSource = ParticipationSource.SELF,
-        reason: String? = null,
     ): MatchParticipantRecord {
         val initialSide = lockMatchForParticipantWrite(matchId)
         val now = LocalDateTime.now()
@@ -158,30 +148,10 @@ class MatchParticipantRepository {
                 (MatchParticipantsTable.teamMemberId eq teamMemberId)
         }.toList().sortedWith(compareBy<MatchParticipantEntity> { it.deletedAt != null }.thenByDescending { it.id.value }).firstOrNull()
 
-        val previousStatus = existingParticipant?.takeIf { it.deletedAt == null }?.voteStatus
-        // Memo-only self saves retain the source and response time of the actual vote.
-        val shouldRecord = source == ParticipationSource.PROXY || existingParticipant == null ||
-            existingParticipant.deletedAt != null || existingParticipant.voteStatus != voteStatus ||
-            existingParticipant.respondedAt == null
-        if (actorUserId != null && shouldRecord) {
-            MatchParticipationHistoriesTable.insert {
-                it[this.matchId] = matchId
-                it[this.teamMemberId] = teamMemberId
-                it[this.actorUserId] = actorUserId
-                it[this.actorName] = actorName
-                it[responseSource] = source
-                it[this.previousStatus] = previousStatus
-                it[this.voteStatus] = voteStatus
-                it[this.reason] = reason
-                it[changedAt] = now
-            }
-        }
-
         if (existingParticipant != null) {
             existingParticipant.deletedAt = null
             val voteStatusChanged = existingParticipant.voteStatus != voteStatus
             existingParticipant.voteStatus = voteStatus
-            if (actorUserId != null && shouldRecord) existingParticipant.participationSource = source
             if (shouldUpdateMemo) {
                 existingParticipant.memo = memo
             }
@@ -204,29 +174,12 @@ class MatchParticipantRepository {
             cleanSheetCount = 0
             this.memo = memo
             respondedAt = now
-            participationSource = if (actorUserId != null) source else null
             createdAt = now
             updatedAt = now
         }
 
         return MatchParticipantRecord.from(participant)
     }
-
-    fun selectParticipationHistory(matchId: Long, teamMemberId: Long): List<ParticipationHistoryResponse> =
-        MatchParticipationHistoriesTable.selectAll().where {
-            (MatchParticipationHistoriesTable.matchId eq matchId) and
-                (MatchParticipationHistoriesTable.teamMemberId eq teamMemberId)
-        }.orderBy(MatchParticipationHistoriesTable.id to SortOrder.DESC).map {
-            ParticipationHistoryResponse(
-                id = it[MatchParticipationHistoriesTable.id].value,
-                actorName = it[MatchParticipationHistoriesTable.actorName],
-                source = it[MatchParticipationHistoriesTable.responseSource],
-                previousStatus = it[MatchParticipationHistoriesTable.previousStatus],
-                voteStatus = it[MatchParticipationHistoriesTable.voteStatus],
-                reason = it[MatchParticipationHistoriesTable.reason],
-                changedAt = it[MatchParticipationHistoriesTable.changedAt],
-            )
-        }
 
     fun removeParticipant(
         matchId: Long,

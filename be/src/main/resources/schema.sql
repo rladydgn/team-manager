@@ -182,7 +182,6 @@ CREATE TABLE match_participants (
     clean_sheet_count TINYINT UNSIGNED NOT NULL DEFAULT 0,
     memo VARCHAR(500) NULL,
     responded_at DATETIME NULL,
-    participation_source VARCHAR(10) NULL,
     created_at DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP,
     updated_at DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
     deleted_at DATETIME NULL,
@@ -191,22 +190,6 @@ CREATE TABLE match_participants (
     KEY idx_match_participants_team_member_id (team_member_id),
     KEY idx_match_participants_match_side (match_id, team_side),
     KEY idx_match_participants_vote_status (match_id, vote_status)
-);
-
--- Attendance response history. Access is restricted to current team managers by the service.
-CREATE TABLE match_participation_histories (
-    id BIGINT UNSIGNED NOT NULL AUTO_INCREMENT,
-    match_id BIGINT UNSIGNED NOT NULL,
-    team_member_id BIGINT UNSIGNED NOT NULL,
-    actor_user_id BIGINT UNSIGNED NOT NULL,
-    actor_name VARCHAR(50) NOT NULL,
-    response_source VARCHAR(10) NOT NULL,
-    previous_status VARCHAR(20) NULL,
-    vote_status VARCHAR(20) NOT NULL,
-    reason VARCHAR(500) NULL,
-    changed_at DATETIME NOT NULL,
-    PRIMARY KEY (id),
-    KEY idx_match_participation_histories_match_member (match_id, team_member_id)
 );
 
 -- Private service inquiries, independent of team membership and roles.

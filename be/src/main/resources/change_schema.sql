@@ -183,7 +183,10 @@ ALTER TABLE team_members
     ADD COLUMN main_position VARCHAR(2) NULL,
     ADD COLUMN jersey_number INT NULL;
 
--- F01 (2026-10-28): apply this block once to existing databases.
+-- F01 (2026-10-28): historical block, now retired; do not apply.
+-- RETIRED (2026-10-28): F01 proxy participation was removed at the user's request.
+-- Do not apply this obsolete block to databases that have not received F01.
+-- Previously applied metadata may remain unused; see docs/match-participation.md for optional cleanup.
 -- Existing response origins remain unknown (NULL); do not infer SELF or backfill history.
 ALTER TABLE match_participants
     ADD COLUMN participation_source VARCHAR(10) NULL;
@@ -211,3 +214,12 @@ ALTER TABLE matches
     ADD COLUMN away_unknown_assist_count INT UNSIGNED NOT NULL DEFAULT 0;
 ALTER TABLE matches
     ADD COLUMN internal_record_confirmed TINYINT(1) NOT NULL DEFAULT 0;
+
+-- F01 removal (2026-10-28): optional cleanup after removing proxy participation code.
+-- Apply only this block, never rerun the cumulative file or the retired F01 creation block.
+-- Check objects independently: skip DROP COLUMN if F01 was never applied or it was already removed.
+-- Export any history to retain before DROP; recovery requires a backup.
+-- Current votes, response times, attendance, personal records and F02 columns are preserved.
+ALTER TABLE match_participants
+    DROP COLUMN participation_source;
+DROP TABLE IF EXISTS match_participation_histories;

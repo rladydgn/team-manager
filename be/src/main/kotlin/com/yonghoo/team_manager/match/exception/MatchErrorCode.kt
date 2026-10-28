@@ -59,18 +59,6 @@ enum class MatchErrorCode(
         status = HttpStatus.BAD_REQUEST,
         message = "통계 조회 기간 또는 페이지 값이 올바르지 않습니다.",
     ),
-    MATCH_PROXY_PARTICIPATION_FORBIDDEN(
-        status = HttpStatus.FORBIDDEN,
-        message = "운영진만 대리 참석과 상세 변경 이력을 관리할 수 있습니다.",
-    ),
-    INVALID_PROXY_PARTICIPATION_TARGET(
-        status = HttpStatus.BAD_REQUEST,
-        message = "현재 팀에 소속된 활성 팀원만 대리 변경할 수 있습니다.",
-    ),
-    INVALID_PROXY_PARTICIPATION_REASON(
-        status = HttpStatus.BAD_REQUEST,
-        message = "마감 후에는 정정 사유가 필요하며, 사유는 500자 이내로 입력해 주세요.",
-    ),
     INVALID_INTERNAL_MATCH_RECORD(HttpStatus.BAD_REQUEST, "자체 경기의 편 배정과 편별 미상 기록을 확인해 주세요."),
     INTERNAL_MATCH_RECORD_VERSION_CONFLICT(HttpStatus.CONFLICT, "다른 운영진이 편 배정 또는 기록을 수정했습니다. 입력을 보존한 채 최신 기록을 확인해 주세요."),
     INTERNAL_MATCH_RECORD_CONFIRMATION_REQUIRED(HttpStatus.CONFLICT, "기존 자체 경기의 원본 점수와 미상 기록을 확인한 뒤 편별 전환에 동의해 주세요."),

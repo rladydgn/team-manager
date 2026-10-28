@@ -13,8 +13,7 @@ import {
   MatchParticipant,
   updateMatchParticipation,
 } from "@/features/match/api/match";
-import { canUpdateMatchParticipation, participationSourceLabel, sortMembersByParticipation } from "@/features/match/model/participation";
-import { ProxyParticipationPanel } from "@/features/match/ui/ProxyParticipationPanel";
+import { canUpdateMatchParticipation, sortMembersByParticipation } from "@/features/match/model/participation";
 import {
   getMatchResult,
   matchScoreText,
@@ -210,21 +209,6 @@ export default function MatchDetailPage() {
 
   function getMemoDraft() {
     return memoDraft;
-  }
-
-  function applyProxyUpdate(updatedParticipant: MatchParticipant) {
-    const previous = participants.find(player => player.teamMemberId === updatedParticipant.teamMemberId);
-    const member = teamMembers.find(member => member.id === updatedParticipant.teamMemberId);
-    setParticipants(current => [
-      ...current.filter(player => player.teamMemberId !== updatedParticipant.teamMemberId), updatedParticipant,
-    ]);
-    setMatch(current => current ? {
-      ...current,
-      availableParticipantCount: Math.max(0, current.availableParticipantCount +
-        Number(updatedParticipant.voteStatus === "AVAILABLE") - Number(previous?.voteStatus === "AVAILABLE")),
-      ...(member?.userId === currentUser?.id ? { myVoteStatus: updatedParticipant.voteStatus, isMatchParticipant: true } : {}),
-    } : null);
-    // A proxy response must not replace the current user's unsaved memo draft.
   }
 
   async function handleParticipation() {
@@ -525,8 +509,6 @@ export default function MatchDetailPage() {
                 </span>
               </div>
 
-              {canManageMatchRecord ? <ProxyParticipationPanel match={match} members={teamMembers} participants={participants} onUpdated={applyProxyUpdate} /> : null}
-
               <div className="divide-y divide-line md:hidden">
                 {participationMembers.map((member) => {
                   const participant = participants.find(
@@ -571,8 +553,6 @@ export default function MatchDetailPage() {
                           {participationStatusLabels[participationStatus]}
                         </span>
                       </div>
-
-                      {participationSourceLabel(participant) ? <p className="mt-2 text-xs text-muted">{participationSourceLabel(participant)}</p> : null}
                       <dl className="mt-4 grid grid-cols-2 gap-3 rounded-xl bg-subtle p-3 text-xs">
                         <div>
                           <dt className="font-medium text-muted">주포지션</dt>
@@ -733,7 +713,6 @@ export default function MatchDetailPage() {
                             >
                               {participationStatusLabels[participationStatus]}
                             </span>
-                            {participationSourceLabel(participant) ? <p className="mt-2 text-xs text-muted">{participationSourceLabel(participant)}</p> : null}
                           </td>
                         </tr>
                       );

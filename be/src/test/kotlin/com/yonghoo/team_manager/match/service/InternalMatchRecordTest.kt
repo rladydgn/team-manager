@@ -165,7 +165,9 @@ class InternalMatchRecordTest {
     fun `F02 SQL empty install and existing upgrade preserve original scores in H2 MySQL mode`() {
         val schema = Files.readString(Path.of("src/main/resources/schema.sql"))
         val ddl = Regex("CREATE TABLE matches \\(.*?;", RegexOption.DOT_MATCHES_ALL).find(schema)!!.value
-        val upgrade = Files.readString(Path.of("src/main/resources/change_schema.sql")).substringAfter("-- F02 (2026-10-28):")
+        val upgrade = Files.readString(Path.of("src/main/resources/change_schema.sql"))
+            .substringAfter("-- F02 (2026-10-28):")
+            .substringBefore("-- F01 removal (2026-10-28):")
         for (existing in listOf(false, true)) {
             val isolated = Database.connect("jdbc:h2:mem:${UUID.randomUUID()};MODE=MySQL;DB_CLOSE_DELAY=-1", driver = "org.h2.Driver")
             transaction(isolated) {

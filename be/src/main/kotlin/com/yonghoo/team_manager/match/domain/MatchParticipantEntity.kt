@@ -18,7 +18,6 @@ class MatchParticipantEntity(id: EntityID<Long>) : LongEntity(id) {
     var cleanSheetCount by MatchParticipantsTable.cleanSheetCount
     var memo by MatchParticipantsTable.memo
     var respondedAt by MatchParticipantsTable.respondedAt
-    var participationSource by MatchParticipantsTable.participationSource
     var createdAt by MatchParticipantsTable.createdAt
     var updatedAt by MatchParticipantsTable.updatedAt
     var deletedAt by MatchParticipantsTable.deletedAt

@@ -11,8 +11,6 @@ import com.yonghoo.team_manager.match.dto.HistoricalMatchParticipantsUpdateReque
 import com.yonghoo.team_manager.match.dto.MatchParticipantResponse
 import com.yonghoo.team_manager.match.dto.MatchParticipationUpdateRequest
 import com.yonghoo.team_manager.match.dto.MatchRecordUpdateRequest
-import com.yonghoo.team_manager.match.dto.ProxyParticipationUpdateRequest
-import com.yonghoo.team_manager.match.dto.ParticipationHistoryResponse
 import com.yonghoo.team_manager.match.dto.MatchResponse
 import com.yonghoo.team_manager.match.service.MatchService
 import com.yonghoo.team_manager.user.auth.AUTHENTICATED_USER_ID_ATTRIBUTE
@@ -112,27 +110,6 @@ class MatchController(
             ),
         )
     }
-
-    @Operation(summary = "운영진의 참석·불참 대리 변경")
-    @PutMapping("/{matchId}/participants/{teamMemberId}/participation")
-    fun updateProxyParticipation(
-        @PathVariable matchId: Long,
-        @PathVariable teamMemberId: Long,
-        @RequestAttribute(name = AUTHENTICATED_USER_ID_ATTRIBUTE, required = false) userId: Long?,
-        @RequestBody request: ProxyParticipationUpdateRequest,
-    ): ResponseEntity<CommonResponse<MatchParticipantResponse>> = ResponseEntity.ok().cacheControl(CacheControl.noStore()).body(
-        CommonResponse(data = matchService.updateProxyParticipation(matchId, teamMemberId, requireAuthenticatedUserId(userId), request)),
-    )
-
-    @Operation(summary = "운영진용 참석 응답 변경 이력")
-    @GetMapping("/{matchId}/participants/{teamMemberId}/participation-history")
-    fun getParticipationHistory(
-        @PathVariable matchId: Long,
-        @PathVariable teamMemberId: Long,
-        @RequestAttribute(name = AUTHENTICATED_USER_ID_ATTRIBUTE, required = false) userId: Long?,
-    ): ResponseEntity<CommonResponse<List<ParticipationHistoryResponse>>> = ResponseEntity.ok().cacheControl(CacheControl.noStore()).body(
-        CommonResponse(data = matchService.getParticipationHistory(matchId, teamMemberId, requireAuthenticatedUserId(userId))),
-    )
 
     @Operation(summary = "매치 경기 기록 저장")
     @PutMapping("/{matchId}/record")

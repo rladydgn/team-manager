@@ -10,6 +10,8 @@ import org.springframework.http.HttpStatus
 import org.springframework.http.ResponseEntity
 import org.springframework.http.converter.HttpMessageNotReadableException
 import org.springframework.web.bind.annotation.ExceptionHandler
+import org.springframework.web.servlet.NoHandlerFoundException
+import org.springframework.web.servlet.resource.NoResourceFoundException
 import org.springframework.web.bind.annotation.RestControllerAdvice
 import org.springframework.web.multipart.MaxUploadSizeExceededException
 
@@ -38,6 +40,9 @@ class GlobalExceptionHandler {
         }
         return createResponse(exception.errorCode, exception.message)
     }
+
+    @ExceptionHandler(NoHandlerFoundException::class, NoResourceFoundException::class)
+    fun handleMissingEndpoint(): ResponseEntity<ErrorResponse> = createResponse(CommonErrorCode.RESOURCE_NOT_FOUND)
 
     @ExceptionHandler(Exception::class)
     fun handleUnexpectedException(
