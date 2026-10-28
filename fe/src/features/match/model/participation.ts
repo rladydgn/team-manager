@@ -32,3 +32,17 @@ export function canUpdateMatchParticipation(
     now < participationDeadlineAt
   );
 }
+
+export function canProxyUpdateParticipation(
+  match: Pick<Match, "matchAt" | "status" | "teamScore" | "opponentScore">,
+  now = Date.now(),
+) {
+  return match.status === "SCHEDULED" && new Date(match.matchAt).getTime() > now &&
+    match.teamScore == null && match.opponentScore == null;
+}
+
+export function participationSourceLabel(participant?: Pick<MatchParticipant, "participationSource" | "voteStatus">) {
+  if (participant?.participationSource === "SELF") return "본인 응답";
+  if (participant?.participationSource === "PROXY") return "대리 등록";
+  return participant && ["AVAILABLE", "UNAVAILABLE"].includes(participant.voteStatus) ? "기존 기록" : "";
+}

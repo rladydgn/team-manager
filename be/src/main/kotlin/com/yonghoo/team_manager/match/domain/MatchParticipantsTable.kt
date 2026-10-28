@@ -16,6 +16,7 @@ object MatchParticipantsTable : LongIdTable("match_participants") {
     val cleanSheetCount = integer("clean_sheet_count").clientDefault { 0 }
     val memo = varchar("memo", 500).nullable()
     val respondedAt = datetime("responded_at").nullable()
+    val participationSource = enumerationByName("participation_source", 10, ParticipationSource::class).nullable()
     val createdAt = datetime("created_at").clientDefault { LocalDateTime.now() }
     val updatedAt = datetime("updated_at").clientDefault { LocalDateTime.now() }
     val deletedAt = datetime("deleted_at").nullable()

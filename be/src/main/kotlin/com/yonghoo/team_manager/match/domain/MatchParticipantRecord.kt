@@ -17,6 +17,7 @@ data class MatchParticipantRecord(
     val createdAt: LocalDateTime,
     val updatedAt: LocalDateTime,
     val teamSide: MatchTeamSide = MatchTeamSide.HOME,
+    val participationSource: ParticipationSource? = null,
 ) {
     companion object {
         fun from(participant: MatchParticipantEntity): MatchParticipantRecord {
@@ -33,6 +34,7 @@ data class MatchParticipantRecord(
                 cleanSheetCount = participant.cleanSheetCount,
                 memo = participant.memo,
                 respondedAt = participant.respondedAt,
+                participationSource = participant.participationSource,
                 createdAt = participant.createdAt,
                 updatedAt = participant.updatedAt,
             )

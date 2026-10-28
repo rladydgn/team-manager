@@ -63,6 +63,7 @@ export type Match = {
 };
 
 export type MatchParticipant = PlayerProfile & {
+  participationSource?: "SELF" | "PROXY" | null;
   teamSide: "HOME" | "AWAY" | "UNASSIGNED";
   teamMemberId: number;
   voteStatus: MatchParticipationStatus;
@@ -168,4 +169,24 @@ export function updateMatchRecord(
     `/matches/${matchId}/record`,
     request
   );
+}
+
+export type ParticipationHistory = {
+  id: number;
+  actorName: string;
+  source: "SELF" | "PROXY";
+  previousStatus: MatchParticipationStatus | null;
+  voteStatus: MatchParticipationStatus;
+  reason: string | null;
+  changedAt: string;
+};
+
+export function updateProxyParticipation(matchId: number, teamMemberId: number, voteStatus: "AVAILABLE" | "UNAVAILABLE", reason: string) {
+  return putJson<MatchParticipant, { voteStatus: typeof voteStatus; reason: string }>(
+    `/matches/${matchId}/participants/${teamMemberId}/participation`, { voteStatus, reason },
+  );
+}
+
+export function getParticipationHistory(matchId: number, teamMemberId: number) {
+  return getJson<ParticipationHistory[]>(`/matches/${matchId}/participants/${teamMemberId}/participation-history`);
 }

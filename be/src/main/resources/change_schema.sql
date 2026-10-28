@@ -182,3 +182,23 @@ CREATE TABLE match_formation_placements (
 ALTER TABLE team_members
     ADD COLUMN main_position VARCHAR(2) NULL,
     ADD COLUMN jersey_number INT NULL;
+
+-- F01 (2026-10-28): apply this block once to existing databases.
+-- Existing response origins remain unknown (NULL); do not infer SELF or backfill history.
+ALTER TABLE match_participants
+    ADD COLUMN participation_source VARCHAR(10) NULL;
+
+CREATE TABLE match_participation_histories (
+    id BIGINT UNSIGNED NOT NULL AUTO_INCREMENT,
+    match_id BIGINT UNSIGNED NOT NULL,
+    team_member_id BIGINT UNSIGNED NOT NULL,
+    actor_user_id BIGINT UNSIGNED NOT NULL,
+    actor_name VARCHAR(50) NOT NULL,
+    response_source VARCHAR(10) NOT NULL,
+    previous_status VARCHAR(20) NULL,
+    vote_status VARCHAR(20) NOT NULL,
+    reason VARCHAR(500) NULL,
+    changed_at DATETIME NOT NULL,
+    PRIMARY KEY (id),
+    KEY idx_match_participation_histories_match_member (match_id, team_member_id)
+);

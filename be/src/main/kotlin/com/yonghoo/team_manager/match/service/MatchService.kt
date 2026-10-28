@@ -26,6 +26,10 @@ import com.yonghoo.team_manager.match.dto.TeamParticipationMemberResponse
 import com.yonghoo.team_manager.match.dto.SortDirection
 import com.yonghoo.team_manager.match.exception.MatchErrorCode
 import com.yonghoo.team_manager.match.domain.MatchParticipantStatus
+import com.yonghoo.team_manager.match.domain.ParticipationSource
+import com.yonghoo.team_manager.match.dto.ProxyParticipationUpdateRequest
+import com.yonghoo.team_manager.match.dto.ParticipationHistoryResponse
+import com.yonghoo.team_manager.team.domain.TeamMemberStatus
 import com.yonghoo.team_manager.match.domain.MatchRecord
 import com.yonghoo.team_manager.match.repository.MatchParticipantRepository
 import com.yonghoo.team_manager.match.repository.MatchRepository
@@ -188,6 +192,7 @@ class MatchService(
                 cleanSheetCount = participant.cleanSheetCount,
                 memo = participant.memo,
                 respondedAt = participant.respondedAt,
+                participationSource = participant.participationSource,
                 name = member?.displayName,
                 role = member?.role,
                 mainPosition = member?.mainPosition,
@@ -481,6 +486,8 @@ class MatchService(
             voteStatus = request.voteStatus,
             memo = memo,
             shouldUpdateMemo = request.memo != null,
+            actorUserId = userId,
+            actorName = teamMember.displayName,
         )
 
         return MatchParticipantResponse(
@@ -494,12 +501,69 @@ class MatchService(
             cleanSheetCount = participant.cleanSheetCount,
             memo = participant.memo,
             respondedAt = participant.respondedAt,
+            participationSource = participant.participationSource,
             name = teamMember.displayName,
             role = teamMember.role,
             mainPosition = teamMember.mainPosition,
             jerseyNumber = teamMember.jerseyNumber,
         )
     }
+
+    fun updateProxyParticipation(
+        matchId: Long,
+        teamMemberId: Long,
+        userId: Long,
+        request: ProxyParticipationUpdateRequest,
+    ): MatchParticipantResponse {
+        matchRepository.lockMatch(matchId)
+        val match = getMatchAndValidateViewPermission(matchId, userId)
+        val actor = requireParticipationManager(match.teamId, userId)
+        val now = LocalDateTime.now()
+        if (match.status != MatchStatus.SCHEDULED || !match.matchAt.isAfter(now) ||
+            match.teamScore != null || match.opponentScore != null) {
+            throw ApiException(MatchErrorCode.MATCH_PARTICIPATION_CLOSED)
+        }
+        if (request.voteStatus !in setOf(MatchParticipantStatus.AVAILABLE, MatchParticipantStatus.UNAVAILABLE)) {
+            throw ApiException(MatchErrorCode.INVALID_MATCH_PARTICIPATION_REQUEST)
+        }
+        val reason = request.reason?.trim()?.takeIf(String::isNotBlank)
+        if ((reason?.length ?: 0) > 500 || (!match.participationDeadlineAt.isAfter(now) && reason == null)) {
+            throw ApiException(MatchErrorCode.INVALID_PROXY_PARTICIPATION_REASON)
+        }
+        val target = teamRepository.selectTeamMemberById(match.teamId, teamMemberId)
+            ?.takeIf { it.status == TeamMemberStatus.ACTIVE }
+            ?: throw ApiException(MatchErrorCode.INVALID_PROXY_PARTICIPATION_TARGET)
+        val participant = matchParticipantRepository.upsertParticipation(
+            matchId = match.id, teamMemberId = target.id, voteStatus = request.voteStatus,
+            memo = null, shouldUpdateMemo = false, actorUserId = userId,
+            actorName = actor.displayName, source = ParticipationSource.PROXY, reason = reason,
+        )
+        return MatchParticipantResponse(
+            teamMemberId = target.id, teamSide = participant.teamSide, voteStatus = participant.voteStatus,
+            actualParticipated = participant.actualParticipated, late = participant.late,
+            goalCount = participant.goalCount, assistCount = participant.assistCount,
+            cleanSheetCount = participant.cleanSheetCount, memo = participant.memo, respondedAt = participant.respondedAt,
+            name = target.displayName, role = target.role, mainPosition = target.mainPosition,
+            jerseyNumber = target.jerseyNumber, participationSource = participant.participationSource,
+        )
+    }
+
+    @Transactional(readOnly = true)
+    fun getParticipationHistory(matchId: Long, teamMemberId: Long, userId: Long): List<ParticipationHistoryResponse> {
+        val match = getMatchAndValidateViewPermission(matchId, userId)
+        requireParticipationManager(match.teamId, userId)
+        if (teamRepository.selectTeamMemberById(match.teamId, teamMemberId) == null) {
+            throw ApiException(MatchErrorCode.INVALID_PROXY_PARTICIPATION_TARGET)
+        }
+        return matchParticipantRepository.selectParticipationHistory(matchId, teamMemberId)
+    }
+
+    private fun requireParticipationManager(teamId: Long, userId: Long) =
+        requireActiveTeamMember(teamId, userId).also {
+            if (it.role != TeamMemberRole.OWNER && it.role != TeamMemberRole.SUB_MANAGER) {
+                throw ApiException(MatchErrorCode.MATCH_PROXY_PARTICIPATION_FORBIDDEN)
+            }
+        }
 
     fun updateMatchRecord(
         matchId: Long,

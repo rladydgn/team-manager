@@ -62,7 +62,7 @@ class DeletedTeamMatchAccessTest {
             .build()
         tx {
             SchemaUtils.create(TeamsTable, TeamMembersTable, TeamHistoriesTable, MatchesTable,
-                MatchParticipantsTable, MatchFormationsTable, MatchFormationPlacementsTable)
+                MatchParticipantsTable, MatchParticipationHistoriesTable, MatchFormationsTable, MatchFormationPlacementsTable)
             TeamsTable.insert { it[id] = 1; it[createdByUserId] = 10; it[name] = "접근 검증 팀" }
             TeamMembersTable.insert {
                 it[id] = 1; it[teamId] = 1; it[userId] = 10; it[displayName] = "마지막 팀장"; it[role] = TeamMemberRole.OWNER

@@ -49,6 +49,7 @@ npm.cmd run build
 | [접근 제어 기준](docs/access-control.md) | 역할·페이지·API 접근 기준 확인 |
 | [디자인 가이드](docs/design-system.md) | 화면 변경·반응형·한국어 문구 작성 |
 | [경기 포메이션](docs/match-formations.md) | 프리셋·편 배정·후보·버전 충돌 규칙 확인 |
+| [참석 응답·대리 등록](docs/match-participation.md) | 대리 변경 권한·마감·출처·이력·DB 변경 범위 확인 |
 | [팀 로고](docs/team-logos.md) · [문의](docs/inquiries.md) | 해당 기능의 동작·제한 확인 |
 
 ## 작업을 이어갈 때

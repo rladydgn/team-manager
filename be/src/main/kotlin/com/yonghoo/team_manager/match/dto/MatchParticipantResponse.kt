@@ -20,4 +20,5 @@ data class MatchParticipantResponse(
     val mainPosition: PlayerPosition? = null,
     val jerseyNumber: Int? = null,
     val teamSide: com.yonghoo.team_manager.match.domain.MatchTeamSide = com.yonghoo.team_manager.match.domain.MatchTeamSide.HOME,
+    val participationSource: com.yonghoo.team_manager.match.domain.ParticipationSource? = null,
 )
