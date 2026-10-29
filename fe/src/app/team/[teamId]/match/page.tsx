@@ -12,7 +12,6 @@ import {
 import { canUpdateMatchParticipation } from "@/features/match/model/participation";
 import {
   getMatchResult,
-  matchScoreText,
   matchResultPresentation,
 } from "@/features/match/model/result";
 import { MatchParticipationButton } from "@/features/match/ui/MatchParticipationButton";
@@ -235,18 +234,17 @@ export default function TeamMatchesPage() {
                         </div>
                       </Link>
                       <div className="flex flex-wrap items-center gap-2 lg:justify-end">
-                        {match.matchType === "INTERNAL" && match.teamScore != null && match.opponentScore != null ? <span className="rounded-lg border border-line-strong bg-brand-soft px-2.5 py-1 text-sm font-semibold text-brand-ink">{matchScoreText(match)}</span> : null}
-                        {matchResult ? (
-                          <>
+                        {(matchResult || (match.matchType === "INTERNAL" && match.teamScore != null && match.opponentScore != null)) ? (
                             <span className="rounded-lg bg-ink px-2.5 py-1 text-sm font-semibold tabular-nums text-white">
                               {match.teamScore} : {match.opponentScore}
                             </span>
+                        ) : null}
+                        {matchResult ? (
                             <span
                               className={`rounded-lg border px-2.5 py-1 text-xs font-semibold ${matchResultPresentation[matchResult].className}`}
                             >
                               {matchResultPresentation[matchResult].label}
                             </span>
-                          </>
                         ) : null}
                         <span className={`rounded-lg border px-2.5 py-1 text-xs font-semibold ${getMatchProgress(match).className}`}>{getMatchProgress(match).label}</span>
                         <span className="rounded-lg border border-line bg-subtle px-2.5 py-1 text-xs font-semibold text-brand-ink">{match.matchType === "INTERNAL" ? "자체전" : "외부전"}</span>
