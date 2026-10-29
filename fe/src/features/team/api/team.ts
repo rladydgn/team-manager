@@ -40,7 +40,7 @@ export type TeamUpdateRequest = {
   teamColor?: string;
 };
 
-export type PlayerPosition = "CB" | "WB" | "MF" | "FW" | "WF";
+export type PlayerPosition = "GK" | "CB" | "WB" | "MF" | "FW" | "WF";
 
 export type PlayerProfile = {
   mainPosition: PlayerPosition | null;

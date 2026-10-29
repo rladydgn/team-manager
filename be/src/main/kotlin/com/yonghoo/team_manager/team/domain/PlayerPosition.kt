@@ -1,3 +1,3 @@
 package com.yonghoo.team_manager.team.domain
 
-enum class PlayerPosition { CB, WB, MF, FW, WF }
+enum class PlayerPosition { GK, CB, WB, MF, FW, WF }

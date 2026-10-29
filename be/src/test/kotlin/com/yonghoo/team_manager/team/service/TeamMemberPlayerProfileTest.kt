@@ -88,11 +88,11 @@ class TeamMemberPlayerProfileTest {
     @Test
     fun `신규 팀원과 용병에 같은 등번호를 저장할 수 있다`() {
         for (role in listOf(TeamMemberRole.MEMBER, TeamMemberRole.GUEST)) {
-            val created = tx { service.addTeamMember(teamId, 20, TeamMemberCreateRequest("선수", role, PlayerPosition.WF, BigDecimal.TEN)) }
+            val created = tx { service.addTeamMember(teamId, 20, TeamMemberCreateRequest("선수", role, PlayerPosition.GK, BigDecimal.TEN)) }
             tx {
                 val saved = repository.selectTeamMemberById(teamId, created.id)!!
                 assertEquals(10, saved.jerseyNumber)
-                assertEquals(PlayerPosition.WF, saved.mainPosition)
+                assertEquals(PlayerPosition.GK, saved.mainPosition)
             }
         }
         val omitted = tx { service.addTeamMember(teamId, 10, TeamMemberCreateRequest("미설정", TeamMemberRole.GUEST)) }
@@ -142,8 +142,8 @@ class TeamMemberPlayerProfileTest {
         tx {
             mvc.perform(put("/teams/$teamId/members/$memberId/player-profile")
                 .requestAttr(AUTHENTICATED_USER_ID_ATTRIBUTE, 10L).contentType(MediaType.APPLICATION_JSON)
-                .content("""{"mainPosition":"CB","jerseyNumber":0}"""))
-                .andExpect(status().isOk).andExpect(jsonPath("$.data.mainPosition").value("CB"))
+                .content("""{"mainPosition":"GK","jerseyNumber":0}"""))
+                .andExpect(status().isOk).andExpect(jsonPath("$.data.mainPosition").value("GK"))
                 .andExpect(jsonPath("$.data.jerseyNumber").value(0))
             mvc.perform(put("/teams/$teamId/members/$memberId/player-profile")
                 .requestAttr(AUTHENTICATED_USER_ID_ATTRIBUTE, 10L).contentType(MediaType.APPLICATION_JSON)
@@ -157,7 +157,7 @@ class TeamMemberPlayerProfileTest {
     @Test
     fun `API는 잘못된 포지션과 소수를 거부하고 인증 정보가 없으면 401을 반환한다`() {
         val mvc = mvc()
-        for (body in listOf("""{"mainPosition":"GK"}""", """{"jerseyNumber":7.5}""")) tx {
+        for (body in listOf("""{"mainPosition":"INVALID"}""", """{"jerseyNumber":7.5}""")) tx {
             mvc.perform(put("/teams/$teamId/members/$memberId/player-profile")
                 .requestAttr(AUTHENTICATED_USER_ID_ATTRIBUTE, 10L).contentType(MediaType.APPLICATION_JSON).content(body))
                 .andExpect(status().isBadRequest)

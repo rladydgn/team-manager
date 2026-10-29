@@ -1,6 +1,6 @@
 import type { PlayerPosition } from "../api/team";
 
-export const playerPositions: PlayerPosition[] = ["CB", "WB", "MF", "FW", "WF"];
+export const playerPositions: PlayerPosition[] = ["GK", "CB", "WB", "MF", "FW", "WF"];
 
 export function PlayerProfileFields({ mainPosition, jerseyNumber, onPositionChange, onNumberChange }: {
   mainPosition: PlayerPosition | "";
