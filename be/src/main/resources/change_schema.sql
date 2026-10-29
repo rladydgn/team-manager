@@ -223,3 +223,8 @@ ALTER TABLE matches
 ALTER TABLE match_participants
     DROP COLUMN participation_source;
 DROP TABLE IF EXISTS match_participation_histories;
+
+-- Fee ON_LEAVE (2026-10-29): apply only this unapplied block to existing databases.
+-- Append the new value; preserve existing status values, notes and the UNPAID default.
+ALTER TABLE team_fee_payments
+    MODIFY COLUMN status ENUM('PAID', 'UNPAID', 'INJURED', 'EXEMPT', 'ON_LEAVE') NOT NULL DEFAULT 'UNPAID';

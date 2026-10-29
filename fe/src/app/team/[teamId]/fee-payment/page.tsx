@@ -21,6 +21,7 @@ const statusLabels: Record<FeePaymentStatus, string> = {
   UNPAID: "미납",
   INJURED: "부상",
   EXEMPT: "면제",
+  ON_LEAVE: "휴원",
 };
 
 const statusClassNames: Record<FeePaymentStatus, string> = {
@@ -28,6 +29,7 @@ const statusClassNames: Record<FeePaymentStatus, string> = {
   UNPAID: "border-[#f1d3d1] bg-[#fff5f4] text-[#a85450]",
   INJURED: "border-[#d8d4e9] bg-[#f6f5fb] text-[#695c91]",
   EXEMPT: "border-[#d6dee9] bg-[#f5f7fa] text-[#526274]",
+  ON_LEAVE: "border-brand-ring bg-brand-soft text-brand-ink",
 };
 
 const statusOptionStyles: Record<
@@ -38,6 +40,7 @@ const statusOptionStyles: Record<
   UNPAID: { backgroundColor: "#fff5f4", color: "#a85450" },
   INJURED: { backgroundColor: "#f6f5fb", color: "#695c91" },
   EXEMPT: { backgroundColor: "#f5f7fa", color: "#526274" },
+  ON_LEAVE: { backgroundColor: "var(--color-brand-soft)", color: "var(--color-brand-ink)" },
 };
 
 type MemoEditor = {
