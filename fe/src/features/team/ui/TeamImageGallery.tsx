@@ -15,6 +15,30 @@ function GalleryPhoto({ src, alt, className = "h-auto w-full" }: { src: string; 
   return <Image src={src} alt={alt} width={1200} height={800} unoptimized className={className} onError={() => setFailed(true)} />;
 }
 
+function TeamPhotoViewer({ images, teamName }: { images: TeamImage[]; teamName: string }) {
+  const [activeIndex, setActiveIndex] = useState(0);
+  const active = images[activeIndex];
+  if (!active) return null;
+  function show(offset: number) { setActiveIndex((activeIndex + offset + images.length) % images.length); }
+  return <div className="mt-4">
+    <div className="relative overflow-hidden rounded-xl border border-line bg-canvas" aria-label="팀 사진 보기">
+      <GalleryPhoto key={active.id} src={`${API_BASE_URL}${active.url}`} alt={`${teamName} 팀 사진 ${activeIndex + 1}`} className="h-56 w-full object-contain sm:h-80 lg:h-96" />
+      {images.length > 1 && <>
+        <button type="button" aria-label="이전 사진" className="absolute left-3 top-1/2 grid size-11 -translate-y-1/2 place-items-center rounded-full border border-line bg-white text-ink shadow-card transition-colors hover:bg-brand-soft" onClick={() => show(-1)}><Icon name="chevron" className="size-5 rotate-90" /></button>
+        <button type="button" aria-label="다음 사진" className="absolute right-3 top-1/2 grid size-11 -translate-y-1/2 place-items-center rounded-full border border-line bg-white text-ink shadow-card transition-colors hover:bg-brand-soft" onClick={() => show(1)}><Icon name="chevron" className="size-5 -rotate-90" /></button>
+      </>}
+      <span className="absolute bottom-3 right-3 rounded-full bg-ink px-3 py-1 text-xs font-medium tabular-nums text-white" aria-live="polite">{activeIndex + 1} / {images.length}</span>
+    </div>
+    {images.length > 1 && <div className="mt-3 flex flex-wrap gap-2" aria-label="사진 선택 목록">
+      {images.map((image, index) => <button key={image.id} type="button" aria-label={`${index + 1}번 팀 사진 보기`} aria-pressed={index === activeIndex}
+        className={`relative overflow-hidden rounded-lg border-2 bg-subtle p-0.5 transition-colors ${index === activeIndex ? "border-brand" : "border-transparent hover:border-line-strong"}`} onClick={() => setActiveIndex(index)}>
+        <Image src={`${API_BASE_URL}${image.url}`} alt="" width={88} height={56} unoptimized className="h-14 w-20 rounded object-contain" />
+        {index === 0 && <span className="absolute bottom-1 left-1 rounded bg-white px-1 text-[10px] font-medium text-brand-ink">대표</span>}
+      </button>)}
+    </div>}
+  </div>;
+}
+
 export function TeamImageGallery({ teamId, teamName, canManage }: { teamId: number; teamName: string; canManage: boolean }) {
   const [images, setImages] = useState<TeamImage[]>([]);
   const [loading, setLoading] = useState(true);
@@ -25,12 +49,14 @@ export function TeamImageGallery({ teamId, teamName, canManage }: { teamId: numb
   const [selected, setSelected] = useState<File | null>(null);
   const [preview, setPreview] = useState("");
   const [deletingId, setDeletingId] = useState<number | null>(null);
+  const [managing, setManaging] = useState(false);
   const [dragging, setDragging] = useState(false);
   const input = useRef<HTMLInputElement>(null);
   const previewRef = useRef("");
   const dragDepth = useRef(0);
   const isFull = images.length >= 3;
   const canChoose = !busy && !loading && !isFull;
+  const showManagement = canManage && !loading && (managing || images.length === 0);
 
   const refresh = useCallback(async () => {
     try {
@@ -97,16 +123,23 @@ export function TeamImageGallery({ teamId, teamName, canManage }: { teamId: numb
   return <section className="surface-card p-5 sm:p-6" aria-labelledby="team-images-title">
     <div className="flex flex-wrap items-center justify-between gap-3">
       <h2 id="team-images-title" className="text-lg font-semibold">팀 사진{canManage && <span className="ml-2 text-sm font-normal text-muted">{images.length}/3장</span>}</h2>
-      <button type="button" className="btn-quiet" disabled={busy || loading} onClick={() => void refresh()}>사진 새로고침</button>
+      <div className="flex flex-wrap items-center gap-1">
+        <button type="button" className="btn-quiet" disabled={busy || loading} onClick={() => void refresh()}>사진 새로고침</button>
+        {canManage && images.length > 0 && <button type="button" className="btn-secondary" disabled={busy || loading} aria-expanded={showManagement} aria-controls={`team-photo-management-${teamId}`} onClick={() => setManaging(!managing)}>{showManagement ? "관리 닫기" : "사진 관리"}</button>}
+      </div>
     </div>
     {loading && <p className="mt-4 text-sm text-muted">사진을 불러오는 중입니다.</p>}
     {error && <p role="alert" className="mt-4 flex items-start gap-2 rounded-xl border border-danger-line bg-danger-soft px-4 py-3 text-sm leading-6 text-danger"><Icon name="info" className="mt-1 size-4" />{error}</p>}
     {notice && <p role="status" className="mt-4 flex items-start gap-2 rounded-xl bg-success-soft px-4 py-3 text-sm leading-6 text-success"><Icon name="check" className="mt-1 size-4" />{notice}</p>}
-    <div className={images.length ? "mt-4 grid items-start gap-4 lg:grid-cols-3" : undefined}>
-      {images.map((image, index) => <figure key={image.id} className="min-w-0 overflow-hidden rounded-xl border border-line">
-        <GalleryPhoto src={`${API_BASE_URL}${image.url}`} alt={`${teamName} 팀 사진 ${index + 1}`} />
-        {canManage && <figcaption className="grid gap-3 p-3">
-          <p className="break-all text-xs text-muted">{image.originalFileName}</p>
+    {images.length > 0 && <TeamPhotoViewer key={images.map(image => image.id).join("-")} images={images} teamName={teamName} />}
+    <div id={`team-photo-management-${teamId}`} hidden={!showManagement}>
+    {showManagement && images.length > 0 && <div className="mt-5 grid gap-3 border-t border-line pt-5">
+      <p className="text-xs leading-5 text-muted">첫 번째 사진이 대표 사진이에요. 순서를 바꿔 대표 사진을 선택할 수 있어요.</p>
+      {images.map((image, index) => <figure key={image.id} className="grid min-w-0 grid-cols-[4rem_minmax(0,1fr)] items-start gap-3 rounded-xl border border-line p-3 sm:grid-cols-[5rem_minmax(0,1fr)]">
+        <div className="overflow-hidden rounded-lg bg-subtle"><GalleryPhoto src={`${API_BASE_URL}${image.url}`} alt={`${index + 1}번 관리 사진`} className="h-16 w-full object-contain" /></div>
+        <figcaption className="grid min-w-0 gap-1">
+          <p className="break-all text-sm font-medium text-ink">{image.originalFileName}</p>
+          <p className="text-xs text-muted">{index === 0 ? "대표 사진" : `${index + 1}번째 사진`}</p>
           <div className="flex flex-wrap gap-2">
             <button type="button" className="btn-quiet" aria-label={`${index + 1}번 사진 앞으로`} disabled={busy || index === 0} onClick={() => move(index, -1)}>앞으로</button>
             <button type="button" className="btn-quiet" aria-label={`${index + 1}번 사진 뒤로`} disabled={busy || index === images.length - 1} onClick={() => move(index, 1)}>뒤로</button>
@@ -119,10 +152,10 @@ export function TeamImageGallery({ teamId, teamName, canManage }: { teamId: numb
               <button type="button" className="btn-secondary border-danger-line text-danger" disabled={busy} onClick={() => void mutate(() => deleteTeamImage(teamId, image.id), "사진을 삭제했습니다.")}>삭제 확인</button>
             </div>
           </div>}
-        </figcaption>}
+        </figcaption>
       </figure>)}
-    </div>
-    {canManage && <form className={`grid gap-4 ${images.length ? "mt-5 border-t border-line pt-5" : "mt-4"}`} aria-busy={busy} onSubmit={event => {
+    </div>}
+    {showManagement && <form className={`grid gap-4 ${images.length ? "mt-5 border-t border-line pt-5" : "mt-4"}`} aria-busy={busy} onSubmit={event => {
       event.preventDefault(); if (selected) void mutate(() => uploadTeamImage(teamId, selected), "사진을 등록했습니다.", true);
     }}>
       <input ref={input} type="file" accept=".jpg,image/jpeg" aria-label="팀 사진 선택" aria-describedby={`team-photo-help-${teamId}`} disabled={!canChoose} onChange={event => choose(event.target.files?.[0])} className="sr-only" tabIndex={-1} />
@@ -168,5 +201,6 @@ export function TeamImageGallery({ teamId, teamName, canManage }: { teamId: numb
         <p>등록한 사진은 누구나 볼 수 있어요.</p>
       </div>
     </form>}
+    </div>
   </section>;
 }

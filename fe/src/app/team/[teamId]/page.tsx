@@ -254,6 +254,8 @@ export default function TeamDetailPage() {
               </div>
             </section>
 
+            <TeamImageGallery key={teamId} teamId={teamId} teamName={teamDetail.team.name} canManage={canEditTeam} />
+
             {!currentUser ? (
               <section className="rounded-xl border border-line bg-white px-5 py-4 text-sm leading-6 text-muted">
                 이 팀에 가입하려면{" "}
@@ -322,7 +324,6 @@ export default function TeamDetailPage() {
                 </dl>
               </aside>
             </div>
-            <TeamImageGallery key={teamId} teamId={teamId} teamName={teamDetail.team.name} canManage={canEditTeam} />
             <div className="flex justify-end">
                   {isOwner ? (
                     <button

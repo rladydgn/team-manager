@@ -57,7 +57,7 @@
 | 팀 내 탐색 | `fe/src/features/team/ui/TeamDetailTabs.tsx` | 권한별 탭, 모바일 줄바꿈 |
 | 팀 로고 | `fe/src/features/team/ui/TeamLogo.tsx`, `TeamLogoField.tsx` | 비율 유지, 미등록 시 이름 표시, 파일 미리보기·교체·제거 |
 | 공통 404 | `fe/src/shared/ui/NotFoundPage.tsx` | 존재하지 않거나 접근할 수 없는 페이지 |
-| 팀 홈 사진 | `fe/src/features/team/ui/TeamImageGallery.tsx` | 소개 아래 모바일 1열·데스크톱 최대 3열, 원본 비율 유지. 운영진만 등록·삭제 확인·앞/뒤 이동 |
+| 팀 홈 사진 | `fe/src/features/team/ui/TeamImageGallery.tsx` | 팀명 요약 바로 아래·소개 위에 큰 사진과 썸네일. 원본 비율 유지. 운영진 관리는 접어서 분리 |
 | 훈련 표시 | `fe/src/features/match/ui/MatchTrainingBadge.tsx` | 경기 목록·상세에서 훈련 진행 시에만 표시 |
 | 문의 상태 | `fe/src/features/inquiry/ui/InquiryPresentation.tsx` | 답변 대기·답변 완료 배지 |
 
