@@ -53,7 +53,7 @@ CREATE TABLE team_images (
 
 - FE와 BE가 모두 `.jpg` 확장자(대소문자 허용), `image/jpeg`, 0바이트 초과·5,242,880바이트 이하를 검사한다. `.jpeg`·PNG·다른 확장자는 거절한다. BE는 헤더 형식뿐 아니라 실제 JPEG 디코딩도 검사한다. 픽셀이 큰 파일은 샘플링해서 검증 메모리를 제한하고 원본 바이트·비율을 그대로 보관한다.
 - `TeamImageStorage`의 기본 루트는 `${user.home}/files`다. 격리 테스트는 `app.team-image.storage-path`에 임시 루트를 주입할 수 있다. 기존 로고 저장 폴더는 옮기지 않는다.
-- 한 번에 한 장을 `image` multipart 파트로 보낸다. 앱의 공통 multipart 한도는 파일 5MB/전체 요청 6MB로 조정했다. **로고 자체의 1MB·PNG/JPG·크기 검증은 유지**한다. 프록시·배포·볼륨 설정은 변경하지 않았다.
+- 한 번에 한 장을 `image` multipart 파트로 보낸다. Spring Boot 수신 한도 확대는 사용자 요청으로 되돌렸으며 현행 값은 **파일 5MB/전체 요청 6MB**다. 실제 팀 사진도 FE·BE에서 **5MB 이하**, 로고는 기존 **1MB 이하**로 제한한다. 프록시·배포·볼륨 설정은 변경하지 않았다.
 - 신규 파일 저장·DB 쓰기가 실패하면 신규 파일을 정리한다. DB 트랜잭션 완료 콜백으로 롤백 파일도 정리한다. 실패 정리 중 파일 시스템 오류는 로그에 기록된다.
 - 삭제 시 파일은 보관하므로 저장 공간은 누적된다. DB와 파일이 서로 짝을 이루며, 보관 정책 없는 자동 파일 삭제는 하지 않는다. 이미 사용자가 내려받은 파일까지 회수할 수 있다는 뜻은 아니다.
 
@@ -78,6 +78,36 @@ CREATE TABLE team_images (
 `expectedImageIds`가 현재 순서와 다르면 409 `TEAM_IMAGES_CHANGED`다. 새 순서는 현재 활성 이미지 전부를 중복 없이 포함해야 한다. 업로드/삭제로 목록이 바뀌어도 충돌 처리하며 다른 팀·삭제 이미지 ID를 섞지 못한다. 오류 후 화면에서 사진 새로고침으로 현재 목록을 확인해 다시 시도한다.
 
 형식·용량·파일명 오류는 400 `INVALID_TEAM_IMAGE`, 앱 multipart 초과는 413 `UPLOAD_TOO_LARGE`, 3장 초과는 409 `TEAM_IMAGE_LIMIT_REACHED`다. 인증 누락은 401이며 기존 공통 정책에 따라 권한 없음·없는 리소스는 공통 404로 처리한다.
+
+## 운영 413 진단과 수신 한도
+
+사용자가 운영 사이트에서 4.3MB JPG로 `POST /api/teams/1/images` 요청 시 413을 보고했다. 해당 크기는 이미지 규칙 이내다. 공개 주소의 HEAD 응답에서 Nginx 사용을 확인했고, 이후 사용자가 제공한 Nginx 설정에는 `client_max_body_size`가 없었다. 제시된 설정이 실제 적용본이면 기본 1m 제한이 원인이다. 응답 헤더만으로 판단한 것은 아니며 실제 활성 HTTPS 설정·오류 응답 본문·백엔드 로그는 확인하지 않았다.
+
+Spring Boot 환경변수로 수신 한도를 명시할 경우:
+
+```dotenv
+SPRING_SERVLET_MULTIPART_MAXFILESIZE=5MB
+SPRING_SERVLET_MULTIPART_MAXREQUESTSIZE=6MB
+```
+
+이름은 `MAX_FILE_SIZE`가 아닌 `MAXFILESIZE`, `MAX_REQUEST_SIZE`가 아닌 `MAXREQUESTSIZE`다. [공식 바인딩 규칙](https://docs.spring.io/spring-boot/reference/features/external-config.html#features.external-config.typesafe-configuration-properties.relaxed-binding.environment-variables)에 따라 하이픈은 제거한다. 단순히 SSH 로그인 셸에서 설정했다고 기존 Java 프로세스에 반영되지는 않는다. 실제 프로세스를 시작하는 환경·외부 설정의 값을 확인해야 한다. 현재 배포 방식은 외부 `application-real.yml`을 추가로 읽으므로 작은 값이 기본 application.yml을 덮어쓰는지도 확인한다. 환경변수·실행 인자는 파일보다 우선할 수 있다. 배포 설정·실행 환경 수정이나 재시작은 이 작업에서 수행하지 않았다.
+
+사용자가 제공한 설정은 `/api/`를 Spring 8080으로 직접 전달하고 나머지를 Next.js 3000으로 전달한다. 따라서 이 운영 업로드 경로는 Next.js를 통과하지 않는다. 해당 사이트의 **기존 `/api/` location**에 추가할 검토안은 다음과 같다. **운영 적용은 하지 않았다.**
+
+```nginx
+location /api/ {
+    client_max_body_size 10m;
+    proxy_pass http://127.0.0.1:8080/;
+}
+```
+
+제공된 블록은 listen 80이지만 실패 주소는 HTTPS다. 별도 443 서버 블록이나 추가 프록시가 있으면 실제 요청이 처리되는 블록의 한도도 맞춰야 한다. 경로를 중복 추가하는 것이 아니라 기존 location을 수정하는 예시다. 운영 적용 권한이 있을 때 설정 검증(`sudo nginx -t`) 후 재로드하는 작업이 필요하지만 이번 세션에서는 실행하지 않았다.
+
+[Nginx 공식 설명](https://nginx.org/en/docs/http/ngx_http_core_module.html#client_max_body_size)에 따르면 기본값은 1m이며 초과 시 413이다. 매칭되는 더 안쪽 location의 작은 제한이 상위 설정을 덮어쓰는지 함께 확인한다. Spring 한도만 넓혀도 앞단에서 차단하는 요청은 해결되지 않는다. 반대로 Nginx가 업스트림 413을 전달할 수도 있으므로 Server 헤더만으로 원인을 단정하지 않는다. HTML에 nginx가 표시되는 응답인지, JSON `UPLOAD_TOO_LARGE`인지와 같은 시점의 백엔드 로그로 발생 계층을 좁힌다.
+
+현재는 JAR의 내장 Tomcat이므로 별도 server.xml 변경은 하지 않는다. `max-http-form-post-size`는 multipart의 일반 파라미터 처리, `max-swallow-size`는 거절된 업로드의 잔여 본문 처리와 관련되며 일반 파일 허용 크기와 동일한 설정이 아니다. [Tomcat 공식 설명](https://tomcat.apache.org/tomcat-11.0-doc/config/http.html)을 참고하고 원인 없이 값을 늘리거나 무제한으로 설정하지 않는다.
+
+FE는 HTML/JSON 여부와 관계없이 업로드 413을 서버 용량 설정 확인 안내로 표시하며 선택한 파일과 미리보기를 보존한다. 이 안내 변경이나 저장소 한도 조정만으로 운영 413이 해결됐다고 기록하지 않는다.
 
 ## 화면·검증·다음 세션
 

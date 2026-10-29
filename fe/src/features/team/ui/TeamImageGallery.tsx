@@ -4,6 +4,7 @@ import Image from "next/image";
 import { useCallback, useEffect, useRef, useState } from "react";
 import { deleteTeamImage, getTeamImages, reorderTeamImages, uploadTeamImage, type TeamImage } from "../api/team-images";
 import { API_BASE_URL } from "@/shared/config/api";
+import { ApiRequestError } from "@/shared/api/http";
 import { Icon } from "@/shared/ui/Icon";
 
 function GalleryPhoto({ src, alt, className = "h-auto w-full" }: { src: string; alt: string; className?: string }) {
@@ -77,7 +78,11 @@ export function TeamImageGallery({ teamId, teamName, canManage }: { teamId: numb
       if (!response.data) throw new Error("이미지 목록을 받지 못했습니다. 새로고침 후 확인해 주세요.");
       setImages(response.data); setDeletingId(null); setNotice(message);
       if (uploaded) clearSelection();
-    } catch (error) { setError(error instanceof Error ? error.message : "이미지를 저장하지 못했습니다."); }
+    } catch (error) {
+      setError(error instanceof ApiRequestError && error.status === 413
+        ? "서버의 업로드 용량 제한에 걸렸습니다. 서버 설정 확인이 필요합니다."
+        : error instanceof Error ? error.message : "이미지를 저장하지 못했습니다.");
+    }
     finally { setBusy(false); setUploading(false); }
   }
 
