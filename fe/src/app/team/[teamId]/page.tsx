@@ -2,6 +2,7 @@
 
 import Link from "next/link";
 import { TeamLogo } from "@/features/team/ui/TeamLogo";
+import { TeamImageGallery } from "@/features/team/ui/TeamImageGallery";
 import { useParams, useRouter } from "next/navigation";
 import {
   useCallback,
@@ -321,6 +322,7 @@ export default function TeamDetailPage() {
                 </dl>
               </aside>
             </div>
+            <TeamImageGallery key={teamId} teamId={teamId} teamName={teamDetail.team.name} canManage={canEditTeam} />
             <div className="flex justify-end">
                   {isOwner ? (
                     <button

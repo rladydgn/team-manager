@@ -52,6 +52,7 @@ class FeePaymentLeaveTest {
         val ddl = Regex("CREATE TABLE team_fee_payments \\(.*?;", RegexOption.DOT_MATCHES_ALL).find(schema)!!.value
         val upgrade = Files.readString(Path.of("src/main/resources/change_schema.sql"))
             .substringAfter("-- Fee ON_LEAVE (2026-10-29):").substringAfter('\n')
+            .substringBefore("-- Team images (2026-10-30):")
         for (existing in listOf(false, true)) {
             val db = Database.connect("jdbc:h2:mem:${UUID.randomUUID()};MODE=MySQL;DB_CLOSE_DELAY=-1", driver = "org.h2.Driver")
             transaction(db) {

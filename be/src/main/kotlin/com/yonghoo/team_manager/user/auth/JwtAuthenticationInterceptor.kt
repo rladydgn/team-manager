@@ -47,7 +47,7 @@ class JwtAuthenticationInterceptor(
     private fun isAuthenticationExemptRequest(request: HttpServletRequest): Boolean {
         val path = request.requestURI
 
-        return (request.method == "GET" && path.startsWith("/teams/logos/")) ||
+        return (request.method == "GET" && (path.startsWith("/teams/logos/") || TEAM_IMAGE_READ_PATH.matches(path))) ||
             path in PUBLIC_PATHS ||
             path.startsWith("/swagger-ui/") ||
             path.startsWith("/v3/api-docs/")
@@ -81,6 +81,7 @@ class JwtAuthenticationInterceptor(
     }
 
     companion object {
+        private val TEAM_IMAGE_READ_PATH = Regex("^/teams/\\d+/images(?:/\\d+/file)?$")
         private val TEAM_DETAIL_PATH = Regex("^/teams/\\d+$")
         private val PUBLIC_PATHS = setOf(
             "/users/sign-in",

@@ -228,3 +228,19 @@ DROP TABLE IF EXISTS match_participation_histories;
 -- Append the new value; preserve existing status values, notes and the UNPAID default.
 ALTER TABLE team_fee_payments
     MODIFY COLUMN status ENUM('PAID', 'UNPAID', 'INJURED', 'EXEMPT', 'ON_LEAVE') NOT NULL DEFAULT 'UNPAID';
+
+-- Team images (2026-10-30): apply only this unapplied block; never rerun this cumulative file.
+-- Paths are relative to the image storage root (default: user.home/files).
+CREATE TABLE team_images (
+    id BIGINT UNSIGNED NOT NULL AUTO_INCREMENT,
+    team_id BIGINT UNSIGNED NOT NULL,
+    image_path VARCHAR(500) NOT NULL,
+    original_file_name VARCHAR(255) NOT NULL,
+    file_size_bytes INT UNSIGNED NOT NULL,
+    sort_order INT UNSIGNED NOT NULL DEFAULT 0,
+    created_by_user_id BIGINT UNSIGNED NOT NULL,
+    created_at DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP,
+    deleted_at DATETIME NULL,
+    PRIMARY KEY (id),
+    KEY idx_team_images_team_deleted_order (team_id, deleted_at, sort_order, id)
+);

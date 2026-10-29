@@ -7,6 +7,12 @@ enum class TeamErrorCode(
     override val status: HttpStatus,
     override val message: String,
 ) : ErrorCode {
+    INVALID_TEAM_IMAGE(HttpStatus.BAD_REQUEST, "이미지는 5MB 이하의 JPG 파일만 등록할 수 있습니다. 파일 형식과 이름을 확인해 주세요."),
+    TEAM_IMAGE_STORAGE_FAILED(HttpStatus.INTERNAL_SERVER_ERROR, "이미지를 저장하지 못했습니다. 잠시 후 다시 시도해 주세요."),
+    TEAM_IMAGE_NOT_FOUND(HttpStatus.NOT_FOUND, "팀 이미지를 찾을 수 없습니다."),
+    TEAM_IMAGE_LIMIT_REACHED(HttpStatus.CONFLICT, "팀 이미지는 최대 3장까지 등록할 수 있습니다."),
+    INVALID_TEAM_IMAGE_ORDER(HttpStatus.BAD_REQUEST, "현재 이미지 전체를 중복 없이 지정해 주세요."),
+    TEAM_IMAGES_CHANGED(HttpStatus.CONFLICT, "이미지 목록이나 순서가 변경됐습니다. 최신 목록을 확인한 뒤 다시 시도해 주세요."),
     INVALID_JERSEY_NUMBER(HttpStatus.BAD_REQUEST, "등번호는 0~99 사이의 정수로 입력해주세요."),
     INVALID_TEAM_LOGO(HttpStatus.BAD_REQUEST, "로고는 1MB 이하의 PNG·JPG 이미지여야 하며 가로·세로 각각 64~2,048px이어야 합니다."),
     TEAM_LOGO_STORAGE_FAILED(HttpStatus.INTERNAL_SERVER_ERROR, "로고를 저장하지 못했습니다. 잠시 후 다시 시도해 주세요."),

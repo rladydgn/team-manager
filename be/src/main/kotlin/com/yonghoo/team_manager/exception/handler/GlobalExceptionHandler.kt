@@ -24,9 +24,10 @@ class GlobalExceptionHandler {
     fun handleUnreadableMessage(): ResponseEntity<ErrorResponse> = createResponse(CommonErrorCode.MESSAGE_NOT_READABLE)
 
     @ExceptionHandler(MaxUploadSizeExceededException::class)
-    fun handleUploadTooLarge(): ResponseEntity<ErrorResponse> = ResponseEntity
+    fun handleUploadTooLarge(request: HttpServletRequest): ResponseEntity<ErrorResponse> = ResponseEntity
         .status(HttpStatus.PAYLOAD_TOO_LARGE)
-        .body(ErrorResponse(413, "UPLOAD_TOO_LARGE", "로고는 1MB 이하의 파일로 올려 주세요."))
+        .body(ErrorResponse(413, "UPLOAD_TOO_LARGE", if (Regex("^/teams/\\d+/images$").matches(request.requestURI))
+            "이미지는 한 장씩 5MB 이하의 JPG 파일로 올려 주세요." else "로고는 1MB 이하의 파일로 올려 주세요."))
 
     @ExceptionHandler(ApiException::class)
     fun handleApiException(
