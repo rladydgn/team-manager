@@ -1,6 +1,7 @@
 import type { SVGProps } from "react";
 
 const paths = {
+  expand: "M8 3H3v5m13-5h5v5M3 16v5h5m13-5v5h-5",
   image: "M4 3h16a1 1 0 0 1 1 1v16a1 1 0 0 1-1 1H4a1 1 0 0 1-1-1V4a1 1 0 0 1 1-1ZM3 16l5-5 5 5 3-3 5 5M16 7h.01",
   upload: "M12 16V3m-5 5 5-5 5 5M4 15v5a1 1 0 0 0 1 1h14a1 1 0 0 0 1-1v-5",
   check: "m5 12 4 4L19 6",
