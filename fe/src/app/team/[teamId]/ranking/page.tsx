@@ -156,6 +156,16 @@ export default function TeamRankingPage() {
           setDraftStartDate(defaultSeason.startDate);
           setDraftEndDate(defaultSeason.endDate);
         }
+      } else if (selectedSeasonId) {
+        const selected = loadedSeasons.find((season) => String(season.id) === selectedSeasonId);
+        const active = selected ?? loadedSeasons.find((season) => season.isDefault);
+        if (!selected) setSelectedSeasonId(active ? String(active.id) : "");
+        if (active && (active.startDate !== startDate || active.endDate !== endDate)) {
+          setStartDate(active.startDate);
+          setEndDate(active.endDate);
+          setDraftStartDate(active.startDate);
+          setDraftEndDate(active.endDate);
+        }
       }
     } catch (error) {
       setErrorMessage(
@@ -164,7 +174,7 @@ export default function TeamRankingPage() {
     } finally {
       setIsLoading(false);
     }
-  }, [currentUser, endDate, isSessionReady, startDate, teamId]);
+  }, [currentUser, endDate, isSessionReady, selectedSeasonId, startDate, teamId]);
 
   useEffect(() => {
     const timerId = window.setTimeout(() => {
@@ -250,6 +260,13 @@ export default function TeamRankingPage() {
                 </label>
                 {canManageSeasons ? <Link href={`/team/${teamId}/season`} className="inline-flex h-11 items-center justify-center rounded-lg border border-line-strong bg-white px-4 text-sm font-semibold text-brand-ink">시즌 설정</Link> : null}
               </div>
+              {seasons.find((season) => String(season.id) === selectedSeasonId)?.memo ? (
+                <div className="mb-4 rounded-lg border border-line bg-subtle p-4 text-sm">
+                  <p className="font-semibold text-secondary">시즌 메모</p>
+                  <p className="mt-2 whitespace-pre-wrap break-words leading-6 text-secondary">{seasons.find((season) => String(season.id) === selectedSeasonId)?.memo}</p>
+                </div>
+              ) : null}
+
               <div className="flex flex-wrap gap-2">
                 {(Object.keys(periodPresetLabels) as Exclude<PeriodPreset, "CUSTOM">[]).map(
                   (preset) => (

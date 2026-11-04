@@ -11,6 +11,8 @@ import com.yonghoo.team_manager.user.exception.UserErrorCode
 import io.swagger.v3.oas.annotations.Operation
 import org.springframework.http.HttpStatus
 import org.springframework.http.ResponseEntity
+import org.springframework.web.bind.annotation.DeleteMapping
+import org.springframework.web.bind.annotation.RequestParam
 import org.springframework.web.bind.annotation.GetMapping
 import org.springframework.web.bind.annotation.PathVariable
 import org.springframework.web.bind.annotation.PostMapping
@@ -55,6 +57,24 @@ class TeamSeasonController(private val teamSeasonService: TeamSeasonService) {
         @RequestAttribute(name = AUTHENTICATED_USER_ID_ATTRIBUTE, required = false) userId: Long?,
         @RequestBody request: TeamSeasonOrderUpdateRequest,
     ) = ResponseEntity.ok(CommonResponse(data = teamSeasonService.updateOrder(teamId, authenticated(userId), request)))
+
+    @Operation(summary = "팀 시즌 이름·기간·메모 수정")
+    @PutMapping("/{seasonId}")
+    fun updateSeason(
+        @PathVariable teamId: Long,
+        @PathVariable seasonId: Long,
+        @RequestAttribute(name = AUTHENTICATED_USER_ID_ATTRIBUTE, required = false) userId: Long?,
+        @RequestBody request: TeamSeasonCreateRequest,
+    ) = ResponseEntity.ok(CommonResponse(data = teamSeasonService.updateSeason(teamId, seasonId, authenticated(userId), request)))
+
+    @Operation(summary = "팀 시즌 삭제")
+    @DeleteMapping("/{seasonId}")
+    fun deleteSeason(
+        @PathVariable teamId: Long,
+        @PathVariable seasonId: Long,
+        @RequestAttribute(name = AUTHENTICATED_USER_ID_ATTRIBUTE, required = false) userId: Long?,
+        @RequestParam(required = false) replacementSeasonId: Long?,
+    ) = ResponseEntity.ok(CommonResponse(data = teamSeasonService.deleteSeason(teamId, seasonId, authenticated(userId), replacementSeasonId)))
 
     private fun authenticated(userId: Long?) = userId ?: throw ApiException(UserErrorCode.UNAUTHORIZED_ACCESS)
 }

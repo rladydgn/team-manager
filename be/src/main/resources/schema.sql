@@ -105,6 +105,7 @@ CREATE TABLE team_seasons (
     id BIGINT UNSIGNED NOT NULL AUTO_INCREMENT,
     team_id BIGINT UNSIGNED NOT NULL,
     name VARCHAR(50) NOT NULL,
+    memo VARCHAR(1000) NULL,
     start_date DATE NOT NULL,
     end_date DATE NOT NULL,
     is_default TINYINT(1) NOT NULL DEFAULT 0,

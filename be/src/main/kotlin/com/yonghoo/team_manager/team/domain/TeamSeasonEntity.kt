@@ -9,6 +9,7 @@ class TeamSeasonEntity(id: EntityID<Long>) : LongEntity(id) {
 
     var teamId by TeamSeasonsTable.teamId
     var name by TeamSeasonsTable.name
+    var memo by TeamSeasonsTable.memo
     var startDate by TeamSeasonsTable.startDate
     var endDate by TeamSeasonsTable.endDate
     var isDefault by TeamSeasonsTable.isDefault

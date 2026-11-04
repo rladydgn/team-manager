@@ -3,6 +3,8 @@ package com.yonghoo.team_manager.team.repository
 import com.yonghoo.team_manager.team.domain.TeamSeasonEntity
 import com.yonghoo.team_manager.team.domain.TeamSeasonRecord
 import com.yonghoo.team_manager.team.domain.TeamSeasonsTable
+import com.yonghoo.team_manager.team.domain.TeamsTable
+import org.jetbrains.exposed.v1.jdbc.selectAll
 import org.jetbrains.exposed.v1.core.and
 import org.jetbrains.exposed.v1.core.eq
 import org.jetbrains.exposed.v1.core.isNull
@@ -12,6 +14,35 @@ import java.time.LocalDateTime
 
 @Repository
 class TeamSeasonRepository {
+    fun lockTeam(teamId: Long): Boolean = TeamsTable.selectAll().where {
+        (TeamsTable.id eq teamId) and TeamsTable.deletedAt.isNull()
+    }.forUpdate().toList().isNotEmpty()
+
+    fun lockSeasons(teamId: Long) {
+        // Current read after the parent lock, including MySQL REPEATABLE READ.
+        TeamSeasonsTable.selectAll().where {
+            (TeamSeasonsTable.teamId eq teamId) and TeamSeasonsTable.deletedAt.isNull()
+        }.forUpdate().forEach { TeamSeasonEntity.wrapRow(it) }
+    }
+
+    fun update(seasonId: Long, name: String, startDate: LocalDate, endDate: LocalDate, memo: String?) {
+        TeamSeasonEntity[seasonId].apply {
+            this.memo = memo
+            this.name = name
+            this.startDate = startDate
+            this.endDate = endDate
+            updatedAt = LocalDateTime.now()
+        }
+    }
+
+    fun softDelete(seasonId: Long) {
+        TeamSeasonEntity[seasonId].apply {
+            isDefault = false
+            deletedAt = LocalDateTime.now()
+            updatedAt = LocalDateTime.now()
+        }
+    }
+
     fun create(
         teamId: Long,
         userId: Long,
@@ -20,10 +51,12 @@ class TeamSeasonRepository {
         endDate: LocalDate,
         isDefault: Boolean,
         sortOrder: Int,
+        memo: String? = null,
     ): TeamSeasonRecord {
         val now = LocalDateTime.now()
         return TeamSeasonEntity.new {
             this.teamId = teamId
+            this.memo = memo
             this.name = name
             this.startDate = startDate
             this.endDate = endDate

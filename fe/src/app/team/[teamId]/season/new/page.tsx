@@ -13,6 +13,7 @@ export default function NewTeamSeasonPage() {
   const router = useRouter();
   const { currentUser, isSessionReady } = useAuthSession();
   const [isAllowed, setIsAllowed] = useState(false);
+  const [memo, setMemo] = useState("");
   const [name, setName] = useState("");
   const [startDate, setStartDate] = useState("");
   const [endDate, setEndDate] = useState("");
@@ -47,7 +48,7 @@ export default function NewTeamSeasonPage() {
     setIsSaving(true);
     setErrorMessage("");
     try {
-      await createTeamSeason(teamId, { name: name.trim(), startDate, endDate });
+      await createTeamSeason(teamId, { name: name.trim(), startDate, endDate, memo });
       router.push(`/team/${teamId}/season`);
     } catch (error) {
       setErrorMessage(error instanceof Error ? error.message : "시즌을 저장하지 못했습니다.");
@@ -75,6 +76,10 @@ export default function NewTeamSeasonPage() {
               <label className="grid gap-2 text-sm font-semibold text-secondary">시작일<input type="date" value={startDate} onChange={(event) => setStartDate(event.target.value)} required className="h-11 rounded-lg border border-line-strong px-3 font-normal outline-none focus:border-brand" /></label>
               <label className="grid gap-2 text-sm font-semibold text-secondary">종료일<input type="date" value={endDate} onChange={(event) => setEndDate(event.target.value)} required className="h-11 rounded-lg border border-line-strong px-3 font-normal outline-none focus:border-brand" /></label>
             </div>
+            <label className="grid gap-2 text-sm font-semibold text-secondary">시즌 메모 (선택)
+              <textarea value={memo} onChange={(event) => setMemo(event.target.value)} maxLength={1000} rows={4} placeholder="예: 이번 시즌 클린시트는 수비수만 집계" className="w-full rounded-lg border border-line-strong p-3 font-normal outline-none focus:border-brand" />
+              <span className="text-xs font-normal text-muted">팀원에게 공개됩니다. 메모는 실제 집계 방식을 자동으로 바꾸지 않습니다. ({memo.length}/1,000)</span>
+            </label>
             <div className="flex flex-col-reverse gap-3 sm:flex-row sm:justify-end">
               <Link href={`/team/${teamId}/season`} className="inline-flex h-11 items-center justify-center rounded-lg border border-line-strong px-5 text-sm font-semibold text-secondary">취소</Link>
               <button disabled={isSaving} className="inline-flex h-11 items-center justify-center rounded-lg bg-brand px-5 text-sm font-semibold text-white disabled:opacity-60">{isSaving ? "저장 중..." : "시즌 저장"}</button>

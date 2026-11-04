@@ -205,7 +205,7 @@ class TeamImageTest {
         val schema = Files.readString(Path.of("src/main/resources/schema.sql"))
         val create = Regex("CREATE TABLE team_images \\(.*?;", RegexOption.DOT_MATCHES_ALL).find(schema)!!.value
         val change = Files.readString(Path.of("src/main/resources/change_schema.sql"))
-            .substringAfter("-- Team images (2026-10-30):").substringAfter('\n')
+            .substringAfter("-- Team images (2026-10-30):").substringAfter('\n').substringBefore("-- Season memo (2026-11-04):")
         for (ddl in listOf(create, change)) {
             val isolated = Database.connect("jdbc:h2:mem:${UUID.randomUUID()};MODE=MySQL;DB_CLOSE_DELAY=-1", driver = "org.h2.Driver")
             transaction(isolated) {

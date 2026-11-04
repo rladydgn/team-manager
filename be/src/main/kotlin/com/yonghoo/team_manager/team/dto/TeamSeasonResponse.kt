@@ -12,11 +12,13 @@ data class TeamSeasonResponse(
     val isDefault: Boolean,
     val sortOrder: Int,
     val createdAt: LocalDateTime,
+    val memo: String? = null,
 ) {
     companion object {
         fun from(season: TeamSeasonRecord) = TeamSeasonResponse(
             id = season.id,
             name = season.name,
+            memo = season.memo,
             startDate = season.startDate,
             endDate = season.endDate,
             isDefault = season.isDefault,

@@ -1,8 +1,9 @@
-import { getJson, postJson, putJson } from "@/shared/api/http";
+import { deleteJson, getJson, postJson, putJson } from "@/shared/api/http";
 
 export type TeamSeason = {
   id: number;
   name: string;
+  memo?: string | null;
   startDate: string;
   endDate: string;
   isDefault: boolean;
@@ -12,6 +13,7 @@ export type TeamSeason = {
 
 export type TeamSeasonCreateRequest = {
   name: string;
+  memo?: string | null;
   startDate: string;
   endDate: string;
 };
@@ -35,4 +37,13 @@ export function reorderTeamSeasons(teamId: number, seasonIds: number[]) {
   return putJson<TeamSeason[], { seasonIds: number[] }>(`/teams/${teamId}/seasons/order`, {
     seasonIds,
   });
+}
+
+export function updateTeamSeason(teamId: number, seasonId: number, request: TeamSeasonCreateRequest) {
+  return putJson<TeamSeason[], TeamSeasonCreateRequest>(`/teams/${teamId}/seasons/${seasonId}`, request);
+}
+
+export function deleteTeamSeason(teamId: number, seasonId: number, replacementSeasonId?: number) {
+  const query = replacementSeasonId === undefined ? "" : `?replacementSeasonId=${replacementSeasonId}`;
+  return deleteJson<TeamSeason[]>(`/teams/${teamId}/seasons/${seasonId}${query}`);
 }

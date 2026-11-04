@@ -26,10 +26,7 @@ class TeamSeasonService(
 
     fun createSeason(teamId: Long, userId: Long, request: TeamSeasonCreateRequest): List<TeamSeasonResponse> {
         requireManager(teamId, userId)
-        val name = request.name.trim()
-        if (name.isBlank() || name.length > 50 || request.startDate.isAfter(request.endDate)) {
-            throw ApiException(TeamErrorCode.INVALID_TEAM_SEASON_REQUEST)
-        }
+        val name = validate(request)
 
         val seasons = teamSeasonRepository.selectByTeamId(teamId)
         if (seasons.any { it.name.equals(name, ignoreCase = true) }) {
@@ -40,6 +37,7 @@ class TeamSeasonService(
             teamId = teamId,
             userId = userId,
             name = name,
+            memo = request.memo?.trim()?.takeIf { it.isNotEmpty() },
             startDate = request.startDate,
             endDate = request.endDate,
             isDefault = seasons.isEmpty(),
@@ -74,6 +72,42 @@ class TeamSeasonService(
         return orderedSeasons(teamId).map(TeamSeasonResponse::from)
     }
 
+    fun updateSeason(teamId: Long, seasonId: Long, userId: Long, request: TeamSeasonCreateRequest): List<TeamSeasonResponse> {
+        requireManager(teamId, userId)
+        val name = validate(request)
+        val seasons = teamSeasonRepository.selectByTeamId(teamId)
+        if (seasons.none { it.id == seasonId }) throw ApiException(TeamErrorCode.TEAM_SEASON_NOT_FOUND)
+        if (seasons.any { it.id != seasonId && it.name.equals(name, ignoreCase = true) }) {
+            throw ApiException(TeamErrorCode.DUPLICATE_TEAM_SEASON_NAME)
+        }
+        teamSeasonRepository.update(seasonId, name, request.startDate, request.endDate, request.memo?.trim()?.takeIf { it.isNotEmpty() })
+        return orderedSeasons(teamId).map(TeamSeasonResponse::from)
+    }
+
+    fun deleteSeason(teamId: Long, seasonId: Long, userId: Long, replacementSeasonId: Long?): List<TeamSeasonResponse> {
+        requireManager(teamId, userId)
+        val seasons = teamSeasonRepository.selectByTeamId(teamId)
+        val season = seasons.find { it.id == seasonId } ?: throw ApiException(TeamErrorCode.TEAM_SEASON_NOT_FOUND)
+        val remaining = seasons.filter { it.id != seasonId }
+        if (season.isDefault && remaining.isNotEmpty()) {
+            if (remaining.none { it.id == replacementSeasonId }) throw ApiException(TeamErrorCode.INVALID_TEAM_SEASON_REPLACEMENT)
+            teamSeasonRepository.clearDefault(teamId)
+            teamSeasonRepository.setDefault(replacementSeasonId!!)
+        } else if (replacementSeasonId != null) {
+            throw ApiException(TeamErrorCode.INVALID_TEAM_SEASON_REPLACEMENT)
+        }
+        teamSeasonRepository.softDelete(seasonId)
+        return orderedSeasons(teamId).map(TeamSeasonResponse::from)
+    }
+
+    private fun validate(request: TeamSeasonCreateRequest): String {
+        val name = request.name.trim()
+        if (name.isBlank() || name.length > 50 || request.startDate.isAfter(request.endDate) || (request.memo?.length ?: 0) > 1000) {
+            throw ApiException(TeamErrorCode.INVALID_TEAM_SEASON_REQUEST)
+        }
+        return name
+    }
+
     private fun orderedSeasons(teamId: Long) = teamSeasonRepository.selectByTeamId(teamId).sortedWith(
         compareByDescending<TeamSeasonRecord> { it.isDefault }
             .thenBy(TeamSeasonRecord::sortOrder)
@@ -88,6 +122,8 @@ class TeamSeasonService(
     }
 
     private fun requireManager(teamId: Long, userId: Long) {
+        if (!teamSeasonRepository.lockTeam(teamId)) throw ApiException(TeamErrorCode.TEAM_NOT_FOUND)
+        teamSeasonRepository.lockSeasons(teamId)
         if (teamRepository.selectTeamById(teamId) == null) throw ApiException(TeamErrorCode.TEAM_NOT_FOUND)
         val role = teamRepository.selectActiveMemberRole(teamId, userId)
         if (role != TeamMemberRole.OWNER && role != TeamMemberRole.SUB_MANAGER) {

@@ -244,3 +244,6 @@ CREATE TABLE team_images (
     PRIMARY KEY (id),
     KEY idx_team_images_team_deleted_order (team_id, deleted_at, sort_order, id)
 );
+
+-- Season memo (2026-11-04): run only this block if team_seasons.memo does not exist.
+ALTER TABLE team_seasons ADD COLUMN memo VARCHAR(1000) NULL;

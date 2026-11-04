@@ -12,6 +12,7 @@ data class TeamSeasonRecord(
     val isDefault: Boolean,
     val sortOrder: Int,
     val createdByUserId: Long,
+    val memo: String? = null,
     val createdAt: LocalDateTime,
     val updatedAt: LocalDateTime,
 ) {
@@ -20,6 +21,7 @@ data class TeamSeasonRecord(
             id = entity.id.value,
             teamId = entity.teamId,
             name = entity.name,
+            memo = entity.memo,
             startDate = entity.startDate,
             endDate = entity.endDate,
             isDefault = entity.isDefault,

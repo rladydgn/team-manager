@@ -6,6 +6,7 @@ data class TeamSeasonCreateRequest(
     val name: String,
     val startDate: LocalDate,
     val endDate: LocalDate,
+    val memo: String? = null,
 )
 
 data class TeamSeasonOrderUpdateRequest(

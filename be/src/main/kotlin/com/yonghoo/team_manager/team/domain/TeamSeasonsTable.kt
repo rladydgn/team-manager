@@ -8,6 +8,7 @@ import java.time.LocalDateTime
 object TeamSeasonsTable : LongIdTable("team_seasons") {
     val teamId = long("team_id")
     val name = varchar("name", 50)
+    val memo = varchar("memo", 1000).nullable()
     val startDate = date("start_date")
     val endDate = date("end_date")
     val isDefault = bool("is_default").clientDefault { false }
