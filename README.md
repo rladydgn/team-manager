@@ -51,6 +51,7 @@ npm.cmd run build
 | [경기 포메이션](docs/match-formations.md) | 프리셋·편 배정·후보·버전 충돌 규칙 확인 |
 | [본인 참석 응답·대리 기능 제거](docs/match-participation.md) | 본인 투표 기준·제거 API·선택적 DB 정리 대상 확인 |
 | [자체 경기 편별 기록](docs/internal-match-records.md) | 홈/어웨이 점수·편 정정·기존 자료 전환·API/DB 변경 확인 |
+| [커뮤니티·용병 모집 초안](docs/guest-recruitment.md) | 모집글 → 신청 → 승인 → 경기 편입 흐름, 미결정 정책·데이터/API 검토안 |
 | [시즌 설정·메모](docs/team-seasons.md) | 이름·기간 수정, 삭제와 기본 시즌 대체, 팀원 공개 메모·DDL 확인 |
 | [월별 회비 상태](docs/fee-payments.md) | 납부·미납·부상·면제·휴원, 권한과 DB 적용 구분 |
 | [팀 홈 이미지](docs/team-images.md) | JPG 3장·5MB 제한, 공개 조회·순서 변경·경로 저장·DDL 확인 |
